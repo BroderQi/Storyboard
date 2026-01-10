@@ -8,10 +8,11 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using 分镜大师.Models;
-using 分镜大师.Services;
+using Storyboard.Models;
+using Storyboard.Services;
+using Storyboard.Views.Windows;
 
-namespace 分镜大师.ViewModels;
+namespace Storyboard.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
@@ -486,3 +487,4 @@ public partial class MainViewModel : ObservableObject
         ShotsRenderingCount = Shots.Count(shot => shot.IsFirstFrameGenerating || shot.IsLastFrameGenerating || shot.IsVideoGenerating);
     }
 }
+

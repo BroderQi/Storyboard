@@ -1,8 +1,8 @@
 using System.Windows;
-using 分镜大师.AI;
-using 分镜大师.AI.Core;
+using Storyboard.AI;
+using Storyboard.AI.Core;
 
-namespace 分镜大师;
+namespace Storyboard.Views.Windows;
 
 /// <summary>
 /// AI服务配置窗口

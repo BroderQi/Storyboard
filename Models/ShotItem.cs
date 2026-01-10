@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace 分镜大师.Models;
+namespace Storyboard.Models;
 
 public partial class ShotItem : ObservableObject
 {

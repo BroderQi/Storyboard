@@ -1,6 +1,6 @@
-using 分镜大师.Models;
+using Storyboard.Models;
 
-namespace 分镜大师.Services;
+namespace Storyboard.Services;
 
 public interface IVideoAnalysisService
 {

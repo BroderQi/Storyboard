@@ -1,4 +1,4 @@
-namespace 分镜大师.Services;
+namespace Storyboard.Services;
 
 public interface IImageGenerationService
 {

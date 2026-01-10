@@ -1,6 +1,6 @@
 using Microsoft.SemanticKernel;
 
-namespace 分镜大师.AI.Core;
+namespace Storyboard.AI.Core;
 
 /// <summary>
 /// AI服务提供商类型

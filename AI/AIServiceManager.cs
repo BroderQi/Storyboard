@@ -3,11 +3,11 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
-using 分镜大师.AI.Core;
-using 分镜大师.AI.Prompts;
-using 分镜大师.AI.Functions;
+using Storyboard.AI.Core;
+using Storyboard.AI.Prompts;
+using Storyboard.AI.Functions;
 
-namespace 分镜大师.AI;
+namespace Storyboard.AI;
 
 /// <summary>
 /// AI服务管理器 - 统一管理所有AI服务

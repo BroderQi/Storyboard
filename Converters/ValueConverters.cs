@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace 分镜大师.Converters;
+namespace Storyboard.Converters;
 
 public class InverseBoolConverter : IValueConverter
 {

@@ -1,4 +1,4 @@
-# 分镜大师 - WPF 应用程序
+# Storyboard - WPF 应用程序
 
 ## 功能概述
 
@@ -17,7 +17,8 @@
 ## 项目结构
 
 ```
-分镜大师/
+Storyboard/
+├── AI/                              # AI 能力与适配层
 ├── Models/                          # 数据模型
 │   ├── ShotItem.cs                 # 分镜项模型
 │   └── VideoAnalysisResult.cs      # 视频分析结果
@@ -29,13 +30,23 @@
 │   └── VideoGenerationService.cs   # 视频生成服务
 ├── Converters/                      # 值转换器
 │   └── ValueConverters.cs          # 布尔值等转换器
-├── Styles/                          # 样式资源
-│   └── DataGridStyles.xaml         # DataGrid 样式
-├── MainWindow.xaml                  # 主窗口 UI
-├── MainWindow.xaml.cs              # 主窗口代码
+├── Resources/                       # 资源字典（颜色/样式）
+│   └── Theme/
+│       ├── Colors.xaml
+│       ├── Controls.xaml
+│       └── DataGrid.xaml
+├── Views/                           # 视图层（Window/UserControl）
+│   ├── MainWindow.xaml             # 主窗口 UI
+│   ├── MainWindow.xaml.cs          # 主窗口代码
+│   └── Windows/                    # 子窗口
+│       ├── ImagePreviewWindow.xaml
+│       ├── ImagePreviewWindow.xaml.cs
+│       ├── AIConfigWindow.xaml
+│       └── AIConfigWindow.xaml.cs
 ├── App.xaml                         # 应用程序配置
 ├── App.xaml.cs                     # 应用程序代码
-└── 分镜大师.csproj                  # 项目文件
+├── appsettings.json                 # 配置文件
+└── Storyboard.csproj                  # 项目文件
 ```
 
 ## 技术栈
@@ -96,10 +107,10 @@ dotnet run
 
 也可以直接运行：
 ```powershell
-.\bin\Debug\net8.0-windows\FrameMaster.exe
+.\bin\Debug\net8.0-windows\Storyboard.exe
 ```
 
-或使用 Visual Studio 2022 打开 `分镜大师.sln` 直接运行。
+或使用 Visual Studio 2022 打开 `Storyboard.sln` 直接运行。
 
 ## 待实现功能
 

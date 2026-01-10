@@ -2,7 +2,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 
-namespace 分镜大师.AI.Core;
+namespace Storyboard.AI.Core;
 
 /// <summary>
 /// AI服务提供商基类

@@ -1,4 +1,4 @@
-<Window x:Class="分镜大师.AIConfigWindow"
+<Window x:Class="Storyboard.Views.Windows.AIConfigWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AI服务配置" Height="500" Width="700"

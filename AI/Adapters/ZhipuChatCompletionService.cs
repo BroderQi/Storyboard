@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.IO;
 
-namespace 分镜大师.AI.Adapters;
+namespace Storyboard.AI.Adapters;
 
 /// <summary>
 /// 智谱AI服务适配器

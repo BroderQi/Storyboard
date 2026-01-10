@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using 分镜大师.AI.Core;
-using 分镜大师.AI.Providers;
-using 分镜大师.AI.Prompts;
-using 分镜大师.AI.Functions;
+using Storyboard.AI.Core;
+using Storyboard.AI.Providers;
+using Storyboard.AI.Prompts;
+using Storyboard.AI.Functions;
 
-namespace 分镜大师.AI;
+namespace Storyboard.AI;
 
 /// <summary>
 /// AI服务依赖注入扩展

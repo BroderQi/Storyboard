@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace 分镜大师;
+namespace Storyboard.Views.Windows;
 
 public partial class ImagePreviewWindow : Window
 {

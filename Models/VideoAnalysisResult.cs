@@ -1,4 +1,4 @@
-namespace 分镜大师.Models;
+namespace Storyboard.Models;
 
 public class VideoAnalysisResult
 {

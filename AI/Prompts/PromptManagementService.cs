@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace 分镜大师.AI.Prompts;
+namespace Storyboard.AI.Prompts;
 
 /// <summary>
 /// 提示词管理服务

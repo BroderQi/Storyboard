@@ -3,11 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.IO;
-using 分镜大师.Services;
-using 分镜大师.ViewModels;
-using 分镜大师.AI;
+using Storyboard.Services;
+using Storyboard.ViewModels;
+using Storyboard.AI;
+using Storyboard.Views;
 
-namespace 分镜大师;
+namespace Storyboard;
 
 public partial class App : Application
 {
@@ -61,3 +62,4 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
+

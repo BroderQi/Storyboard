@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace 分镜大师.AI.Functions;
+namespace Storyboard.AI.Functions;
 
 /// <summary>
 /// DescriptionAttribute - 用于标记函数和参数的描述

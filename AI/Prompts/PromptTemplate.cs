@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.SemanticKernel;
 
-namespace 分镜大师.AI.Prompts;
+namespace Storyboard.AI.Prompts;
 
 /// <summary>
 /// 提示词模板

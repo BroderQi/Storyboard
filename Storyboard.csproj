@@ -6,9 +6,9 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>FrameMaster</AssemblyName>
-    <Product>帧大师-FrameMaster</Product>
-    <ApplicationTitle>帧大师-FrameMaster</ApplicationTitle>
+    <AssemblyName>Storyboard</AssemblyName>
+    <Product>帧大师-Storyboard</Product>
+    <ApplicationTitle>帧大师-Storyboard</ApplicationTitle>
   </PropertyGroup>
 
   <ItemGroup>

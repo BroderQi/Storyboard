@@ -2,7 +2,7 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Text.Json;
 
-namespace 分镜大师.AI.Functions;
+namespace Storyboard.AI.Functions;
 
 /// <summary>
 /// 视频分析函数插件

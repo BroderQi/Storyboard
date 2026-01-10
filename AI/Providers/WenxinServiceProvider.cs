@@ -3,10 +3,10 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
-using 分镜大师.AI.Core;
-using 分镜大师.AI.Adapters;
+using Storyboard.AI.Core;
+using Storyboard.AI.Adapters;
 
-namespace 分镜大师.AI.Providers;
+namespace Storyboard.AI.Providers;
 
 /// <summary>
 /// 文心一言服务提供商

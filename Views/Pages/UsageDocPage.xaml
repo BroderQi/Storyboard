@@ -1,0 +1,71 @@
+<UserControl x:Class="Storyboard.Views.Pages.UsageDocPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <ScrollViewer Padding="40" Background="#0F0F0F">
+        <StackPanel MaxWidth="900">
+            <TextBlock Text="📖 使用文档" FontSize="28" FontWeight="Bold" Foreground="#E0E0E0" Margin="0,0,0,24"/>
+
+            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="1. 上传视频" FontSize="18" FontWeight="SemiBold" Foreground="#0078D4" Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="0,0,0,8">
+                        点击右上角"📁 上传视频"按钮，选择需要分析的视频文件。系统支持 MP4、AVI、MOV、MKV 等常见格式。
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="2. AI 分镜分析" FontSize="18" FontWeight="SemiBold" Foreground="#0078D4" Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="0,0,0,8">
+                        上传后，AI 会自动分析视频内容，识别镜头切换点，并为每个镜头生成：
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 镜头时长</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 首帧和尾帧提示词</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 镜头类型、核心画面、动作指令</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 场景设定</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="3. 编辑分镜参数" FontSize="18" FontWeight="SemiBold" Foreground="#0078D4" Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="0,0,0,8">
+                        点击任意单元格即可编辑内容。您可以：
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 修改提示词以获得更精确的图像</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 调整镜头时长</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 选择不同的生成模型</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 拖动镜头号调整顺序</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="4. 生成图像" FontSize="18" FontWeight="SemiBold" Foreground="#0078D4" Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="0,0,0,8">
+                        点击"🎨 生成首帧"和"🎨 生成尾帧"按钮，使用 AI 生成对应的图像。生成后可以：
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 🔍 查看大图 - 在新窗口中预览完整图像</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 📂 文件位置 - 在文件管理器中打开图像所在文件夹</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="5. 生成视频" FontSize="18" FontWeight="SemiBold" Foreground="#0078D4" Margin="0,0,0,12"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="0,0,0,8">
+                        当首帧和尾帧都生成完成后，点击"🎬 生成视频"，系统会根据两帧图像和提示词生成过渡动画。生成后可以：
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• ▶ 观看视频 - 使用默认播放器播放视频</TextBlock>
+                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC" Margin="16,0,0,4">• 📂 文件位置 - 在文件管理器中打开视频所在文件夹</TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

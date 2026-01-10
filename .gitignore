@@ -1,4 +1,4 @@
-# .gitignore for 分镜大师 (WPF/C#)
+# .gitignore for Storyboard (WPF/C#)
 # Build results
 bin/
 obj/

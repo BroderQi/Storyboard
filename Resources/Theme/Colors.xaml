@@ -1,0 +1,35 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Tailwind Color Resources -->
+    <SolidColorBrush x:Key="Gray50" Color="#F9FAFB"/>
+    <SolidColorBrush x:Key="Gray100" Color="#F3F4F6"/>
+    <SolidColorBrush x:Key="Gray200" Color="#E5E7EB"/>
+    <SolidColorBrush x:Key="Gray300" Color="#D1D5DB"/>
+    <SolidColorBrush x:Key="Gray400" Color="#9CA3AF"/>
+    <SolidColorBrush x:Key="Gray500" Color="#6B7280"/>
+    <SolidColorBrush x:Key="Gray600" Color="#4B5563"/>
+    <SolidColorBrush x:Key="Slate400" Color="#94A3B8"/>
+    <SolidColorBrush x:Key="Slate600" Color="#475569"/>
+    <SolidColorBrush x:Key="Slate700" Color="#334155"/>
+    <SolidColorBrush x:Key="Slate800" Color="#1E293B"/>
+    <SolidColorBrush x:Key="Blue50" Color="#EFF6FF"/>
+    <SolidColorBrush x:Key="Blue500" Color="#3B82F6"/>
+    <SolidColorBrush x:Key="Blue600" Color="#2563EB"/>
+    <SolidColorBrush x:Key="Blue700" Color="#1D4ED8"/>
+    <SolidColorBrush x:Key="Green50" Color="#F0FDF4"/>
+    <SolidColorBrush x:Key="Green500" Color="#22C55E"/>
+    <SolidColorBrush x:Key="Green600" Color="#16A34A"/>
+    <SolidColorBrush x:Key="Green700" Color="#15803D"/>
+    <SolidColorBrush x:Key="Yellow50" Color="#FEFCE8"/>
+    <SolidColorBrush x:Key="Yellow500" Color="#EAB308"/>
+    <SolidColorBrush x:Key="Yellow700" Color="#A16207"/>
+    <SolidColorBrush x:Key="Orange50" Color="#FFF7ED"/>
+    <SolidColorBrush x:Key="Orange100" Color="#FFEDD5"/>
+    <SolidColorBrush x:Key="Orange500" Color="#F97316"/>
+    <SolidColorBrush x:Key="Orange600" Color="#EA580C"/>
+    <SolidColorBrush x:Key="Red50" Color="#FEF2F2"/>
+    <SolidColorBrush x:Key="Red500" Color="#EF4444"/>
+    <SolidColorBrush x:Key="Purple600" Color="#9333EA"/>
+
+</ResourceDictionary>

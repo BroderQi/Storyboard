@@ -1,4 +1,4 @@
-namespace 分镜大师.AI.Core;
+namespace Storyboard.AI.Core;
 
 /// <summary>
 /// AI服务配置基类

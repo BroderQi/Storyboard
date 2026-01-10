@@ -1,7 +1,7 @@
 using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 
-namespace 分镜大师.AI.Functions;
+namespace Storyboard.AI.Functions;
 
 /// <summary>
 /// Function Call管理服务

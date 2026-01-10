@@ -1,0 +1,455 @@
+<UserControl x:Class="Storyboard.Views.Pages.StoryboardPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="clr-namespace:Storyboard.Behaviors"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 工具栏 -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="16" Margin="20,20,20,20"
+                BorderBrush="{StaticResource Gray100}" BorderThickness="1">
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding UploadVideoCommand}" Margin="0,0,12,0" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="{StaticResource Blue600}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="16,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="➕" FontSize="16" Margin="0,0,8,0"/>
+                                                <TextBlock Text="添加分镜"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource Blue700}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Margin="0,0,12,0" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="{StaticResource Slate700}"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource Gray200}"/>
+                            <Setter Property="Padding" Value="16,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✨" FontSize="16" Foreground="{StaticResource Orange500}" Margin="0,0,8,0"/>
+                                                <TextBlock Text="批量生成图片"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource Gray50}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="{StaticResource Slate700}"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource Gray200}"/>
+                            <Setter Property="Padding" Value="16,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🎬" FontSize="16" Foreground="{StaticResource Purple600}" Margin="0,0,8,0"/>
+                                                <TextBlock Text="一键合成视频"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource Gray50}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- 主数据表格 -->
+        <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="1" Margin="20,0,20,16" CornerRadius="12">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid Style="{x:Null}"
+                          ItemsSource="{Binding Shots}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False"
+                          CanUserResizeRows="False"
+                          SelectionMode="Single"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          RowHeight="60"
+                          FontSize="14"
+                          ColumnHeaderHeight="44"
+                          RowHeaderWidth="0"
+                          SnapsToDevicePixels="True"
+                          FrozenColumnCount="1"
+                          Background="White"
+                          Foreground="{StaticResource Slate800}"
+                          BorderThickness="0"
+                          HorizontalGridLinesBrush="{StaticResource Gray100}"
+                          VerticalGridLinesBrush="Transparent"
+                          ColumnHeaderStyle="{StaticResource LightDataGridColumnHeaderStyle}"
+                          CellStyle="{StaticResource LightDataGridCellStyle}"
+                          RowStyle="{StaticResource LightDataGridRowStyle}"
+                          behaviors:DataGridShotReorderBehavior.IsEnabled="True">
+
+                    <DataGrid.Columns>
+                        <!-- #列（固定列） -->
+                        <DataGridTextColumn Header="#" Binding="{Binding ShotNumber}" Width="60" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="FontFamily" Value="Consolas,Courier New"/>
+                                    <Setter Property="Foreground" Value="#9CA3AF"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 画面提示词(PROMPT) -->
+                        <DataGridTextColumn Header="画面提示词 (PROMPT)" Binding="{Binding FirstFramePrompt}" Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="#334155"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 图片状态 -->
+                        <DataGridTemplateColumn Header="图片状态" Width="192">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="{StaticResource Yellow500}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding FirstFrameImagePath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                            <Setter Property="Fill" Value="{StaticResource Green500}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsFirstFrameGenerating}" Value="True">
+                                                            <Setter Property="Fill" Value="{StaticResource Blue500}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <Border CornerRadius="12" Padding="8,4">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource Yellow50}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding FirstFrameImagePath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                            <Setter Property="Background" Value="{StaticResource Green50}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsFirstFrameGenerating}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Blue50}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="12" FontWeight="Medium">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource Yellow700}"/>
+                                                        <Setter Property="Text" Value="排队中..."/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FirstFrameImagePath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                                <Setter Property="Foreground" Value="{StaticResource Green700}"/>
+                                                                <Setter Property="Text" Value="生成成功"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsFirstFrameGenerating}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource Blue700}"/>
+                                                                <Setter Property="Text" Value="生成中..."/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- 视频状态 -->
+                        <DataGridTemplateColumn Header="视频状态" Width="192">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="{StaticResource Slate600}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding GeneratedVideoPath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                            <Setter Property="Fill" Value="{StaticResource Green500}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsVideoGenerating}" Value="True">
+                                                            <Setter Property="Fill" Value="{StaticResource Blue500}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <Border CornerRadius="12" Padding="8,4">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource Gray100}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding GeneratedVideoPath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                            <Setter Property="Background" Value="{StaticResource Green50}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsVideoGenerating}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Blue50}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="12" FontWeight="Medium">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource Slate600}"/>
+                                                        <Setter Property="Text" Value="等待渲染"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding GeneratedVideoPath, Converter={StaticResource InverseBoolToVisibility}}" Value="Visible">
+                                                                <Setter Property="Foreground" Value="{StaticResource Green700}"/>
+                                                                <Setter Property="Text" Value="渲染完成"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsVideoGenerating}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource Blue700}"/>
+                                                                <Setter Property="Text" Value="渲染中..."/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- 预览与操作 -->
+                        <DataGridTemplateColumn Header="预览与操作" Width="224">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <!-- 查看按钮 -->
+                                        <Button Width="36" Height="36" Margin="0,0,8,0" Cursor="Hand"
+                                                Command="{Binding DataContext.ViewFirstFrameImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="White"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource Gray100}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="4">
+                                                                    <TextBlock Text="🔍" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Gray50}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- 播放按钮 -->
+                                        <Button Width="36" Height="36" Margin="0,0,8,0" Cursor="Hand"
+                                                Command="{Binding DataContext.PlayVideoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="White"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource Gray100}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="4">
+                                                                    <TextBlock Text="▶" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Gray50}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- 文件按钮 -->
+                                        <Button Width="36" Height="36" Margin="0,0,8,0" Cursor="Hand"
+                                                Command="{Binding DataContext.OpenFirstFrameFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="White"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource Gray100}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="4">
+                                                                    <TextBlock Text="📁" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Gray50}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- 删除按钮 -->
+                                        <Button Width="36" Height="36" Cursor="Hand">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="White"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource Gray100}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="4">
+                                                                    <TextBlock Text="🗑️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Red50}"/>
+                                                            <Setter Property="BorderBrush" Value="{StaticResource Red500}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
+        </Border>
+
+        <!-- 底部统计栏 -->
+        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="0,1,0,0" Padding="24,12" Margin="20,0,20,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Foreground="{StaticResource Slate600}" FontSize="12" Margin="0,0,24,0">
+                        <Run Text="总分镜 "/>
+                        <Run Text="{Binding Shots.Count, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource Slate800}"/>
+                    </TextBlock>
+                    <TextBlock Foreground="{StaticResource Slate600}" FontSize="12" Margin="0,0,24,0">
+                        <Run Text="已生成 "/>
+                        <Run Text="{Binding CompletedShotsCount}" FontWeight="Bold" Foreground="#16A34A"/>
+                    </TextBlock>
+                    <TextBlock Foreground="{StaticResource Slate600}" FontSize="12">
+                        <Run Text="渲染中 "/>
+                        <Run Text="{Binding ShotsRenderingCount}" FontWeight="Bold" Foreground="#F97316"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Foreground="{StaticResource Slate600}" FontSize="12">
+                        <Run Text="🖼 已生成图像 "/>
+                        <Run Text="{Binding GeneratedImagesCount}" FontWeight="Bold" Foreground="#16A34A"/>
+                    </TextBlock>
+                    <TextBlock Foreground="{StaticResource Slate600}" FontSize="12" Margin="24,0,0,0">
+                        <Run Text="🎬 已生成视频 "/>
+                        <Run Text="{Binding GeneratedVideosCount}" FontWeight="Bold" Foreground="#0078D4"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
