@@ -1,0 +1,76 @@
+<Window x:Class="分镜大师.AIConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI服务配置" Height="500" Width="700"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" 
+                   Text="AI服务提供商管理" 
+                   FontSize="20" 
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <!-- 内容区域 -->
+        <TabControl Grid.Row="1">
+            <!-- 提供商列表 -->
+            <TabItem Header="服务提供商">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" 
+                               Text="已配置的AI服务提供商："
+                               Margin="0,0,0,10"/>
+
+                    <ListBox Grid.Row="1" 
+                             x:Name="ProvidersListBox"
+                             DisplayMemberPath="DisplayName"/>
+                </Grid>
+            </TabItem>
+
+            <!-- 提示词模板 -->
+            <TabItem Header="提示词模板">
+                <Grid Margin="10">
+                    <TextBlock Text="提示词模板管理功能即将推出..."/>
+                </Grid>
+            </TabItem>
+
+            <!-- Function调用 -->
+            <TabItem Header="Function调用">
+                <Grid Margin="10">
+                    <TextBlock Text="Function调用管理功能即将推出..."/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- 底部按钮 -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Content="验证配置" 
+                    Width="100" 
+                    Height="35"
+                    Margin="0,0,10,0"
+                    Click="ValidateButton_Click"/>
+            <Button Content="测试聊天" 
+                    Width="100" 
+                    Height="35"
+                    Margin="0,0,10,0"
+                    Click="TestChatButton_Click"/>
+            <Button Content="关闭" 
+                    Width="100" 
+                    Height="35"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

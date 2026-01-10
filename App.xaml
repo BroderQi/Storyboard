@@ -1,0 +1,19 @@
+<Application x:Class="分镜大师.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Material Design (free) UI library for a modern, web-like look and future nav/layout components -->
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="LightBlue" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global typography defaults -->
+            <Style TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="NoWrap" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

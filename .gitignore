@@ -1,0 +1,36 @@
+# .gitignore for 分镜大师 (WPF/C#)
+# Build results
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+
+# Rider/JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+# NuGet Packages folder
+packages/
+# Package restore result
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Others
+*.log
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# Local settings
+appsettings.Development.json
