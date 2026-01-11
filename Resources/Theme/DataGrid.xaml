@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Light DataGrid header/cell/row styles -->
-    <Style x:Key="LightDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+    <Style x:Key="LightDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
         <Setter Property="Background" Value="#F9FAFB"/>
         <Setter Property="Foreground" Value="#6B7280"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -11,92 +11,36 @@
         <Setter Property="BorderBrush" Value="#E5E7EB"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridColumnHeader">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            Padding="{TemplateBinding Padding}">
-                        <TextBlock Text="{TemplateBinding Content}"
-                                   Foreground="#6B7280"
-                                   FontWeight="{TemplateBinding FontWeight}"
-                                   FontSize="{TemplateBinding FontSize}"
-                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                   VerticalAlignment="Center"
-                                   TextOptions.TextFormattingMode="Display"/>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
-    <Style x:Key="LightDataGridCellStyle" TargetType="DataGridCell">
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="Foreground" Value="Black"/>
+    <Style x:Key="LightDataGridCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#334155"/>
+        <Setter Property="TextElement.Foreground" Value="#334155"/>
         <Setter Property="BorderBrush" Value="#E5E7EB"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
         <Setter Property="Padding" Value="16,12"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridCell">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter VerticalAlignment="Center"
-                                          TextElement.Foreground="#334155"/>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     </Style>
 
-    <Style x:Key="LightDataGridRowStyle" TargetType="DataGridRow">
+    <Style x:Key="LightDataGridRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
         <Setter Property="Background" Value="White"/>
-        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="Foreground" Value="#334155"/>
         <Setter Property="BorderBrush" Value="#F3F4F6"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridRow">
-                    <Border x:Name="DGR_Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            SnapsToDevicePixels="True">
-                        <SelectiveScrollingGrid>
-                            <SelectiveScrollingGrid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </SelectiveScrollingGrid.ColumnDefinitions>
-                            <SelectiveScrollingGrid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </SelectiveScrollingGrid.RowDefinitions>
-                            <DataGridCellsPresenter Grid.Column="1"
-                                                    ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1"
-                                                      SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                                      Visibility="{TemplateBinding DetailsVisibility}"/>
-                            <DataGridRowHeader Grid.RowSpan="2"
-                                               SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
-                                               Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
-                        </SelectiveScrollingGrid>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="DGR_Border" Property="Background" Value="#EFF6FF4D"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="DGR_Border" Property="Background" Value="#DBEAFE"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#EFF6FF4D"/>
+                <Setter Property="Foreground" Value="#334155"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#DBEAFE"/>
+                <Setter Property="Foreground" Value="#334155"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

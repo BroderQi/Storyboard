@@ -299,6 +299,13 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void AddShot()
+    {
+        Shots.Add(new ShotItem(Shots.Count + 1));
+        RenumberShots();
+    }
+
     private void RenumberShots()
     {
         for (int i = 0; i < Shots.Count; i++)

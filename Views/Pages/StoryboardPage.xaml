@@ -31,8 +31,8 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="➕" FontSize="16" Margin="0,0,8,0"/>
-                                                <TextBlock Text="添加分镜"/>
+                                                <TextBlock Text="📤" FontSize="16" Margin="0,0,8,0"/>
+                                                <TextBlock Text="上传视频"/>
                                             </StackPanel>
                                         </Border>
                                     </ControlTemplate>
@@ -41,6 +41,38 @@
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" Value="{StaticResource Blue700}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Margin="0,0,12,0" Cursor="Hand" Command="{Binding AddShotCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="{StaticResource Slate700}"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource Gray200}"/>
+                            <Setter Property="Padding" Value="16,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="➕" FontSize="16" Margin="0,0,8,0"/>
+                                                <TextBlock Text="新增分镜"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource Gray50}"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -115,8 +147,7 @@
 
         <!-- 主数据表格 -->
         <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="1" Margin="20,0,20,16" CornerRadius="12">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid Style="{x:Null}"
+            <DataGrid Style="{x:Null}"
                           ItemsSource="{Binding Shots}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -132,6 +163,8 @@
                           RowHeaderWidth="0"
                           SnapsToDevicePixels="True"
                           FrozenColumnCount="1"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                           Background="White"
                           Foreground="{StaticResource Slate800}"
                           BorderThickness="0"
@@ -413,8 +446,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
-                </DataGrid>
-            </ScrollViewer>
+            </DataGrid>
         </Border>
 
         <!-- 任务队列/历史 -->

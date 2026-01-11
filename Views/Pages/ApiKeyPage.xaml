@@ -6,21 +6,21 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <ScrollViewer Padding="40" Background="#0F0F0F">
+    <ScrollViewer Padding="40" Background="Transparent">
         <StackPanel MaxWidth="860">
-            <TextBlock Text="🔑 AI 服务配置" FontSize="28" FontWeight="Bold" Foreground="#E0E0E0" Margin="0,0,0,18"/>
-            <TextBlock TextWrapping="Wrap" Foreground="#A0A0A0" FontSize="12" Margin="0,0,0,24">
+            <TextBlock Text="🔑 AI 服务配置" FontSize="28" FontWeight="Bold" Foreground="{StaticResource Slate800}" Margin="0,0,0,18"/>
+            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Gray500}" FontSize="12" Margin="0,0,0,24">
                 配置将写入应用目录下的 appsettings.json，并立即刷新（无需重启即可“验证配置”）。
             </TextBlock>
 
             <!-- Default Provider -->
-            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="20" Margin="0,0,0,20">
+            <Border Background="White" BorderBrush="{StaticResource Gray200}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="默认 Provider" Foreground="#E0E0E0" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <TextBlock Grid.Column="0" Text="默认 Provider" Foreground="{StaticResource Slate800}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableProviderTypes}" SelectedItem="{Binding DefaultProvider}" Height="34"/>
                 </Grid>
             </Border>
@@ -29,94 +29,98 @@
                 <!-- Qwen -->
                 <TabItem Header="通义千问 (Qwen)">
                     <StackPanel Margin="16">
-                        <CheckBox Content="启用" IsChecked="{Binding QwenEnabled}" Foreground="#E0E0E0" Margin="0,0,0,12"/>
+                        <CheckBox Content="启用" IsChecked="{Binding QwenEnabled}" Foreground="{StaticResource Slate700}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="API Key" Foreground="#E0E0E0"/>
-                        <TextBox Text="{Binding QwenApiKey}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="API Key" Foreground="{StaticResource Slate700}"/>
+                        <TextBox Text="{Binding QwenApiKey}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="默认模型" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding QwenDefaultModel}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="默认模型" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding QwenDefaultModel}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="Endpoint" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding QwenEndpoint}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="Endpoint" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding QwenEndpoint}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="超时（秒）" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding QwenTimeoutSeconds}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="超时（秒）" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding QwenTimeoutSeconds}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
                     </StackPanel>
                 </TabItem>
 
                 <!-- Wenxin -->
                 <TabItem Header="文心一言 (Wenxin)">
                     <StackPanel Margin="16">
-                        <CheckBox Content="启用" IsChecked="{Binding WenxinEnabled}" Foreground="#E0E0E0" Margin="0,0,0,12"/>
+                        <CheckBox Content="启用" IsChecked="{Binding WenxinEnabled}" Foreground="{StaticResource Slate700}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="API Key" Foreground="#E0E0E0"/>
-                        <TextBox Text="{Binding WenxinApiKey}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="API Key" Foreground="{StaticResource Slate700}"/>
+                        <TextBox Text="{Binding WenxinApiKey}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="API Secret" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding WenxinApiSecret}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="API Secret" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding WenxinApiSecret}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="默认模型" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding WenxinDefaultModel}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="默认模型" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding WenxinDefaultModel}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="Endpoint" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding WenxinEndpoint}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="Endpoint" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding WenxinEndpoint}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="超时（秒）" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding WenxinTimeoutSeconds}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="超时（秒）" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding WenxinTimeoutSeconds}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
                     </StackPanel>
                 </TabItem>
 
                 <!-- Zhipu -->
                 <TabItem Header="智谱 (Zhipu)">
                     <StackPanel Margin="16">
-                        <CheckBox Content="启用" IsChecked="{Binding ZhipuEnabled}" Foreground="#E0E0E0" Margin="0,0,0,12"/>
+                        <CheckBox Content="启用" IsChecked="{Binding ZhipuEnabled}" Foreground="{StaticResource Slate700}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="API Key" Foreground="#E0E0E0"/>
-                        <TextBox Text="{Binding ZhipuApiKey}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="API Key" Foreground="{StaticResource Slate700}"/>
+                        <TextBox Text="{Binding ZhipuApiKey}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="默认模型" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding ZhipuDefaultModel}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="默认模型" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding ZhipuDefaultModel}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="Endpoint" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding ZhipuEndpoint}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="Endpoint" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding ZhipuEndpoint}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="超时（秒）" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding ZhipuTimeoutSeconds}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="超时（秒）" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding ZhipuTimeoutSeconds}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
                     </StackPanel>
                 </TabItem>
 
                 <!-- Volcengine -->
                 <TabItem Header="火山引擎 (Volcengine)">
                     <StackPanel Margin="16">
-                        <CheckBox Content="启用" IsChecked="{Binding VolcengineEnabled}" Foreground="#E0E0E0" Margin="0,0,0,12"/>
+                        <CheckBox Content="启用" IsChecked="{Binding VolcengineEnabled}" Foreground="{StaticResource Slate700}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="API Key" Foreground="#E0E0E0"/>
-                        <TextBox Text="{Binding VolcengineApiKey}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="API Key" Foreground="{StaticResource Slate700}"/>
+                        <TextBox Text="{Binding VolcengineApiKey}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="EndpointId" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding VolcengineEndpointId}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="EndpointId" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding VolcengineEndpointId}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="默认模型" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding VolcengineDefaultModel}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="默认模型" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding VolcengineDefaultModel}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="Endpoint" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding VolcengineEndpoint}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="Endpoint" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding VolcengineEndpoint}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
 
-                        <TextBlock Text="超时（秒）" Foreground="#E0E0E0" Margin="0,12,0,0"/>
-                        <TextBox Text="{Binding VolcengineTimeoutSeconds}" Height="34" Background="#2D2D30" Foreground="#E0E0E0" BorderBrush="#3E3E42" Padding="10,6"/>
+                        <TextBlock Text="超时（秒）" Foreground="{StaticResource Slate700}" Margin="0,12,0,0"/>
+                        <TextBox Text="{Binding VolcengineTimeoutSeconds}" Height="34" Background="White" Foreground="{StaticResource Slate800}" BorderBrush="{StaticResource Gray200}" Padding="10,6"/>
                     </StackPanel>
                 </TabItem>
             </TabControl>
 
             <!-- Validation results (in-page) -->
-            <Border Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1" Padding="20" Margin="0,20,0,0">
+            <Border Background="White" BorderBrush="{StaticResource Gray200}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,20,0,0">
                 <StackPanel>
-                    <TextBlock Text="验证结果" FontSize="14" FontWeight="SemiBold" Foreground="#E0E0E0" Margin="0,0,0,12"/>
+                    <TextBlock Text="验证结果" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Slate800}" Margin="0,0,0,12"/>
 
                     <DataGrid ItemsSource="{Binding ValidationResults}" AutoGenerateColumns="False" CanUserAddRows="False"
                               HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="34"
-                              Background="#1E1E1E" Foreground="#E0E0E0" BorderThickness="0">
+                              Background="White" Foreground="{StaticResource Slate800}" BorderThickness="0"
+                              HorizontalGridLinesBrush="{StaticResource Gray100}" VerticalGridLinesBrush="Transparent"
+                              ColumnHeaderStyle="{StaticResource LightDataGridColumnHeaderStyle}"
+                              CellStyle="{StaticResource LightDataGridCellStyle}"
+                              RowStyle="{StaticResource LightDataGridRowStyle}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="时间" Binding="{Binding Timestamp, StringFormat=HH:mm:ss}" Width="120" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Provider" Binding="{Binding Provider}" Width="180" IsReadOnly="True"/>
@@ -125,7 +129,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#A0A0A0" FontSize="12" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource Slate500}" FontSize="12" Margin="0,12,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
