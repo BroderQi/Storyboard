@@ -1,0 +1,273 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Color Resources -->
+    <Styles.Resources>
+        <!-- Primary Colors -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#8b5cf6" />
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#7c3aed" />
+        <SolidColorBrush x:Key="PrimaryPressedBrush" Color="#6d28d9" />
+        
+        <!-- Background Colors -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#0a0a0a" />
+        <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="#0f0f0f" />
+        <SolidColorBrush x:Key="CardBrush" Color="#18181b" />
+        <SolidColorBrush x:Key="CardHoverBrush" Color="#27272a" />
+        <SolidColorBrush x:Key="InputBrush" Color="#1a1a1a" />
+        
+        <!-- Border Colors -->
+        <SolidColorBrush x:Key="BorderBrush" Color="#27272a" />
+        <SolidColorBrush x:Key="BorderStrongBrush" Color="#3f3f46" />
+        <SolidColorBrush x:Key="BorderHoverBrush" Color="#52525b" />
+        
+        <!-- Text Colors -->
+        <SolidColorBrush x:Key="ForegroundBrush" Color="#f5f5f5" />
+        <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="#e4e4e7" />
+        <SolidColorBrush x:Key="ForegroundMutedBrush" Color="#a1a1aa" />
+        <SolidColorBrush x:Key="ForegroundSubtleBrush" Color="#71717a" />
+        <SolidColorBrush x:Key="ForegroundDisabledBrush" Color="#52525b" />
+        
+        <!-- Status Colors -->
+        <SolidColorBrush x:Key="SuccessBrush" Color="#22c55e" />
+        <SolidColorBrush x:Key="WarningBrush" Color="#f59e0b" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="#ef4444" />
+        <SolidColorBrush x:Key="InfoBrush" Color="#3b82f6" />
+    </Styles.Resources>
+    
+    <!-- Global Window Style -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI,Microsoft YaHei,sans-serif" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Card Style -->
+    <Style Selector="Border.Card">
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Border.Card:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}" />
+    </Style>
+
+    <!-- Primary Button -->
+    <Style Selector="Button.Primary">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.Primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource PrimaryPressedBrush}" />
+    </Style>
+
+    <Style Selector="Button.Primary:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="#52525b" />
+        <Setter Property="Foreground" Value="#a1a1aa" />
+    </Style>
+
+    <!-- Secondary Button -->
+    <Style Selector="Button.Secondary">
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.Secondary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+    </Style>
+
+    <!-- Ghost Button -->
+    <Style Selector="Button.Ghost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.Ghost:pointerover">
+        <Setter Property="Background" Value="#18181b" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+
+    <Style Selector="Button.Ghost:pressed">
+        <Setter Property="Background" Value="#27272a" />
+    </Style>
+
+    <Style Selector="Button.Ghost:disabled">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundDisabledBrush}" />
+    </Style>
+
+    <!-- View Mode Toggle Button -->
+    <Style Selector="Button.ViewModeToggle">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinWidth" Value="40" />
+        <Setter Property="MinHeight" Value="32" />
+    </Style>
+
+    <Style Selector="Button.ViewModeToggle:pointerover">
+        <Setter Property="Background" Value="#27272a" />
+    </Style>
+
+    <Style Selector="Button.ViewModeToggle:disabled">
+        <Setter Property="Background" Value="#8b5cf6" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- View Mode Button Style -->
+    <Style Selector="Button.ViewMode">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMutedBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Button.ViewMode:pointerover">
+        <Setter Property="Background" Value="#18181b" />
+    </Style>
+
+    <Style Selector="Button.ViewMode:disabled">
+        <Setter Property="Background" Value="#8b5cf6" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- TextBox Style -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource InputBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}" />
+    </Style>
+
+    <!-- NumericUpDown Style -->
+    <Style Selector="NumericUpDown">
+        <Setter Property="Background" Value="{StaticResource InputBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ComboBox Style -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource InputBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- CheckBox Style -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ScrollViewer Style -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- ScrollBar Style -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="Width" Value="8" />
+    </Style>
+
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="8" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background" Value="#52525b" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb:pointerover">
+        <Setter Property="Background" Value="#71717a" />
+    </Style>
+
+    <!-- Separator Style -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="0,8" />
+    </Style>
+
+    <!-- TabControl Style -->
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundSubtleBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0,0,0,2" />
+    </Style>
+
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="Background" Value="#18181b" />
+    </Style>
+
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+</Styles>

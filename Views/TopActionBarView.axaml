@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Storyboard.ViewModels"
+             x:Class="Storyboard.Views.TopActionBarView"
+             x:DataType="vm:MainViewModel">
+
+    <Border Padding="16,0">
+        <Grid ColumnDefinitions="*,Auto">
+        
+        <!-- 左侧：当前视图标题 -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+            <TextBlock Text="分镜列表" FontSize="18" FontWeight="SemiBold" />
+            <Border Background="#27272a" CornerRadius="4" Padding="6,2">
+                <TextBlock Text="{Binding Shots.Count, StringFormat='{}{0} 个分镜'}" 
+                           FontSize="12" 
+                           Foreground="#a1a1aa" />
+            </Border>
+        </StackPanel>
+
+        <!-- 右侧：快捷操作 -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            
+            <Button Classes="Secondary" 
+                    Command="{Binding AddShotCommand}"
+                    ToolTip.Tip="添加分镜">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="16" Height="16" />
+                    <TextBlock Text="添加分镜" />
+                </StackPanel>
+            </Button>
+
+            <Button Classes="Primary"
+                    ToolTip.Tip="批量生成">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" Width="16" Height="16" />
+                    <TextBlock Text="批量生成" />
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+
+    </Grid>
+    </Border>
+
+</UserControl>

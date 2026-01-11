@@ -1,0 +1,209 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Storyboard.ViewModels"
+             xmlns:m="using:Storyboard.Models"
+             x:Class="Storyboard.Views.ProjectHistoryView"
+             x:DataType="vm:MainViewModel">
+
+    <Grid RowDefinitions="Auto,*" Background="{StaticResource BackgroundBrush}">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Padding="40,32" 
+                BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,0,1">
+            <StackPanel MaxWidth="1200" HorizontalAlignment="Center">
+                <TextBlock Text="项目历史" 
+                           FontSize="28" 
+                           FontWeight="SemiBold" 
+                           Foreground="{StaticResource ForegroundBrush}" 
+                           Margin="0,0,0,8" />
+                <TextBlock Text="选择一个项目继续工作，或创建新项目" 
+                           FontSize="14" 
+                           Foreground="{StaticResource ForegroundSubtleBrush}" />
+            </StackPanel>
+        </Border>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" Padding="40,32">
+            <StackPanel MaxWidth="1200" HorizontalAlignment="Center" Spacing="28">
+                
+                <!-- Create New Project Card -->
+                <Border Classes="Card"
+                        CornerRadius="16"
+                        Padding="28"
+                        Cursor="Hand"
+                        PointerPressed="OnCreateProjectClick">
+                    <Border.Styles>
+                        <Style Selector="Border:pointerover">
+                            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+                        </Style>
+                    </Border.Styles>
+                    
+                    <Grid ColumnDefinitions="64,*">
+                        <Border Grid.Column="0" 
+                                Width="64" 
+                                Height="64" 
+                                Background="{StaticResource CardHoverBrush}" 
+                                CornerRadius="12">
+                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" 
+                                      Width="32" 
+                                      Height="32" 
+                                      Foreground="{StaticResource PrimaryBrush}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" 
+                                    Margin="16,0,0,0" 
+                                    VerticalAlignment="Center" 
+                                    Spacing="4">
+                            <TextBlock Text="创建新项目" 
+                                       FontSize="18" 
+                                       FontWeight="SemiBold" 
+                                       Foreground="{StaticResource ForegroundBrush}" />
+                            <TextBlock Text="开始一个新的分镜故事板项目" 
+                                       FontSize="14" 
+                                       Foreground="{StaticResource ForegroundSubtleBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- Projects Grid -->
+                <ItemsControl ItemsSource="{Binding Projects}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center"
+                                       ItemWidth="368"
+                                       Margin="-8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="m:ProjectInfo">
+                            <Border Classes="Card"
+                                    CornerRadius="16"
+                                    Padding="24"
+                                    Margin="8"
+                                    Cursor="Hand"
+                                    PointerPressed="OnOpenProjectClick">
+                                <Border.Styles>
+                                    <Style Selector="Border:pointerover">
+                                        <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+                                        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+                                    </Style>
+                                </Border.Styles>
+                                
+                                <StackPanel Spacing="16">
+                                    <!-- Header -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="6">
+                                            <TextBlock Text="{Binding Name}" 
+                                                       FontSize="16" 
+                                                       FontWeight="SemiBold" 
+                                                       Foreground="{StaticResource ForegroundBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <PathIcon Data="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" 
+                                                          Width="12" 
+                                                          Height="12" 
+                                                          Foreground="{StaticResource ForegroundDisabledBrush}" />
+                                                <TextBlock Text="{Binding UpdatedTimeAgo}" 
+                                                           FontSize="12" 
+                                                           Foreground="{StaticResource ForegroundDisabledBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        
+                                        <Button Grid.Column="1" 
+                                                Classes="Ghost" 
+                                                Width="32" 
+                                                Height="32" 
+                                                Padding="0"
+                                                Click="OnDeleteProjectClick">
+                                            <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" 
+                                                      Width="14" 
+                                                      Height="14" 
+                                                      Foreground="{StaticResource ErrorBrush}" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Separator Margin="0,4" />
+                                    
+                                    <!-- Progress -->
+                                    <StackPanel Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" 
+                                                       Text="完成进度" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                            <TextBlock Grid.Column="1" 
+                                                       Text="{Binding CompletionText}" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                        </Grid>
+                                        <Border Height="6" 
+                                                Background="{StaticResource BorderBrush}" 
+                                                CornerRadius="3">
+                                            <Border Background="{StaticResource PrimaryBrush}" 
+                                                    CornerRadius="3"
+                                                    HorizontalAlignment="Left"
+                                                    Width="{Binding CompletionWidth}" />
+                                        </Border>
+                                    </StackPanel>
+                                    
+                                    <Separator Margin="0,4" />
+
+                                    <!-- Stats -->
+                                    <Grid ColumnDefinitions="*,*">
+                                        <StackPanel Grid.Column="0" 
+                                                    Orientation="Horizontal" 
+                                                    Spacing="6">
+                                            <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" 
+                                                      Width="12" 
+                                                      Height="12" 
+                                                      Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                            <TextBlock Text="{Binding ShotCountText}" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" 
+                                                    Orientation="Horizontal" 
+                                                    Spacing="6">
+                                            <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                                      Width="12" 
+                                                      Height="12" 
+                                                      Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                            <TextBlock Text="{Binding ImageCountText}" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource ForegroundSubtleBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Empty State -->
+                <StackPanel HorizontalAlignment="Center" 
+                            Spacing="16" 
+                            Margin="0,64,0,0"
+                            IsVisible="{Binding !HasProjects}">
+                    <PathIcon Data="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" 
+                              Width="64" 
+                              Height="64" 
+                          Foreground="{StaticResource BorderStrongBrush}" 
+                              HorizontalAlignment="Center" />
+                    <TextBlock Text="还没有项目" 
+                               FontSize="16" 
+                           Foreground="{StaticResource ForegroundSubtleBrush}" 
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="点击上方卡片创建你的第一个项目" 
+                               FontSize="14" 
+                           Foreground="{StaticResource ForegroundDisabledBrush}" 
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+                
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+
+</UserControl>

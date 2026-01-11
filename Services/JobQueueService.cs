@@ -8,11 +8,18 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Windows;
+using Avalonia.Threading;
 
 namespace Storyboard.Services;
 
-public sealed class JobQueueService
+public interface IJobQueueService
+{
+    ObservableCollection<GenerationJob> Jobs { get; }
+    GenerationJob Enqueue(GenerationJobType type, int? shotNumber, Func<CancellationToken, IProgress<double>, Task> runner, int maxAttempts = 2);
+    void Cancel(GenerationJob job);
+}
+
+public sealed class JobQueueService : IJobQueueService
 {
     private readonly SemaphoreSlim _concurrency;
     private readonly Channel<Guid> _channel = Channel.CreateUnbounded<Guid>(new UnboundedChannelOptions
@@ -263,17 +270,14 @@ public sealed class JobQueueService
 
     private static void OnUi(Action action)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher == null)
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
         {
             action();
-            return;
         }
-
-        if (dispatcher.CheckAccess())
-            action();
         else
-            dispatcher.Invoke(action);
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(action);
+        }
     }
 
     private sealed class GenerationJobSnapshot

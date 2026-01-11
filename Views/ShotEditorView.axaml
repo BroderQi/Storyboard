@@ -1,0 +1,395 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:Storyboard.Models"
+             x:Class="Storyboard.Views.ShotEditorView"
+             x:DataType="m:ShotItem">
+
+    <Grid RowDefinitions="Auto,*" Background="#0f0f0f">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Padding="16" 
+                BorderBrush="#27272a" 
+                BorderThickness="0,0,0,1">
+            <Grid RowDefinitions="Auto,Auto">
+                <!-- Title Row -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                    <TextBlock Grid.Column="0" 
+                               Text="{Binding ShotNumber, StringFormat='分镜 #{0}'}" 
+                               FontSize="18" 
+                               FontWeight="SemiBold" 
+                               Foreground="#f5f5f5" />
+                    <Border Grid.Column="1" 
+                            Background="#27272a" 
+                            CornerRadius="4" 
+                            Padding="8,4">
+                        <TextBlock Text="{Binding Duration, StringFormat='{}{0:F1}s'}" 
+                                   FontSize="12" 
+                                   Foreground="#f5f5f5" />
+                    </Border>
+                </Grid>
+                
+                <!-- Quick AI Actions -->
+                <Button Grid.Row="1" 
+                        Classes="Secondary" 
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding AIParseCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
+                                  Width="14" 
+                                  Height="14" />
+                        <TextBlock Text="AI 解析" FontSize="13" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Tabs Content -->
+        <TabControl Grid.Row="1" 
+                SelectedIndex="{Binding SelectedTabIndex}"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch">
+            <TabControl.Styles>
+                <Style Selector="TabControl">
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="TabItem">
+                    <Setter Property="FontSize" Value="13" />
+                    <Setter Property="Foreground" Value="#71717a" />
+                    <Setter Property="Padding" Value="16,8" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="TabItem:selected">
+                    <Setter Property="Foreground" Value="#f5f5f5" />
+                    <Setter Property="Background" Value="#18181b" />
+                </Style>
+                <Style Selector="TabItem:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#18181b" />
+                </Style>
+            </TabControl.Styles>
+            
+            <!-- Tab 1: Basic Info -->
+            <TabItem Header="基本信息">
+                <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="16">
+                        
+                        <!-- Shot Type -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="镜头类型" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <ComboBox SelectedItem="{Binding ShotType}" 
+                                      HorizontalAlignment="Stretch"
+                                      Background="#1a1a1a"
+                                      BorderBrush="#3f3f46">
+                                <ComboBoxItem Content="远景" />
+                                <ComboBoxItem Content="全景" />
+                                <ComboBoxItem Content="中景" />
+                                <ComboBoxItem Content="近景" />
+                                <ComboBoxItem Content="特写" />
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Duration -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="时长 (秒)" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <NumericUpDown Value="{Binding Duration}" 
+                                           Minimum="0.5" 
+                                           Maximum="60" 
+                                           Increment="0.5" 
+                                           FormatString="F1"
+                                           Background="#1a1a1a"
+                                           BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <!-- Core Scene -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="核心画面" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <TextBox Text="{Binding CoreContent}" 
+                                     AcceptsReturn="True" 
+                                     TextWrapping="Wrap" 
+                                     MinHeight="96"
+                                     Watermark="描述镜头的核心画面内容"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <!-- Action Instruction -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="动作指令" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <TextBox Text="{Binding ActionCommand}" 
+                                     AcceptsReturn="True" 
+                                     TextWrapping="Wrap" 
+                                     MinHeight="96"
+                                     Watermark="描述镜头中的动作和运动"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <!-- Scene Setup -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="场景设定" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <TextBox Text="{Binding SceneSettings}" 
+                                     AcceptsReturn="True" 
+                                     TextWrapping="Wrap" 
+                                     MinHeight="96"
+                                     Watermark="时间、地点、光线、环境等"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <!-- First Frame Prompt -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="首帧提示词" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <TextBox Text="{Binding FirstFramePrompt}" 
+                                     AcceptsReturn="True" 
+                                     TextWrapping="Wrap" 
+                                     MinHeight="120"
+                                     Watermark="首帧图片生成提示词"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <!-- Last Frame Prompt -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="尾帧提示词" 
+                                       FontSize="13" 
+                                       Foreground="#f5f5f5" 
+                                       FontWeight="Medium" />
+                            <TextBox Text="{Binding LastFramePrompt}" 
+                                     AcceptsReturn="True" 
+                                     TextWrapping="Wrap" 
+                                     MinHeight="120"
+                                     Watermark="尾帧图片生成提示词"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46" />
+                        </StackPanel>
+
+                        <Border Height="80" Background="Transparent" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 2: Image Generation -->
+            <TabItem Header="图片生成">
+                <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="16">
+                        
+                        <!-- First Frame Section -->
+                        <Border Background="#18181b" 
+                                BorderBrush="#27272a" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="首帧图片" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="#f5f5f5" />
+                                
+                                <!-- Current Image -->
+                                <Border Background="#0a0a0a" 
+                                        BorderBrush="#3f3f46" 
+                                        BorderThickness="1" 
+                                        CornerRadius="6"
+                                        Height="200"
+                                        ClipToBounds="True">
+                                    <Panel>
+                                        <Image Source="{Binding FirstFrameImagePath}" 
+                                               Stretch="UniformToFill"
+                                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock Text="暂无图片" 
+                                                   Foreground="#52525b" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                    </Panel>
+                                </Border>
+                                
+                                <!-- Actions -->
+                                <Grid ColumnDefinitions="*,*">
+                                    <Button Grid.Column="0" 
+                                            Classes="Secondary" 
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,0,4,0"
+                                            Command="{Binding GenerateFirstFrameCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
+                                                      Width="12" 
+                                                      Height="12" />
+                                            <TextBlock Text="生成" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="1" 
+                                            Classes="Secondary" 
+                                            HorizontalAlignment="Stretch"
+                                            Margin="4,0,0,0"
+                                            Command="{Binding RegenerateFirstFrameCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                            <PathIcon Data="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" 
+                                                      Width="12" 
+                                                      Height="12" />
+                                            <TextBlock Text="重新生成" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Last Frame Section -->
+                        <Border Background="#18181b" 
+                                BorderBrush="#27272a" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="尾帧图片" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="#f5f5f5" />
+                                
+                                <!-- Current Image -->
+                                <Border Background="#0a0a0a" 
+                                        BorderBrush="#3f3f46" 
+                                        BorderThickness="1" 
+                                        CornerRadius="6"
+                                        Height="200"
+                                        ClipToBounds="True">
+                                    <Panel>
+                                        <Image Source="{Binding LastFrameImagePath}" 
+                                               Stretch="UniformToFill"
+                                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <TextBlock Text="暂无图片" 
+                                                   Foreground="#52525b" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                    </Panel>
+                                </Border>
+                                
+                                <!-- Actions -->
+                                <Grid ColumnDefinitions="*,*">
+                                    <Button Grid.Column="0" 
+                                            Classes="Secondary" 
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,0,4,0"
+                                            Command="{Binding GenerateLastFrameCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
+                                                      Width="12" 
+                                                      Height="12" />
+                                            <TextBlock Text="生成" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="1" 
+                                            Classes="Secondary" 
+                                            HorizontalAlignment="Stretch"
+                                            Margin="4,0,0,0"
+                                            Command="{Binding RegenerateLastFrameCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                            <PathIcon Data="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" 
+                                                      Width="12" 
+                                                      Height="12" />
+                                            <TextBlock Text="重新生成" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Height="80" Background="Transparent" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab 3: Video Generation -->
+            <TabItem Header="视频生成">
+                <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
+                    <StackPanel Spacing="16">
+                        
+                        <!-- Video Preview -->
+                        <Border Background="#18181b" 
+                                BorderBrush="#27272a" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="视频预览" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="#f5f5f5" />
+                                
+                                <Border Background="#0a0a0a" 
+                                        BorderBrush="#3f3f46" 
+                                        BorderThickness="1" 
+                                        CornerRadius="6"
+                                        Height="240"
+                                        ClipToBounds="True">
+                                    <Panel>
+                                        <!-- Video player would go here -->
+                                        <TextBlock Text="视频播放器" 
+                                                   Foreground="#52525b" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                    </Panel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Generation Settings -->
+                        <Border Background="#18181b" 
+                                BorderBrush="#27272a" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="生成设置" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold" 
+                                           Foreground="#f5f5f5" />
+                                
+                                <TextBlock Text="需要首帧和尾帧图片才能生成视频" 
+                                           FontSize="12" 
+                                           Foreground="#71717a" 
+                                           IsVisible="{Binding !CanGenerateVideo}" />
+                                
+                                <Button Classes="Primary" 
+                                        HorizontalAlignment="Stretch"
+                                        IsEnabled="{Binding CanGenerateVideo}"
+                                        Command="{Binding GenerateVideoCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                        <PathIcon Data="M8 5v14l11-7z" 
+                                                  Width="14" 
+                                                  Height="14" />
+                                        <TextBlock Text="生成视频" FontSize="13" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Height="80" Background="Transparent" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+
+</UserControl>

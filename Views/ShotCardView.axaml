@@ -1,0 +1,355 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:Storyboard.Models"
+             x:Class="Storyboard.Views.ShotCardView"
+             x:DataType="m:ShotItem">
+
+        <Border x:Name="RootBorder"
+            Background="#27272a" 
+            BorderBrush="#3f3f46" 
+            BorderThickness="1" 
+            CornerRadius="8" 
+            Padding="16" 
+            Cursor="Hand"
+            PointerPressed="OnCardClicked">
+        <Border.Styles>
+            <Style Selector="Border:pointerover">
+                <Setter Property="BorderBrush" Value="#52525b" />
+            </Style>
+
+            <!-- Smooth feedback during drag -->
+            <Style Selector="Border">
+                <Setter Property="Transitions">
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                    </Transitions>
+                </Setter>
+            </Style>
+
+            <Style Selector="Border.dragging">
+                <Setter Property="Opacity" Value="0.75" />
+                <Setter Property="BorderBrush" Value="#8b5cf6" />
+            </Style>
+
+            <Style Selector="Border.drop-target">
+                <Setter Property="BorderBrush" Value="#8b5cf6" />
+            </Style>
+
+            <!-- Brief highlight on successful drop -->
+            <Style Selector="Border.drop-flash">
+                <Setter Property="BorderBrush" Value="#a78bfa" />
+                <Setter Property="Opacity" Value="0.9" />
+            </Style>
+        </Border.Styles>
+
+        <Panel>
+            <!-- Dragging hint (shown while dragging this card) -->
+            <Border x:Name="DraggingPill"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,-6,-6,0"
+                    Background="#18181b"
+                    BorderBrush="#8b5cf6"
+                    BorderThickness="1"
+                    CornerRadius="999"
+                    Padding="10,4"
+                    Opacity="0"
+                    IsHitTestVisible="False">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.10" />
+                    </Transitions>
+                </Border.Transitions>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 5h2v6h-2V7zm0 8h2v2h-2v-2z"
+                              Width="14" Height="14" Foreground="#8b5cf6" />
+                    <TextBlock Text="拖拽中"
+                               FontSize="12"
+                               Foreground="#f5f5f5" />
+                </StackPanel>
+            </Border>
+
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+            
+            <!-- Row 0: Header - Shot Number, Type, Duration, Actions -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                <!-- Left: Shot Info -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <!-- Drag Handle -->
+                    <PathIcon Data="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.11 0-2 .9-2 2s.89 2 2 2 2-.9 2-2-.89-2-2-2zm0-6c-1.11 0-2 .9-2 2s.89 2 2 2 2-.9 2-2-.89-2-2-2zm6 4c1.11 0 2-.9 2-2s-.89-2-2-2-2 .9-2 2 .89 2 2 2zm0 2c-1.11 0-2 .9-2 2s.89 2 2 2 2-.9 2-2-.89-2-2-2zm0 6c-1.11 0-2 .9-2 2s.89 2 2 2 2-.9 2-2-.89-2-2-2z" 
+                              Width="18" 
+                              Height="18" 
+                              Foreground="#71717a" 
+                              Cursor="SizeAll"
+                              PointerPressed="OnDragHandlePressed"
+                              PointerMoved="OnDragHandleMoved"
+                              PointerReleased="OnDragHandleReleased"
+                              PointerCaptureLost="OnDragHandleCaptureLost"
+                              VerticalAlignment="Center" />
+                    
+                    <!-- Checkbox -->
+                    <CheckBox IsChecked="{Binding IsChecked}" 
+                              VerticalAlignment="Center"
+                              Margin="0"
+                              Padding="0" />
+                    
+                    <!-- Shot Number -->
+                    <TextBlock Text="{Binding ShotNumber, StringFormat='#{0}'}" 
+                               FontSize="16" 
+                               FontWeight="SemiBold" 
+                               Foreground="#8b5cf6" 
+                               VerticalAlignment="Center" />
+                    
+                    <!-- Shot Type Badge -->
+                    <Border Background="#27272a" 
+                            CornerRadius="4" 
+                            Padding="8,2" 
+                            IsVisible="{Binding ShotType, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding ShotType}" 
+                                   FontSize="12" 
+                                   Foreground="#f5f5f5" />
+                    </Border>
+                    
+                    <!-- Duration -->
+                    <TextBlock Text="{Binding Duration, StringFormat='{}{0:F1}s'}" 
+                               FontSize="12" 
+                               Foreground="#a1a1aa" 
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Right: Action Buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <Button Classes="Ghost" 
+                            Width="32" 
+                            Height="32" 
+                            Padding="0"
+                            ToolTip.Tip="复制"
+                            Command="{Binding DuplicateCommand}">
+                        <PathIcon Data="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" 
+                                  Width="14" 
+                                  Height="14" 
+                                  Foreground="#a1a1aa" />
+                    </Button>
+                    <Button Classes="Ghost" 
+                            Width="32" 
+                            Height="32" 
+                            Padding="0"
+                            ToolTip.Tip="删除"
+                            Command="{Binding DeleteCommand}">
+                        <PathIcon Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" 
+                                  Width="14" 
+                                  Height="14" 
+                                  Foreground="#ef4444" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Row 1: Core Scene Description -->
+            <TextBlock Grid.Row="1" 
+                       Text="{Binding CoreContent}" 
+                       FontSize="14" 
+                       Foreground="#e4e4e7" 
+                       TextWrapping="Wrap" 
+                       MaxLines="2"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,0,0,12"
+                       IsVisible="{Binding CoreContent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <!-- Row 2: Thumbnails Grid -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,8,*" Margin="0,0,0,12">
+                
+                <!-- First Frame -->
+                <Border Grid.Column="0" 
+                        Background="#0a0a0a" 
+                        BorderBrush="#3f3f46" 
+                        BorderThickness="1" 
+                        CornerRadius="6"
+                        ClipToBounds="True">
+                    <Border.Styles>
+                        <Style Selector="Border">
+                            <Setter Property="Height" Value="120" />
+                        </Style>
+                    </Border.Styles>
+                    <Panel>
+                        <!-- Image -->
+                        <Image Source="{Binding FirstFrameImagePath}" 
+                               Stretch="UniformToFill"
+                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        
+                        <!-- Placeholder -->
+                        <StackPanel HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                            <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                      Width="32" 
+                                      Height="32" 
+                                      Foreground="#3f3f46" />
+                            <TextBlock Text="首帧" 
+                                       FontSize="11" 
+                                       Foreground="#52525b" 
+                                       Margin="0,8,0,0"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Generating Overlay -->
+                        <Border Background="#000000cc" 
+                                IsVisible="{Binding IsFirstFrameGenerating}">
+                            <StackPanel HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Spacing="8">
+                                <!-- Spinning loader using CSS-style animation approach -->
+                                <Border Width="24" 
+                                        Height="24" 
+                                        BorderBrush="Transparent" 
+                                        BorderThickness="3"
+                                        CornerRadius="12">
+                                    <Border.Styles>
+                                        <Style Selector="Border">
+                                            <Style.Animations>
+                                                <Animation Duration="0:0:1" IterationCount="Infinite">
+                                                    <KeyFrame Cue="0%">
+                                                        <Setter Property="BorderBrush" Value="#8b5cf6" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="33%">
+                                                        <Setter Property="BorderBrush" Value="#7c3aed" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="66%">
+                                                        <Setter Property="BorderBrush" Value="#6d28d9" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="100%">
+                                                        <Setter Property="BorderBrush" Value="#8b5cf6" />
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                    </Border.Styles>
+                                </Border>
+                                <TextBlock Text="生成中..." 
+                                           FontSize="11" 
+                                           Foreground="#f5f5f5" />
+                            </StackPanel>
+                        </Border>
+                    </Panel>
+                </Border>
+
+                <!-- Last Frame -->
+                <Border Grid.Column="2" 
+                        Background="#0a0a0a" 
+                        BorderBrush="#3f3f46" 
+                        BorderThickness="1" 
+                        CornerRadius="6"
+                        ClipToBounds="True">
+                    <Border.Styles>
+                        <Style Selector="Border">
+                            <Setter Property="Height" Value="120" />
+                        </Style>
+                    </Border.Styles>
+                    <Panel>
+                        <!-- Image -->
+                        <Image Source="{Binding LastFrameImagePath}" 
+                               Stretch="UniformToFill"
+                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        
+                        <!-- Placeholder -->
+                        <StackPanel HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                            <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                      Width="32" 
+                                      Height="32" 
+                                      Foreground="#3f3f46" />
+                            <TextBlock Text="尾帧" 
+                                       FontSize="11" 
+                                       Foreground="#52525b" 
+                                       Margin="0,8,0,0"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Generating Overlay -->
+                        <Border Background="#000000cc" 
+                                IsVisible="{Binding IsLastFrameGenerating}">
+                            <StackPanel HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        Spacing="8">
+                                <!-- Spinning loader using color animation -->
+                                <Border Width="24" 
+                                        Height="24" 
+                                        BorderBrush="Transparent" 
+                                        BorderThickness="3"
+                                        CornerRadius="12">
+                                    <Border.Styles>
+                                        <Style Selector="Border">
+                                            <Style.Animations>
+                                                <Animation Duration="0:0:1" IterationCount="Infinite">
+                                                    <KeyFrame Cue="0%">
+                                                        <Setter Property="BorderBrush" Value="#8b5cf6" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="33%">
+                                                        <Setter Property="BorderBrush" Value="#7c3aed" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="66%">
+                                                        <Setter Property="BorderBrush" Value="#6d28d9" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="100%">
+                                                        <Setter Property="BorderBrush" Value="#8b5cf6" />
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                    </Border.Styles>
+                                </Border>
+                                <TextBlock Text="生成中..." 
+                                           FontSize="11" 
+                                           Foreground="#f5f5f5" />
+                            </StackPanel>
+                        </Border>
+                    </Panel>
+                </Border>
+
+            </Grid>
+
+            <!-- Row 3: Status Indicators -->
+            <StackPanel Grid.Row="3" 
+                        Orientation="Horizontal" 
+                        Spacing="12"
+                        Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal" 
+                            Spacing="4"
+                            IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                              Width="14" 
+                              Height="14" 
+                              Foreground="#22c55e" />
+                    <TextBlock Text="首帧" 
+                               FontSize="12" 
+                               Foreground="#22c55e" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" 
+                            Spacing="4"
+                            IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                              Width="14" 
+                              Height="14" 
+                              Foreground="#22c55e" />
+                    <TextBlock Text="尾帧" 
+                               FontSize="12" 
+                               Foreground="#22c55e" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" 
+                            Spacing="4"
+                            IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" 
+                                      Width="14" 
+                                      Height="14" 
+                                      Foreground="#3b82f6" />
+                    <TextBlock Text="成品" 
+                               FontSize="12" 
+                               Foreground="#3b82f6" />
+                </StackPanel>
+            </StackPanel>
+
+            </Grid>
+        </Panel>
+    </Border>
+
+</UserControl>

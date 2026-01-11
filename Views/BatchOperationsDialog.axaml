@@ -1,0 +1,192 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Storyboard.ViewModels"
+        x:Class="Storyboard.Views.BatchOperationsDialog"
+        x:DataType="vm:BatchOperationsViewModel"
+        Title="批量操作"
+        Width="1100"
+        Height="650"
+        WindowStartupLocation="CenterOwner"
+        Background="#0a0a0a"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="批量操作"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="#f5f5f5" />
+        </StackPanel>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+
+            <!-- Left: Shot selection + operations -->
+            <Grid Grid.Column="0" Margin="0,0,12,0" RowDefinitions="Auto,*,Auto,Auto">
+
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+                    <TextBlock Grid.Column="0"
+                               Text="选择分镜"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#f5f5f5"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Classes="Ghost"
+                            Content="全选"
+                            Margin="0,0,8,0"
+                            Command="{Binding SelectAllCommand}" />
+                    <Button Grid.Column="2"
+                            Classes="Ghost"
+                            Content="取消"
+                            Command="{Binding DeselectAllCommand}" />
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Background="#0a0a0a"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                    Padding="12"
+                    Margin="0,0,0,16">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Shots}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10"
+                                            Margin="0,0,0,8"
+                                            Background="#18181b"
+                                            BorderBrush="#27272a"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" />
+                                            <StackPanel Spacing="2">
+                                                <TextBlock FontWeight="SemiBold" Foreground="#f5f5f5">
+                                                    <Run Text="分镜 #" />
+                                                    <Run Text="{Binding ShotNumber}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding CoreContent}"
+                                                           FontSize="12"
+                                                           Foreground="#a1a1aa"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <StackPanel Grid.Row="2" Spacing="8" Margin="0,0,0,16">
+                    <TextBlock Text="选择操作"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#f5f5f5" />
+                    <Border Background="#0a0a0a"
+                            BorderBrush="#27272a"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <StackPanel Spacing="10">
+                            <CheckBox IsChecked="{Binding Parse}" Content="AI 解析" Foreground="#f5f5f5" />
+                            <CheckBox IsChecked="{Binding ImageFirst}" Content="生成首帧图" Foreground="#f5f5f5" />
+                            <CheckBox IsChecked="{Binding ImageLast}" Content="生成尾帧图" Foreground="#f5f5f5" />
+                            <CheckBox IsChecked="{Binding Video}" Content="生成视频" Foreground="#f5f5f5" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <Button Grid.Row="3"
+                        Classes="Primary"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding StartCommand}"
+                        IsEnabled="{Binding CanStart}">
+                    <Grid>
+                        <TextBlock Text="执行中..." IsVisible="{Binding IsRunning}" />
+                        <TextBlock Text="开始批量操作" IsVisible="{Binding !IsRunning}" />
+                    </Grid>
+                </Button>
+
+            </Grid>
+
+            <!-- Right: Progress -->
+            <Grid Grid.Column="1" Margin="12,0,0,0" RowDefinitions="Auto,Auto,*">
+
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                    <TextBlock Grid.Column="0"
+                               Text="执行进度"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#f5f5f5"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding CompletedTasksText}"
+                               Foreground="#a1a1aa"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding HasTasks}" />
+                </Grid>
+
+                <StackPanel Grid.Row="1" Spacing="6" IsVisible="{Binding HasTasks}" Margin="0,0,0,16">
+                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding OverallProgressPercent}" Height="6" />
+                    <TextBlock Text="{Binding OverallProgressText}" FontSize="12" Foreground="#a1a1aa" HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <Border Grid.Row="2"
+                        Background="#0a0a0a"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <TextBlock Text="选择分镜和操作后&#10;点击开始执行"
+                                       Foreground="#71717a"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       IsVisible="{Binding !HasTasks}" />
+
+                            <ItemsControl ItemsSource="{Binding Tasks}" IsVisible="{Binding HasTasks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#18181b"
+                                                BorderBrush="#27272a"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="12"
+                                                Margin="0,0,0,8">
+                                            <StackPanel Spacing="8">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="#f5f5f5" FontWeight="SemiBold" />
+                                                    <Border Grid.Column="1" Background="#27272a" CornerRadius="12" Padding="10,3">
+                                                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#e4e4e7" />
+                                                    </Border>
+                                                </Grid>
+                                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" Height="4" IsVisible="{Binding IsRunning}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
+
+            </Grid>
+        </Grid>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                <Run Text="已选择 " Foreground="#a1a1aa" />
+                <Run Text="{Binding SelectedShotsCountText}" Foreground="#f5f5f5" FontWeight="SemiBold" />
+            </TextBlock>
+            <Button Grid.Column="1" Classes="Secondary" Content="关闭" Width="100" Command="{Binding CancelCommand}" />
+        </Grid>
+
+    </Grid>
+</Window>

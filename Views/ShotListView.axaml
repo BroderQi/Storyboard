@@ -1,0 +1,205 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Storyboard.ViewModels"
+             xmlns:m="using:Storyboard.Models"
+             xmlns:v="using:Storyboard.Views"
+             x:Class="Storyboard.Views.ShotListView"
+             x:DataType="vm:MainViewModel">
+
+    <Grid RowDefinitions="56,*" Background="#0a0a0a">
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" 
+                Background="#0f0f0f" 
+                BorderBrush="#27272a" 
+                BorderThickness="0,0,0,1"
+                Padding="16,0">
+            <Grid ColumnDefinitions="*,Auto">
+                
+                <!-- Left: Title and Count -->
+                <StackPanel Grid.Column="0" 
+                            Orientation="Horizontal" 
+                            Spacing="12" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="分镜列表" 
+                               FontSize="14" 
+                               FontWeight="Medium" 
+                               Foreground="#f5f5f5" />
+                    <Border Background="#27272a" 
+                            CornerRadius="4" 
+                            Padding="8,4">
+                        <TextBlock Text="{Binding Shots.Count, StringFormat='({0})'}" 
+                                   FontSize="12" 
+                                   Foreground="#71717a" />
+                    </Border>
+                    
+                    <!-- Selection Count -->
+                    <TextBlock Text="{Binding SelectedShotsCountText}" 
+                               FontSize="12" 
+                               Foreground="#71717a" 
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding HasSelectedShots}" />
+                </StackPanel>
+                
+                <!-- Right: Actions -->
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal" 
+                            Spacing="8" 
+                            VerticalAlignment="Center">
+                    
+                    <!-- Text to Shot Dialog -->
+                    <Button Classes="Secondary" 
+                            Command="{Binding ShowTextToShotDialogCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
+                                      Width="14" 
+                                      Height="14" />
+                            <TextBlock Text="文本生成分镜" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Add Shot -->
+                    <Button Classes="Secondary" 
+                            Command="{Binding AddShotCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" 
+                                      Width="14" 
+                                      Height="14" />
+                            <TextBlock Text="新建分镜" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- View Mode Toggle -->
+                    <Border BorderBrush="#3f3f46" 
+                            BorderThickness="1" 
+                            CornerRadius="6"
+                            Background="#1a1a1a">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Classes="ViewModeToggle" 
+                                    IsEnabled="{Binding !IsGridView}"
+                                    Command="{Binding SetGridViewCommand}"
+                                    CornerRadius="6,0,0,6">
+                                <PathIcon Data="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z" 
+                                          Width="14" 
+                                          Height="14" />
+                            </Button>
+                            <Button Classes="ViewModeToggle" 
+                                    IsEnabled="{Binding !IsListView}"
+                                    Command="{Binding SetListViewCommand}"
+                                    CornerRadius="0,6,6,0">
+                                <PathIcon Data="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" 
+                                          Width="14" 
+                                          Height="14" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Shot Cards -->
+        <Grid Grid.Row="1">
+            <!-- Empty State -->
+            <Border IsVisible="{Binding !HasShots}">
+                <StackPanel HorizontalAlignment="Center" 
+                            VerticalAlignment="Center" 
+                            Spacing="16">
+                    <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" 
+                              Width="64" 
+                              Height="64" 
+                              Foreground="#27272a" 
+                              Opacity="0.3" />
+                    <TextBlock Text="暂无分镜" 
+                               FontSize="16" 
+                               Foreground="#71717a" 
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="导入视频抽帧，或手动创建分镜" 
+                               FontSize="14" 
+                               Foreground="#52525b" 
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Grid View -->
+            <ScrollViewer x:Name="GridScrollViewer"
+                          IsVisible="{Binding IsGridView}" 
+                          Padding="16,16,16,64"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="GridItemsControl" ItemsSource="{Binding Shots}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:ShotItem">
+                            <v:ShotCardView DataContext="{Binding}" 
+                                            Margin="8" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- List View -->
+            <ScrollViewer x:Name="ListScrollViewer"
+                          IsVisible="{Binding IsListView}" 
+                          Padding="16,16,16,64"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="ListItemsControl" ItemsSource="{Binding Shots}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:ShotItem">
+                            <v:ShotCardView DataContext="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Drag overlay (ghost + indicators) -->
+            <Canvas x:Name="DragOverlay" IsHitTestVisible="False">
+                <Border x:Name="DragTargetHighlight"
+                        Opacity="0"
+                        Background="Transparent"
+                        BorderBrush="#8b5cf6"
+                        BorderThickness="2"
+                        CornerRadius="8">
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.10" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+
+                <Border x:Name="DragInsertLine"
+                        Height="2"
+                        Opacity="0"
+                        Background="#8b5cf6">
+                    <Border.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.10" />
+                        </Transitions>
+                    </Border.Transitions>
+                </Border>
+
+                <ContentPresenter x:Name="DragGhostHost"
+                                  Opacity="0"
+                                  IsHitTestVisible="False">
+                    <ContentPresenter.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.08" />
+                        </Transitions>
+                    </ContentPresenter.Transitions>
+                </ContentPresenter>
+            </Canvas>
+        </Grid>
+    </Grid>
+
+</UserControl>

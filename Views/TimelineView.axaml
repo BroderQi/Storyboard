@@ -1,0 +1,259 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Storyboard.ViewModels"
+             xmlns:m="using:Storyboard.Models"
+             xmlns:conv="using:Storyboard.Converters"
+             x:Class="Storyboard.Views.TimelineView"
+             x:DataType="vm:MainViewModel">
+
+    <UserControl.Resources>
+        <conv:TimelineShotBorderBrushConverter x:Key="TimelineShotBorderBrushConverter" />
+        <conv:TimelineShotBackgroundBrushConverter x:Key="TimelineShotBackgroundBrushConverter" />
+        <conv:TimelineShotZIndexConverter x:Key="TimelineShotZIndexConverter" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="48,*" Background="#0a0a0a">
+        
+        <!-- Timeline Header -->
+        <Border Grid.Row="0" 
+            Background="#800f0f0f" 
+                BorderBrush="#27272a" 
+                BorderThickness="0,0,0,1"
+                Padding="16,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" 
+                            Orientation="Horizontal" 
+                            Spacing="12" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="时间轴视图" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Foreground="#f5f5f5" />
+                    <Border Background="#27272a" 
+                            CornerRadius="4" 
+                            Padding="8,4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Shots.Count}" 
+                                       FontSize="12" 
+                                       Foreground="#f5f5f5" />
+                            <TextBlock Text="个分镜 ·" 
+                                       FontSize="12" 
+                                       Foreground="#71717a" />
+                            <TextBlock Text="{Binding TotalDuration, StringFormat='{}{0:F1}s'}" 
+                                       FontSize="12" 
+                                       Foreground="#f5f5f5" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal" 
+                            Spacing="6" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="缩放:" 
+                               FontSize="12" 
+                               Foreground="#a1a1aa" 
+                               VerticalAlignment="Center" />
+
+                    <Slider Minimum="10"
+                        Maximum="200"
+                        Width="160"
+                        Value="{Binding TimelinePixelsPerSecond, Mode=TwoWay}" />
+
+                    <TextBlock Text="{Binding TimelinePixelsPerSecond, StringFormat='{}{0:0}px/s'}" 
+                           FontSize="12" 
+                           Foreground="#a1a1aa" 
+                           VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Timeline Canvas -->
+        <ScrollViewer Grid.Row="1" 
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Disabled">
+            <Canvas Width="{Binding TimelineWidth}" 
+                    Height="200" 
+                    Background="#0a0a0a"
+                    Margin="16">
+
+                <!-- Ruler baseline (React: h-8 mb-4 border-b) -->
+                <Border Width="{Binding TimelineWidth}"
+                        Height="32"
+                        BorderBrush="#27272a"
+                        BorderThickness="0,0,0,1" />
+                
+                <!-- Time Markers -->
+                <ItemsControl ItemsSource="{Binding TimeMarkers}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Canvas.Left="{Binding Position}">
+                                <Border Width="1" 
+                                        Height="8" 
+                                        Background="#52525b" />
+                                <TextBlock Text="{Binding TimeText}" 
+                                           FontSize="10" 
+                                           Foreground="#71717a" 
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Timeline Shots -->
+                <ItemsControl ItemsSource="{Binding Shots}" 
+                              Canvas.Top="32">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Height="128" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:ShotItem">
+                            <Border Canvas.Left="{Binding TimelineStartPosition}" 
+                                    Width="{Binding TimelineWidth}" 
+                                    Height="128"
+                                    PointerPressed="OnShotPointerPressed"
+                                    PointerEntered="OnShotPointerEntered"
+                                    PointerExited="OnShotPointerExited"
+                                    Cursor="Hand"
+                                    BorderThickness="2" 
+                                    CornerRadius="8"
+                                    Padding="8">
+
+                                <Border.BorderBrush>
+                                    <MultiBinding Converter="{StaticResource TimelineShotBorderBrushConverter}">
+                                        <Binding Path="IsSelected" />
+                                        <Binding Path="IsHovered" />
+                                    </MultiBinding>
+                                </Border.BorderBrush>
+                                <Border.Background>
+                                    <MultiBinding Converter="{StaticResource TimelineShotBackgroundBrushConverter}">
+                                        <Binding Path="IsSelected" />
+                                        <Binding Path="IsHovered" />
+                                    </MultiBinding>
+                                </Border.Background>
+
+                                <Panel.ZIndex>
+                                    <MultiBinding Converter="{StaticResource TimelineShotZIndexConverter}">
+                                        <Binding Path="IsSelected" />
+                                        <Binding Path="IsHovered" />
+                                    </MultiBinding>
+                                </Panel.ZIndex>
+                                
+                                <Grid RowDefinitions="Auto,Auto,*,Auto">
+                                    <!-- Shot Number and Duration -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="{Binding ShotNumber, StringFormat='#{0}'}" 
+                                                   FontSize="12" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#f5f5f5" />
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding Duration, StringFormat='{}{0:F1}s'}" 
+                                                   FontSize="10" 
+                                                   Foreground="#71717a" />
+                                    </Grid>
+                                    
+                                    <!-- Shot Type Badge -->
+                                    <Border Grid.Row="1" 
+                                            Background="#27272a" 
+                                            CornerRadius="3" 
+                                            Padding="6,2" 
+                                            HorizontalAlignment="Left"
+                                            Margin="0,4,0,0"
+                                            IsVisible="{Binding ShotType, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <TextBlock Text="{Binding ShotType}" 
+                                                   FontSize="10" 
+                                                   Foreground="#f5f5f5" />
+                                    </Border>
+                                    
+                                    <!-- Thumbnails -->
+                                    <Grid Grid.Row="2" 
+                                          ColumnDefinitions="*,4,*" 
+                                          Margin="0,4,0,0">
+                                        <!-- First Frame -->
+                                        <Border Grid.Column="0" 
+                                                Background="#0a0a0a" 
+                                                CornerRadius="4">
+                                            <Panel>
+                                                <Image Source="{Binding FirstFrameImagePath}" 
+                                                       Stretch="UniformToFill"
+                                                       IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                                          Width="16" 
+                                                          Height="16" 
+                                                          Foreground="#3f3f46"
+                                                          IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                            </Panel>
+                                        </Border>
+                                        
+                                        <!-- Last Frame -->
+                                        <Border Grid.Column="2" 
+                                                Background="#0a0a0a" 
+                                                CornerRadius="4">
+                                            <Panel>
+                                                <Image Source="{Binding LastFrameImagePath}" 
+                                                       Stretch="UniformToFill"
+                                                       IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                                          Width="16" 
+                                                          Height="16" 
+                                                          Foreground="#3f3f46"
+                                                          IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                            </Panel>
+                                        </Border>
+                                    </Grid>
+                                    
+                                    <!-- Status Indicators -->
+                                    <StackPanel Grid.Row="3" 
+                                                Orientation="Horizontal" 
+                                                Spacing="4" 
+                                                Margin="0,4,0,0">
+                                        <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                                  Width="12" 
+                                                  Height="12" 
+                                                  Foreground="#22c55e"
+                                                  IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
+                                                  Width="12" 
+                                                  Height="12" 
+                                                  Foreground="#22c55e"
+                                                  IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
+                                                  Width="12" 
+                                                  Height="12" 
+                                                  Foreground="#8b5cf6"
+                                                  IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Playhead -->
+                <Border Canvas.Left="0" 
+                    Canvas.Top="32" 
+                    Width="1" 
+                        Height="128" 
+                        Background="#8b5cf6">
+                    <Ellipse Width="16" 
+                             Height="16" 
+                             Fill="#8b5cf6" 
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Top"
+                             Margin="0,-8,0,0" />
+                </Border>
+            </Canvas>
+        </ScrollViewer>
+    </Grid>
+
+</UserControl>

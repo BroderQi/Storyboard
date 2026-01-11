@@ -1,0 +1,269 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Storyboard.ViewModels"
+        xmlns:v="using:Storyboard.Views"
+        xmlns:conv="using:Storyboard.Converters"
+        x:Class="Storyboard.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Storyboard Studio"
+        Width="1600"
+        Height="1000"
+        MinWidth="1200"
+        MinHeight="700"
+        WindowState="Maximized"
+        Background="#0a0a0a">
+
+    <Window.Resources>
+        <conv:BooleanNotConverter x:Key="BoolNot" />
+    </Window.Resources>
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="56,*,Auto" Background="#0a0a0a">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="#18181b" 
+                BorderBrush="#27272a" 
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto" Margin="16,0">
+                
+                <!-- Left: Title and Project Info -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <!-- App Icon -->
+                    <PathIcon Data="M8 5v14l11-7z" 
+                              Width="24" 
+                              Height="24" 
+                              Foreground="#8b5cf6" />
+                    <TextBlock Text="Storyboard Studio" 
+                               FontSize="16" 
+                               FontWeight="SemiBold" 
+                               Foreground="#f5f5f5" 
+                               VerticalAlignment="Center" />
+                    
+                    <!-- Project Name -->
+                    <TextBlock Text="/" 
+                               FontSize="14" 
+                               Foreground="#71717a" 
+                               VerticalAlignment="Center" 
+                               IsVisible="{Binding HasCurrentProject}" />
+                    <TextBlock Text="{Binding ProjectName}" 
+                               FontSize="14" 
+                               Foreground="#71717a" 
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding HasCurrentProject}" />
+                    
+                    <!-- Switch Project Button -->
+                    <Button Classes="Ghost" 
+                            IsVisible="{Binding HasCurrentProject}"
+                            Command="{Binding CloseProjectCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" 
+                                      Width="16" 
+                                      Height="16" 
+                                      Foreground="#a1a1aa" />
+                            <TextBlock Text="切换项目" Foreground="#a1a1aa" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Right: Actions -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    
+                    <!-- Undo/Redo -->
+                    <Button Classes="Ghost" 
+                            IsVisible="{Binding HasCurrentProject}"
+                            Command="{Binding UndoCommand}"
+                            IsEnabled="{Binding CanUndo}"
+                            ToolTip.Tip="撤销 (Ctrl+Z)">
+                        <PathIcon Data="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" 
+                                  Width="16" 
+                                  Height="16" />
+                    </Button>
+                    <Button Classes="Ghost" 
+                            IsVisible="{Binding HasCurrentProject}"
+                            Command="{Binding RedoCommand}"
+                            IsEnabled="{Binding CanRedo}"
+                            ToolTip.Tip="重做 (Ctrl+Shift+Z)">
+                        <PathIcon Data="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" 
+                                  Width="16" 
+                                  Height="16" />
+                    </Button>
+                    
+                    <!-- Separator -->
+                    <Border Width="1" 
+                            Height="24" 
+                            Background="#3f3f46" 
+                            IsVisible="{Binding HasCurrentProject}" />
+                    
+                    <!-- Batch Operations -->
+                    <Button Classes="Ghost" 
+                            IsVisible="{Binding HasCurrentProject}"
+                            Command="{Binding ShowBatchOperationsCommand}"
+                            IsEnabled="{Binding HasShots}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" 
+                                      Width="16" 
+                                      Height="16" />
+                            <TextBlock Text="批量操作" />
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Export -->
+                    <Button Classes="Ghost" 
+                            IsVisible="{Binding HasCurrentProject}"
+                            Command="{Binding ShowExportDialogCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" 
+                                      Width="16" 
+                                      Height="16" />
+                            <TextBlock Text="导出" />
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Task Manager -->
+                    <Button Classes="Ghost" 
+                            Command="{Binding ShowTaskManagerCommand}">
+                        <TextBlock Text="任务管理" />
+                    </Button>
+                    
+                    <!-- Settings -->
+                    <Button Classes="Ghost" 
+                            Command="{Binding ShowProviderSettingsCommand}">
+                        <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" 
+                                      Width="16" 
+                                      Height="16" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content -->
+        <Panel Grid.Row="1">
+            <!-- Project History View (when no project open) -->
+            <v:ProjectHistoryView IsVisible="{Binding HasCurrentProject, Converter={StaticResource BoolNot}}" />
+            
+            <!-- Project Workspace View (when project is open) -->
+            <Grid ColumnDefinitions="320,*,384" IsVisible="{Binding HasCurrentProject}">
+                
+                <!-- Left Sidebar - Project & Video Import -->
+                <Border Grid.Column="0" 
+                        Background="#0f0f0f" 
+                        BorderBrush="#27272a" 
+                        BorderThickness="0,0,1,0">
+                    <v:ProjectSidebarView />
+                </Border>
+                
+                <!-- Center - Shot List or Timeline -->
+                <Grid Grid.Column="1" RowDefinitions="48,*">
+                            
+                            <!-- View Mode Switcher -->
+                            <Border Grid.Row="0" 
+                                    Background="#0f0f0f" 
+                                    BorderBrush="#27272a" 
+                                    BorderThickness="0,0,0,1"
+                                    Padding="16,0">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" 
+                                                Orientation="Horizontal" 
+                                                Spacing="8" 
+                                                VerticalAlignment="Center">
+                                        <Button Classes="ViewMode"
+                                                IsEnabled="{Binding !IsGridView}"
+                                                Command="{Binding SetGridViewCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <PathIcon Data="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z" 
+                                                          Width="16" 
+                                                          Height="16" />
+                                                <TextBlock Text="网格视图" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="ViewMode"
+                                                IsEnabled="{Binding !IsTimelineView}"
+                                                Command="{Binding SetTimelineViewCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <PathIcon Data="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" 
+                                                          Width="16" 
+                                                          Height="16" />
+                                                <TextBlock Text="时间轴" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            
+                            <!-- Content Area -->
+                    <Panel Grid.Row="1">
+                        <!-- Grid and List views are in ShotListView -->
+                        <v:ShotListView IsVisible="{Binding !IsTimelineView}" />
+                        <!-- Timeline View -->
+                        <v:TimelineView IsVisible="{Binding IsTimelineView}" />
+                    </Panel>
+                </Grid>
+                
+                <!-- Right Panel - Shot Editor -->
+                <Border Grid.Column="2" 
+                        Background="#0f0f0f" 
+                        BorderBrush="#27272a" 
+                        BorderThickness="1,0,0,0">
+                    <Grid>
+                        <!-- Editor when shot selected -->
+                        <v:ShotEditorView IsVisible="{Binding DataContext, RelativeSource={RelativeSource Self}, Converter={x:Static ObjectConverters.IsNotNull}}" 
+                                          DataContext="{Binding SelectedShot}" />
+                        <!-- Empty state -->
+                        <Border IsVisible="{Binding SelectedShot, Converter={x:Static ObjectConverters.IsNull}}">
+                            <TextBlock Text="选择一个分镜以查看和编辑详情" 
+                                       Foreground="#71717a" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center" 
+                                       TextAlignment="Center"
+                                       Padding="32" />
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Panel>
+        
+        <!-- Footer -->
+        <Border Grid.Row="2" 
+                Background="#0f0f0f" 
+                BorderBrush="#27272a" 
+                BorderThickness="0,1,0,0"
+                Padding="16,8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Left: Project Info -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text="项目: " Foreground="#71717a" />
+                        <Run Text="{Binding CurrentProject.Name, FallbackValue='未命名项目'}" 
+                             Foreground="#f5f5f5" 
+                             FontWeight="Medium" />
+                    </TextBlock>
+                    <Border Width="1" Background="#27272a" />
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text="镜头数: " Foreground="#71717a" />
+                        <Run Text="{Binding Shots.Count}" 
+                             Foreground="#f5f5f5" 
+                             FontWeight="Medium" />
+                    </TextBlock>
+                </StackPanel>
+                
+                <!-- Center: Status Message -->
+                <TextBlock Grid.Column="1" 
+                           Text="{Binding StatusMessage, FallbackValue='就绪'}"
+                           Foreground="#a1a1aa"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+                
+                <!-- Right: Version -->
+                <TextBlock Grid.Column="2" 
+                           Text="分镜大师 v1.0.0" 
+                           Foreground="#71717a"
+                           VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+
+</Window>

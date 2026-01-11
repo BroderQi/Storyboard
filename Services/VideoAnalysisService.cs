@@ -61,6 +61,9 @@ public class VideoAnalysisService : IVideoAnalysisService
         {
             VideoPath = videoPath,
             TotalDuration = probe.DurationSeconds,
+            Fps = probe.Fps,
+            Width = probe.Width,
+            Height = probe.Height,
             Shots = shots,
             AnalyzedAt = DateTime.Now
         };

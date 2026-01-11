@@ -37,6 +37,9 @@ public partial class ApiKeyViewModel : ObservableObject
     [ObservableProperty]
     private AIProviderType _defaultProvider = AIProviderType.Qwen;
 
+    [ObservableProperty]
+    private AIProviderType _selectedProvider = AIProviderType.Qwen;
+
     // Qwen
     [ObservableProperty] private bool _qwenEnabled;
     [ObservableProperty] private string _qwenApiKey = string.Empty;
@@ -67,11 +70,35 @@ public partial class ApiKeyViewModel : ObservableObject
     [ObservableProperty] private string _volcengineEndpoint = string.Empty;
     [ObservableProperty] private int _volcengineTimeoutSeconds = 120;
 
+    // OpenAI
+    [ObservableProperty] private bool _openAIEnabled;
+    [ObservableProperty] private string _openAIApiKey = string.Empty;
+    [ObservableProperty] private string _openAIDefaultModel = string.Empty;
+    [ObservableProperty] private string _openAIEndpoint = string.Empty;
+    [ObservableProperty] private int _openAITimeoutSeconds = 120;
+
+    // Azure OpenAI
+    [ObservableProperty] private bool _azureOpenAIEnabled;
+    [ObservableProperty] private string _azureOpenAIApiKey = string.Empty;
+    [ObservableProperty] private string _azureOpenAIEndpoint = string.Empty;
+    [ObservableProperty] private string _azureOpenAIDeploymentName = string.Empty;
+    [ObservableProperty] private string _azureOpenAIDefaultModel = string.Empty;
+    [ObservableProperty] private string _azureOpenAIApiVersion = string.Empty;
+    [ObservableProperty] private int _azureOpenAITimeoutSeconds = 120;
+
+    public bool IsQwenSelected => SelectedProvider == AIProviderType.Qwen;
+    public bool IsWenxinSelected => SelectedProvider == AIProviderType.Wenxin;
+    public bool IsZhipuSelected => SelectedProvider == AIProviderType.Zhipu;
+    public bool IsVolcengineSelected => SelectedProvider == AIProviderType.Volcengine;
+    public bool IsOpenAISelected => SelectedProvider == AIProviderType.OpenAI;
+    public bool IsAzureOpenAISelected => SelectedProvider == AIProviderType.AzureOpenAI;
+
     private void LoadFromFile()
     {
         var cfg = _settingsStore.LoadAIServices();
 
         DefaultProvider = cfg.DefaultProvider;
+        SelectedProvider = cfg.DefaultProvider;
 
         QwenEnabled = cfg.Qwen.Enabled;
         QwenApiKey = cfg.Qwen.ApiKey;
@@ -98,6 +125,20 @@ public partial class ApiKeyViewModel : ObservableObject
         VolcengineDefaultModel = cfg.Volcengine.DefaultModel;
         VolcengineEndpoint = cfg.Volcengine.Endpoint;
         VolcengineTimeoutSeconds = cfg.Volcengine.TimeoutSeconds;
+
+        OpenAIEnabled = cfg.OpenAI.Enabled;
+        OpenAIApiKey = cfg.OpenAI.ApiKey;
+        OpenAIDefaultModel = cfg.OpenAI.DefaultModel;
+        OpenAIEndpoint = cfg.OpenAI.Endpoint;
+        OpenAITimeoutSeconds = cfg.OpenAI.TimeoutSeconds;
+
+        AzureOpenAIEnabled = cfg.AzureOpenAI.Enabled;
+        AzureOpenAIApiKey = cfg.AzureOpenAI.ApiKey;
+        AzureOpenAIEndpoint = cfg.AzureOpenAI.Endpoint;
+        AzureOpenAIDeploymentName = cfg.AzureOpenAI.DeploymentName;
+        AzureOpenAIDefaultModel = cfg.AzureOpenAI.DefaultModel;
+        AzureOpenAIApiVersion = cfg.AzureOpenAI.ApiVersion;
+        AzureOpenAITimeoutSeconds = cfg.AzureOpenAI.TimeoutSeconds;
     }
 
     private AIServicesConfiguration BuildConfig()
@@ -138,8 +179,36 @@ public partial class ApiKeyViewModel : ObservableObject
                 DefaultModel = VolcengineDefaultModel?.Trim() ?? string.Empty,
                 Endpoint = VolcengineEndpoint?.Trim() ?? string.Empty,
                 TimeoutSeconds = VolcengineTimeoutSeconds
+            },
+            OpenAI = new OpenAIConfig
+            {
+                Enabled = OpenAIEnabled,
+                ApiKey = OpenAIApiKey?.Trim() ?? string.Empty,
+                DefaultModel = OpenAIDefaultModel?.Trim() ?? string.Empty,
+                Endpoint = OpenAIEndpoint?.Trim() ?? string.Empty,
+                TimeoutSeconds = OpenAITimeoutSeconds
+            },
+            AzureOpenAI = new AzureOpenAIConfig
+            {
+                Enabled = AzureOpenAIEnabled,
+                ApiKey = AzureOpenAIApiKey?.Trim() ?? string.Empty,
+                Endpoint = AzureOpenAIEndpoint?.Trim() ?? string.Empty,
+                DeploymentName = AzureOpenAIDeploymentName?.Trim() ?? string.Empty,
+                DefaultModel = AzureOpenAIDefaultModel?.Trim() ?? string.Empty,
+                ApiVersion = AzureOpenAIApiVersion?.Trim() ?? string.Empty,
+                TimeoutSeconds = AzureOpenAITimeoutSeconds
             }
         };
+    }
+
+    partial void OnSelectedProviderChanged(AIProviderType value)
+    {
+        OnPropertyChanged(nameof(IsQwenSelected));
+        OnPropertyChanged(nameof(IsWenxinSelected));
+        OnPropertyChanged(nameof(IsZhipuSelected));
+        OnPropertyChanged(nameof(IsVolcengineSelected));
+        OnPropertyChanged(nameof(IsOpenAISelected));
+        OnPropertyChanged(nameof(IsAzureOpenAISelected));
     }
 
     [RelayCommand]

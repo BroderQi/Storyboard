@@ -1,0 +1,177 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Storyboard.ViewModels"
+        x:Class="Storyboard.Views.ExportDialog"
+        x:DataType="vm:MainViewModel"
+        Title="导出项目"
+        Width="600"
+    Height="540"
+        WindowStartupLocation="CenterOwner"
+        Background="#0a0a0a"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="导出项目" 
+                       FontSize="24" 
+                       FontWeight="SemiBold" 
+                       Foreground="#f5f5f5" 
+                       Margin="0,0,0,8" />
+            <TextBlock Text="导出分镜数据或合成视频" 
+                       FontSize="14" 
+                       Foreground="#71717a" />
+        </StackPanel>
+        
+        <!-- Content -->
+        <TabControl Grid.Row="1" Background="Transparent">
+            <TabItem Header="导出配置">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="16" Margin="0,16,0,24">
+
+                    <!-- Project Info -->
+                    <Border Background="#18181b"
+                            BorderBrush="#27272a"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="项目信息"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#f5f5f5" />
+
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="项目名称" Foreground="#a1a1aa" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ProjectName}" Foreground="#f5f5f5" HorizontalAlignment="Right" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="分镜数量" Foreground="#a1a1aa" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Shots.Count}" Foreground="#f5f5f5" HorizontalAlignment="Right" Margin="0,8,0,0" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="总时长" Foreground="#a1a1aa" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalDuration, StringFormat='{}{0:F1}s'}" Foreground="#f5f5f5" HorizontalAlignment="Right" Margin="0,8,0,0" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="完成进度" Foreground="#a1a1aa" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Foreground="#f5f5f5" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                    <Run Text="{Binding CompletedVideoShotsCount}" />
+                                    <Run Text=" / " />
+                                    <Run Text="{Binding Shots.Count}" />
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Export Content -->
+                    <Border Background="#18181b"
+                            BorderBrush="#27272a"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="导出内容" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
+                                    <TextBlock Text="项目基本信息" Foreground="#a1a1aa" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
+                                    <TextBlock Text="所有分镜数据（文本描述）" Foreground="#a1a1aa" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
+                                    <TextBlock Text="资源引用状态" Foreground="#a1a1aa" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
+                                    <TextBlock Text="项目统计信息" Foreground="#a1a1aa" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                        <Button Classes="Primary"
+                                HorizontalAlignment="Stretch"
+                                Click="OnExportJsonClick">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <PathIcon Data="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"
+                                          Width="16" Height="16" />
+                                <TextBlock Text="导出 JSON 配置文件" />
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="导出视频">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="16" Margin="0,16,0,24">
+
+                    <Border Background="#2a1f05"
+                            BorderBrush="#92400e"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding !CanExportVideo}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="⚠️ 所有分镜必须生成完成视频后才能导出最终成品" FontSize="12" Foreground="#fbbf24" />
+                            <TextBlock FontSize="12" Foreground="#fbbf24">
+                                <Run Text="当前进度: " />
+                                <Run Text="{Binding CompletedVideoShotsCount}" />
+                                <Run Text=" / " />
+                                <Run Text="{Binding Shots.Count}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#18181b"
+                            BorderBrush="#27272a"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="视频设置" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="分辨率" Foreground="#a1a1aa" FontSize="12" />
+                                <TextBox Text="1920x1080" Classes="Modern" />
+
+                                <TextBlock Text="帧率 (FPS)" Foreground="#a1a1aa" FontSize="12" Margin="0,6,0,0" />
+                                <TextBox Text="30" Classes="Modern" />
+
+                                <TextBlock Text="输出格式" Foreground="#a1a1aa" FontSize="12" Margin="0,6,0,0" />
+                                <TextBox Text="mp4" Classes="Modern" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                        <Button Classes="Primary"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding CanExportVideo}"
+                                Click="OnExportVideoClick">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <PathIcon Data="M8 5v14l11-7z" Width="16" Height="16" />
+                                <TextBlock Text="合成并导出最终视频" />
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Footer -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,Auto" 
+              Margin="0,24,0,0">
+            <Button Grid.Column="1" 
+                Classes="Secondary" 
+                Content="取消" 
+                Width="100"
+                Click="OnCancelClick" />
+        </Grid>
+        
+    </Grid>
+</Window>

@@ -1,0 +1,130 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Storyboard.ViewModels"
+        xmlns:m="using:Storyboard.Models"
+        x:Class="Storyboard.Views.TaskManagerDialog"
+        x:DataType="vm:MainViewModel"
+        Title="任务管理"
+        Width="800"
+        Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#0a0a0a">
+
+    <Grid RowDefinitions="Auto,*" Margin="24">
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="任务管理" 
+                       FontSize="24" 
+                       FontWeight="SemiBold" 
+                       Foreground="#f5f5f5" 
+                       Margin="0,0,0,8" />
+            <TextBlock Text="查看和管理所有生成任务" 
+                       FontSize="14" 
+                       Foreground="#71717a" />
+        </StackPanel>
+        
+        <!-- Task List -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12">
+                
+                <!-- Empty State -->
+                <Border IsVisible="{Binding !JobHistory.Count}" 
+                        Background="#18181b" 
+                        BorderBrush="#27272a" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Padding="48"
+                        MinHeight="300">
+                    <StackPanel HorizontalAlignment="Center" 
+                                VerticalAlignment="Center" 
+                                Spacing="16">
+                        <PathIcon Data="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" 
+                                  Width="64" 
+                                  Height="64" 
+                                  Foreground="#27272a" 
+                                  Opacity="0.3" />
+                        <TextBlock Text="暂无任务" 
+                                   FontSize="16" 
+                                   Foreground="#71717a" />
+                    </StackPanel>
+                </Border>
+                
+                <!-- Task Items -->
+                <ItemsControl ItemsSource="{Binding JobHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:GenerationJob">
+                            <Border Background="#18181b" 
+                                    BorderBrush="#27272a" 
+                                    BorderThickness="1" 
+                                    CornerRadius="8" 
+                                    Padding="16"
+                                    Margin="0,4">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    
+                                    <!-- Icon -->
+                                    <Border Grid.Column="0" 
+                                            Width="48" 
+                                            Height="48" 
+                                            Background="#1e1b4b" 
+                                            CornerRadius="8">
+                                        <PathIcon Width="24" 
+                                                  Height="24" 
+                                                  Foreground="#8b5cf6">
+                                            <PathIcon.Data>
+                                                <!-- Different icons based on JobType -->
+                                                M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z
+                                            </PathIcon.Data>
+                                        </PathIcon>
+                                    </Border>
+                                    
+                                    <!-- Info -->
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="16,0">
+                                        <TextBlock Text="{Binding TypeText}" 
+                                                   FontSize="14" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="#f5f5f5" />
+                                        <TextBlock FontSize="12" Foreground="#71717a">
+                                            <Run Text="分镜 #" />
+                                            <Run Text="{Binding ShotNumber}" />
+                                            <Run Text=" · " />
+                                            <Run Text="{Binding StatusText}" />
+                                        </TextBlock>
+                                        
+                                        <!-- Progress Bar -->
+                                        <Border Height="4" 
+                                                Background="#27272a" 
+                                                CornerRadius="2"
+                                                Margin="0,4,0,0">
+                                            <Border Background="#8b5cf6" 
+                                                    CornerRadius="2"
+                                                    HorizontalAlignment="Left"
+                                                    Width="100" />
+                                        </Border>
+                                    </StackPanel>
+                                    
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="2" 
+                                            CornerRadius="4" 
+                                            Padding="8,4">
+                                        <Border.Background>
+                                            <MultiBinding Converter="{StaticResource StatusColorConverter}">
+                                                <Binding Path="Status" />
+                                            </MultiBinding>
+                                        </Border.Background>
+                                        <TextBlock Text="{Binding StatusText}" 
+                                                   FontSize="12" 
+                                                   Foreground="White" />
+                                    </Border>
+                                    
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+            </StackPanel>
+        </ScrollViewer>
+        
+    </Grid>
+</Window>

@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Storyboard.ViewModels"
+        x:Class="Storyboard.Views.TextToShotDialog"
+        x:DataType="vm:MainViewModel"
+        Title="文本生成分镜"
+        Width="900"
+        Height="620"
+        WindowStartupLocation="CenterOwner"
+        Background="#0a0a0a"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="文本生成分镜"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="#f5f5f5"
+                       Margin="0,0,0,8" />
+            <TextBlock Text="描述您的故事，生成分镜（当前为演示占位实现）"
+                       FontSize="14"
+                       Foreground="#71717a" />
+        </StackPanel>
+
+        <!-- Content -->
+        <Border Grid.Row="1"
+                Background="#18181b"
+                BorderBrush="#27272a"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16">
+            <StackPanel Spacing="12">
+                <TextBlock Text="描述您的故事"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="#f5f5f5" />
+
+                <TextBox Text="{Binding TextToShotPrompt, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="360"
+                         Watermark="例如：一个关于未来城市的科幻短片，主角在清晨的街道上行走，发现了一个神秘的装置..."
+                         Background="#0a0a0a"
+                         BorderBrush="#27272a"
+                         BorderThickness="1"
+                         CornerRadius="8"
+                         Foreground="#f5f5f5"
+                         Padding="12" />
+
+                <Button Classes="Primary"
+                        HorizontalAlignment="Stretch"
+                        Click="OnGenerateClick">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                  Width="16" Height="16" />
+                        <TextBlock Text="生成分镜" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,20,0,0">
+            <TextBlock Grid.Column="0"
+                       Foreground="#71717a"
+                       VerticalAlignment="Center"
+                       Text="生成后会追加到当前分镜列表末尾" />
+
+            <Button Grid.Column="1"
+                    Classes="Secondary"
+                    Width="120"
+                    Click="OnCancelClick"
+                    Content="关闭" />
+        </Grid>
+
+    </Grid>
+</Window>
