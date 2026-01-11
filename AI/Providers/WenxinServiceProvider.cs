@@ -13,21 +13,24 @@ namespace Storyboard.AI.Providers;
 /// </summary>
 public class WenxinServiceProvider : BaseAIServiceProvider
 {
-    private readonly WenxinConfig _config;
+    private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
 
-    public WenxinServiceProvider(IOptions<AIServicesConfiguration> config, ILogger<WenxinServiceProvider> logger)
+    public WenxinServiceProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<WenxinServiceProvider> logger)
         : base(logger)
     {
-        _config = config.Value.Wenxin;
+        _configMonitor = configMonitor;
     }
+
+    private WenxinConfig Config => _configMonitor.CurrentValue.Wenxin;
 
     public override AIProviderType ProviderType => AIProviderType.Wenxin;
     public override string DisplayName => "文心一言";
     
     public override bool IsConfigured => 
-        !string.IsNullOrEmpty(_config.ApiKey) && 
-        !string.IsNullOrEmpty(_config.ApiSecret) &&
-        !string.IsNullOrEmpty(_config.DefaultModel);
+        Config.Enabled &&
+        !string.IsNullOrEmpty(Config.ApiKey) && 
+        !string.IsNullOrEmpty(Config.ApiSecret) &&
+        !string.IsNullOrEmpty(Config.DefaultModel);
 
     public override IReadOnlyList<string> SupportedModels => new[]
     {
@@ -38,9 +41,10 @@ public class WenxinServiceProvider : BaseAIServiceProvider
 
     protected override Task<Kernel> CreateKernelAsync(string? modelId = null)
     {
-        var model = modelId ?? _config.DefaultModel;
-        var httpClient = CreateHttpClient(_config.Endpoint, _config.TimeoutSeconds);
-        var chatService = new WenxinChatCompletionService(_config.ApiKey, _config.ApiSecret, model, httpClient);
+        var cfg = Config;
+        var model = modelId ?? cfg.DefaultModel;
+        var httpClient = CreateHttpClient(cfg.Endpoint, cfg.TimeoutSeconds);
+        var chatService = new WenxinChatCompletionService(cfg.ApiKey, cfg.ApiSecret, model, httpClient);
         
         var builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton<IChatCompletionService>(chatService);

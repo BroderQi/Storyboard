@@ -13,20 +13,23 @@ namespace Storyboard.AI.Providers;
 /// </summary>
 public class ZhipuServiceProvider : BaseAIServiceProvider
 {
-    private readonly ZhipuConfig _config;
+    private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
 
-    public ZhipuServiceProvider(IOptions<AIServicesConfiguration> config, ILogger<ZhipuServiceProvider> logger)
+    public ZhipuServiceProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<ZhipuServiceProvider> logger)
         : base(logger)
     {
-        _config = config.Value.Zhipu;
+        _configMonitor = configMonitor;
     }
+
+    private ZhipuConfig Config => _configMonitor.CurrentValue.Zhipu;
 
     public override AIProviderType ProviderType => AIProviderType.Zhipu;
     public override string DisplayName => "智谱AI";
     
     public override bool IsConfigured => 
-        !string.IsNullOrEmpty(_config.ApiKey) && 
-        !string.IsNullOrEmpty(_config.DefaultModel);
+        Config.Enabled &&
+        !string.IsNullOrEmpty(Config.ApiKey) && 
+        !string.IsNullOrEmpty(Config.DefaultModel);
 
     public override IReadOnlyList<string> SupportedModels => new[]
     {
@@ -37,9 +40,10 @@ public class ZhipuServiceProvider : BaseAIServiceProvider
 
     protected override Task<Kernel> CreateKernelAsync(string? modelId = null)
     {
-        var model = modelId ?? _config.DefaultModel;
-        var httpClient = CreateHttpClient(_config.Endpoint, _config.TimeoutSeconds);
-        var chatService = new ZhipuChatCompletionService(_config.ApiKey, model, httpClient);
+        var cfg = Config;
+        var model = modelId ?? cfg.DefaultModel;
+        var httpClient = CreateHttpClient(cfg.Endpoint, cfg.TimeoutSeconds);
+        var chatService = new ZhipuChatCompletionService(cfg.ApiKey, model, httpClient);
         
         var builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton<IChatCompletionService>(chatService);

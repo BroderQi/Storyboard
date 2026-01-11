@@ -11,6 +11,9 @@ using System.Windows;
 using Storyboard.Models;
 using Storyboard.Services;
 using Storyboard.Views.Windows;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Storyboard.ViewModels;
 
@@ -19,6 +22,8 @@ public partial class MainViewModel : ObservableObject
     private readonly IVideoAnalysisService _videoAnalysisService;
     private readonly IImageGenerationService _imageGenerationService;
     private readonly IVideoGenerationService _videoGenerationService;
+    private readonly IFinalRenderService _finalRenderService;
+    private readonly JobQueueService _jobQueue;
 
     [ObservableProperty]
     private string? _selectedVideoPath;
@@ -214,17 +219,29 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(
         IVideoAnalysisService videoAnalysisService,
         IImageGenerationService imageGenerationService,
-        IVideoGenerationService videoGenerationService)
+        IVideoGenerationService videoGenerationService,
+        IFinalRenderService finalRenderService,
+        JobQueueService jobQueue)
     {
         _videoAnalysisService = videoAnalysisService;
         _imageGenerationService = imageGenerationService;
         _videoGenerationService = videoGenerationService;
+        _finalRenderService = finalRenderService;
+        _jobQueue = jobQueue;
 
         Shots.CollectionChanged += Shots_CollectionChanged;
         UpdateSummaryCounts();
-        
-        // 添加测试数据
-        LoadTestData();
+    }
+
+    public ObservableCollection<GenerationJob> JobHistory => _jobQueue.Jobs;
+
+    [RelayCommand]
+    private void CancelJob(GenerationJob? job)
+    {
+        if (job == null)
+            return;
+
+        _jobQueue.Cancel(job);
     }
     
     private void LoadTestData()
@@ -324,81 +341,248 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task GenerateFirstFrameAsync(ShotItem shot)
+    private Task GenerateFirstFrameAsync(ShotItem shot)
     {
-        if (string.IsNullOrEmpty(shot.FirstFramePrompt))
-        {
-            MessageBox.Show("请先输入首帧提示词", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+        EnqueueFirstFrameJob(shot);
+        return Task.CompletedTask;
+    }
 
-        try
+    [RelayCommand]
+    private Task GenerateLastFrameAsync(ShotItem shot)
+    {
+        EnqueueLastFrameJob(shot);
+        return Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private Task GenerateVideoAsync(ShotItem shot)
+    {
+        EnqueueVideoJob(shot);
+        return Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private void BatchGenerateImages()
+    {
+        foreach (var shot in Shots)
         {
-            shot.IsFirstFrameGenerating = true;
-            var imagePath = await _imageGenerationService.GenerateImageAsync(shot.FirstFramePrompt, shot.SelectedModel);
-            shot.FirstFrameImagePath = imagePath;
-            GeneratedImagesCount++;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"首帧生成失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            shot.IsFirstFrameGenerating = false;
+            if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && !shot.IsFirstFrameGenerating)
+                EnqueueFirstFrameJob(shot);
+
+            if (string.IsNullOrWhiteSpace(shot.LastFrameImagePath) && !shot.IsLastFrameGenerating)
+                EnqueueLastFrameJob(shot);
         }
     }
 
     [RelayCommand]
-    private async Task GenerateLastFrameAsync(ShotItem shot)
+    private void BatchGenerateVideos()
     {
-        if (string.IsNullOrEmpty(shot.LastFramePrompt))
+        foreach (var shot in Shots)
         {
-            MessageBox.Show("请先输入尾帧提示词", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            if (string.IsNullOrWhiteSpace(shot.GeneratedVideoPath) && !shot.IsVideoGenerating)
+                EnqueueVideoJob(shot);
         }
 
-        try
-        {
-            shot.IsLastFrameGenerating = true;
-            var imagePath = await _imageGenerationService.GenerateImageAsync(shot.LastFramePrompt, shot.SelectedModel);
-            shot.LastFrameImagePath = imagePath;
-            GeneratedImagesCount++;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"尾帧生成失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            shot.IsLastFrameGenerating = false;
-        }
+        // 整片合成（Full Render）也进入队列：一键完成最终视频输出
+        EnqueueFullRenderJob();
     }
 
-    [RelayCommand]
-    private async Task GenerateVideoAsync(ShotItem shot)
+    private void EnqueueFullRenderJob()
     {
-        if (string.IsNullOrEmpty(shot.FirstFrameImagePath) || string.IsNullOrEmpty(shot.LastFrameImagePath))
+        _jobQueue.Enqueue(
+            GenerationJobType.FullRender,
+            shotNumber: null,
+            async (ct, progress) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                progress.Report(0);
+
+                // 等待所有分镜视频可用（若缺失则阻止合成）
+                var startAt = DateTimeOffset.Now;
+                var timeout = TimeSpan.FromMinutes(30);
+
+                while (true)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    var snapshot = GetShotVideoSnapshot();
+                    if (snapshot.Count == 0)
+                        throw new InvalidOperationException("没有分镜可合成");
+
+                    var missing = snapshot.Where(s => string.IsNullOrWhiteSpace(s.VideoPath) || !System.IO.File.Exists(s.VideoPath)).ToList();
+                    if (missing.Count == 0)
+                    {
+                        var ordered = snapshot.OrderBy(s => s.ShotNumber).Select(s => s.VideoPath!).ToList();
+                        var outputPath = await _finalRenderService.RenderAsync(ordered, ct, progress).ConfigureAwait(false);
+
+                        try
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = "explorer.exe",
+                                Arguments = $"/select,\"{outputPath}\"",
+                                UseShellExecute = true
+                            });
+                        }
+                        catch { }
+
+                        progress.Report(1);
+                        return;
+                    }
+
+                    // 若队列里不存在任何“生成分镜视频”的任务，说明用户没有生成或已失败
+                    var hasAnyVideoJob = false;
+                    OnUi(() =>
+                    {
+                        hasAnyVideoJob = JobHistory.Any(j => j.Type == GenerationJobType.Video && j.Status is GenerationJobStatus.Queued or GenerationJobStatus.Running or GenerationJobStatus.Retrying);
+                    });
+
+                    if (!hasAnyVideoJob)
+                    {
+                        var msg = "存在缺失的分镜视频，无法合成：\n" + string.Join("\n", missing.Select(m => $"#{m.ShotNumber}"));
+                        throw new InvalidOperationException(msg);
+                    }
+
+                    if (DateTimeOffset.Now - startAt > timeout)
+                        throw new TimeoutException("等待分镜视频生成超时，无法继续合成。" );
+
+                    await Task.Delay(500, CancellationToken.None).ConfigureAwait(false);
+                }
+            },
+            maxAttempts: 1);
+    }
+
+    private sealed record ShotVideoSnapshot(int ShotNumber, string? VideoPath);
+
+    private List<ShotVideoSnapshot> GetShotVideoSnapshot()
+    {
+        var list = new List<ShotVideoSnapshot>();
+        OnUi(() =>
         {
-            MessageBox.Show("请先生成首帧和尾帧图像", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            foreach (var s in Shots)
+                list.Add(new ShotVideoSnapshot(s.ShotNumber, s.GeneratedVideoPath));
+        });
+        return list;
+    }
+
+    private void EnqueueFirstFrameJob(ShotItem shot)
+    {
+        _jobQueue.Enqueue(
+            GenerationJobType.ImageFirst,
+            shot.ShotNumber,
+            async (ct, progress) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                progress.Report(0);
+
+                if (string.IsNullOrWhiteSpace(shot.FirstFramePrompt))
+                    throw new InvalidOperationException("缺少首帧提示词");
+
+                OnUi(() => shot.IsFirstFrameGenerating = true);
+                try
+                {
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(shot.FirstFramePrompt, shot.SelectedModel);
+                    ct.ThrowIfCancellationRequested();
+
+                    OnUi(() =>
+                    {
+                        shot.FirstFrameImagePath = imagePath;
+                        GeneratedImagesCount++;
+                    });
+
+                    progress.Report(1);
+                }
+                finally
+                {
+                    OnUi(() => shot.IsFirstFrameGenerating = false);
+                }
+            },
+            maxAttempts: 2);
+    }
+
+    private void EnqueueLastFrameJob(ShotItem shot)
+    {
+        _jobQueue.Enqueue(
+            GenerationJobType.ImageLast,
+            shot.ShotNumber,
+            async (ct, progress) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                progress.Report(0);
+
+                if (string.IsNullOrWhiteSpace(shot.LastFramePrompt))
+                    throw new InvalidOperationException("缺少尾帧提示词");
+
+                OnUi(() => shot.IsLastFrameGenerating = true);
+                try
+                {
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(shot.LastFramePrompt, shot.SelectedModel);
+                    ct.ThrowIfCancellationRequested();
+
+                    OnUi(() =>
+                    {
+                        shot.LastFrameImagePath = imagePath;
+                        GeneratedImagesCount++;
+                    });
+
+                    progress.Report(1);
+                }
+                finally
+                {
+                    OnUi(() => shot.IsLastFrameGenerating = false);
+                }
+            },
+            maxAttempts: 2);
+    }
+
+    private void EnqueueVideoJob(ShotItem shot)
+    {
+        _jobQueue.Enqueue(
+            GenerationJobType.Video,
+            shot.ShotNumber,
+            async (ct, progress) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                progress.Report(0);
+
+                if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) || string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
+                    throw new InvalidOperationException("缺少首帧/尾帧图片，请先生成图片");
+
+                OnUi(() => shot.IsVideoGenerating = true);
+                try
+                {
+                    var videoPath = await _videoGenerationService.GenerateVideoAsync(shot);
+                    ct.ThrowIfCancellationRequested();
+
+                    OnUi(() =>
+                    {
+                        shot.GeneratedVideoPath = videoPath;
+                        GeneratedVideosCount++;
+                    });
+
+                    progress.Report(1);
+                }
+                finally
+                {
+                    OnUi(() => shot.IsVideoGenerating = false);
+                }
+            },
+            maxAttempts: 2);
+    }
+
+    private static void OnUi(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            action();
             return;
         }
 
-        try
-        {
-            shot.IsVideoGenerating = true;
-            var videoPath = await _videoGenerationService.GenerateVideoAsync(shot);
-            shot.GeneratedVideoPath = videoPath;
-            GeneratedVideosCount++;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"视频生成失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            shot.IsVideoGenerating = false;
-        }
+        if (dispatcher.CheckAccess())
+            action();
+        else
+            dispatcher.Invoke(action);
     }
 
     public void MoveShot(int oldIndex, int newIndex)

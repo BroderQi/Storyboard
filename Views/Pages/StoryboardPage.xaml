@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- 工具栏 -->
@@ -46,7 +47,7 @@
                     </Button.Style>
                 </Button>
 
-                <Button Margin="0,0,12,0" Cursor="Hand">
+                <Button Margin="0,0,12,0" Cursor="Hand" Command="{Binding BatchGenerateImagesCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="White"/>
@@ -78,7 +79,7 @@
                     </Button.Style>
                 </Button>
 
-                <Button Cursor="Hand">
+                <Button Cursor="Hand" Command="{Binding BatchGenerateVideosCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="White"/>
@@ -416,8 +417,40 @@
             </ScrollViewer>
         </Border>
 
+        <!-- 任务队列/历史 -->
+        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="1" Margin="20,0,20,16" CornerRadius="12" Padding="16">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="任务队列" FontWeight="SemiBold" Foreground="{StaticResource Slate800}" FontSize="14"/>
+                    <TextBlock Text="（可取消：队列中/执行中）" Foreground="{StaticResource Slate500}" FontSize="12" Margin="8,2,0,0"/>
+                </StackPanel>
+
+                <DataGrid ItemsSource="{Binding JobHistory}" AutoGenerateColumns="False" CanUserAddRows="False"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="34"
+                          Background="White" Foreground="{StaticResource Slate800}" BorderThickness="0"
+                          MaxHeight="220">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="时间" Binding="{Binding CreatedAt, StringFormat=HH:mm:ss}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="类型" Binding="{Binding TypeText}" Width="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="目标" Binding="{Binding TargetText}" Width="80" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="状态" Binding="{Binding StatusText}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="进度" Binding="{Binding Progress, StringFormat={}{0:P0}}" Width="90" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="错误" Binding="{Binding Error}" Width="*" IsReadOnly="True"/>
+                        <DataGridTemplateColumn Header="操作" Width="90">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="取消" Padding="10,4" Command="{Binding DataContext.CancelJobCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" IsEnabled="{Binding CanCancel}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </Border>
+
         <!-- 底部统计栏 -->
-        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="0,1,0,0" Padding="24,12" Margin="20,0,20,20">
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource Gray100}" BorderThickness="0,1,0,0" Padding="24,12" Margin="20,0,20,20">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

@@ -10,7 +10,8 @@
     <SolidColorBrush x:Key="Gray500" Color="#6B7280"/>
     <SolidColorBrush x:Key="Gray600" Color="#4B5563"/>
     <SolidColorBrush x:Key="Slate400" Color="#94A3B8"/>
-    <SolidColorBrush x:Key="Slate600" Color="#475569"/>
+        <SolidColorBrush x:Key="Slate500" Color="#64748B"/>
+        <SolidColorBrush x:Key="Slate600" Color="#475569"/>
     <SolidColorBrush x:Key="Slate700" Color="#334155"/>
     <SolidColorBrush x:Key="Slate800" Color="#1E293B"/>
     <SolidColorBrush x:Key="Blue50" Color="#EFF6FF"/>

@@ -10,7 +10,6 @@ namespace Storyboard.AI.Core;
 public abstract class BaseAIServiceProvider : IAIServiceProvider
 {
     protected readonly ILogger Logger;
-    protected Kernel? _kernel;
 
     protected BaseAIServiceProvider(ILogger logger)
     {
@@ -24,11 +23,9 @@ public abstract class BaseAIServiceProvider : IAIServiceProvider
 
     public virtual async Task<Kernel> GetKernelAsync(string? modelId = null)
     {
-        if (_kernel == null)
-        {
-            _kernel = await CreateKernelAsync(modelId);
-        }
-        return _kernel;
+        // Always create a fresh kernel so runtime config edits (appsettings.json reload)
+        // take effect immediately.
+        return await CreateKernelAsync(modelId);
     }
 
     public abstract Task<bool> ValidateConfigurationAsync();

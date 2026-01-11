@@ -14,6 +14,9 @@ public partial class App : Application
 {
     private ServiceProvider? _serviceProvider;
 
+    public IServiceProvider Services => _serviceProvider
+        ?? throw new InvalidOperationException("ServiceProvider is not initialized.");
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -34,7 +37,7 @@ public partial class App : Application
     {
         // Configuration
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
         
@@ -48,9 +51,15 @@ public partial class App : Application
         services.AddSingleton<IVideoAnalysisService, VideoAnalysisService>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
+        services.AddSingleton<IFinalRenderService, FinalRenderService>();
+        services.AddSingleton<JobQueueService>();
 
         // ViewModels
         services.AddSingleton<MainViewModel>();
+
+        // Settings + ViewModels for pages
+        services.AddSingleton<Storyboard.Services.AppSettingsStore>();
+        services.AddTransient<Storyboard.ViewModels.ApiKeyViewModel>();
 
         // Windows
         services.AddSingleton<MainWindow>();

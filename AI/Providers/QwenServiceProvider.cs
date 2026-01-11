@@ -13,20 +13,23 @@ namespace Storyboard.AI.Providers;
 /// </summary>
 public class QwenServiceProvider : BaseAIServiceProvider
 {
-    private readonly QwenConfig _config;
+    private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
 
-    public QwenServiceProvider(IOptions<AIServicesConfiguration> config, ILogger<QwenServiceProvider> logger)
+    public QwenServiceProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<QwenServiceProvider> logger)
         : base(logger)
     {
-        _config = config.Value.Qwen;
+        _configMonitor = configMonitor;
     }
+
+    private QwenConfig Config => _configMonitor.CurrentValue.Qwen;
 
     public override AIProviderType ProviderType => AIProviderType.Qwen;
     public override string DisplayName => "通义千问";
     
     public override bool IsConfigured => 
-        !string.IsNullOrEmpty(_config.ApiKey) && 
-        !string.IsNullOrEmpty(_config.DefaultModel);
+        Config.Enabled &&
+        !string.IsNullOrEmpty(Config.ApiKey) && 
+        !string.IsNullOrEmpty(Config.DefaultModel);
 
     public override IReadOnlyList<string> SupportedModels => new[]
     {
@@ -38,9 +41,10 @@ public class QwenServiceProvider : BaseAIServiceProvider
 
     protected override Task<Kernel> CreateKernelAsync(string? modelId = null)
     {
-        var model = modelId ?? _config.DefaultModel;
-        var httpClient = CreateHttpClient(_config.Endpoint, _config.TimeoutSeconds);
-        var chatService = new QwenChatCompletionService(_config.ApiKey, model, httpClient);
+        var cfg = Config;
+        var model = modelId ?? cfg.DefaultModel;
+        var httpClient = CreateHttpClient(cfg.Endpoint, cfg.TimeoutSeconds);
+        var chatService = new QwenChatCompletionService(cfg.ApiKey, model, httpClient);
         
         var builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton<IChatCompletionService>(chatService);
