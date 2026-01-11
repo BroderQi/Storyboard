@@ -15,7 +15,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
-using System.Text.Json;
+using Storyboard.Application.Services;
 
 
 namespace Storyboard.ViewModels;
@@ -27,6 +27,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IVideoGenerationService _videoGenerationService;
     private readonly IFinalRenderService _finalRenderService;
     private readonly IJobQueueService _jobQueue;
+    private readonly IProjectStore _projectStore;
 
     [ObservableProperty]
     private string? _selectedVideoPath;
@@ -395,13 +396,15 @@ public partial class MainViewModel : ObservableObject
         IImageGenerationService imageGenerationService,
         IVideoGenerationService videoGenerationService,
         IFinalRenderService finalRenderService,
-        IJobQueueService jobQueue)
+        IJobQueueService jobQueue,
+        IProjectStore projectStore)
     {
         _videoAnalysisService = videoAnalysisService;
         _imageGenerationService = imageGenerationService;
         _videoGenerationService = videoGenerationService;
         _finalRenderService = finalRenderService;
         _jobQueue = jobQueue;
+        _projectStore = projectStore;
 
         Shots.CollectionChanged += Shots_CollectionChanged;
         Projects.CollectionChanged += (_, __) => OnPropertyChanged(nameof(HasProjects));
@@ -412,7 +415,7 @@ public partial class MainViewModel : ObservableObject
         // Start with no project open (Project History screen)
         HasCurrentProject = false;
 
-        LoadProjectHistory();
+        _ = ReloadProjectsAsync();
 
         InitializeHistory();
     }
@@ -644,67 +647,12 @@ public partial class MainViewModel : ObservableObject
         _pendingUndoSnapshot = null;
         _lastSnapshot = current;
         UpdateUndoRedoState();
+
+        // Persist project (debounced via history commit timer).
+        UpsertFromCurrentProject();
     }
 
-    private sealed record ProjectHistoryDto(
-        string Id,
-        string Name,
-        DateTimeOffset UpdatedAt,
-        int TotalShots,
-        int CompletedShots,
-        int HasImages,
-        double TotalDurationSeconds,
-        bool HasVideoFile);
-
-    private static string GetProjectHistoryPath()
-    {
-        var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StoryboardStudio");
-        Directory.CreateDirectory(root);
-        return Path.Combine(root, "projects.json");
-    }
-
-    private void LoadProjectHistory()
-    {
-        try
-        {
-            var path = GetProjectHistoryPath();
-            if (!File.Exists(path))
-                return;
-
-            var json = File.ReadAllText(path);
-            var list = JsonSerializer.Deserialize<List<ProjectHistoryDto>>(json);
-            if (list == null)
-                return;
-
-            Projects.Clear();
-            foreach (var dto in list.OrderByDescending(p => p.UpdatedAt))
-                Projects.Add(ToProjectInfo(dto));
-        }
-        catch
-        {
-            // ignore history load failures
-        }
-    }
-
-    private void SaveProjectHistory()
-    {
-        try
-        {
-            var path = GetProjectHistoryPath();
-            var list = Projects
-                .OrderByDescending(p => p.UpdatedAt)
-                .Select(ToDto)
-                .ToList();
-            var json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(path, json);
-        }
-        catch
-        {
-            // ignore history save failures
-        }
-    }
-
-    private static ProjectInfo ToProjectInfo(ProjectHistoryDto dto)
+    private static ProjectInfo ToProjectInfo(ProjectSummary dto)
     {
         var completionRate = dto.TotalShots > 0 ? (int)Math.Round((double)dto.CompletedShots / dto.TotalShots * 100) : 0;
         return new ProjectInfo
@@ -720,29 +668,22 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    private static ProjectHistoryDto ToDto(ProjectInfo p)
+    private async Task ReloadProjectsAsync()
     {
-        // We store pre-formatted stats in strings on ProjectInfo, so keep persisted stats minimal.
-        // TotalShots/CompletedShots/HasImages/TotalDurationSeconds/HasVideoFile are updated via UpsertFromCurrentProject.
-        // Here we pack only the essentials; numbers are carried via Tag-like strings is avoided.
-        // This method is only used after UpsertFromCurrentProject or LoadProjectHistory.
-        return new ProjectHistoryDto(
-            p.Id,
-            p.Name,
-            p.UpdatedAt,
-            TryParseLeadingInt(p.ShotCountText),
-            0,
-            TryParseLeadingInt(p.ImageCountText),
-            0,
-            false);
-    }
-
-    private static int TryParseLeadingInt(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return 0;
-        var digits = new string(value.TakeWhile(char.IsDigit).ToArray());
-        return int.TryParse(digits, out var n) ? n : 0;
+        try
+        {
+            var list = await _projectStore.GetRecentAsync().ConfigureAwait(false);
+            OnUi(() =>
+            {
+                Projects.Clear();
+                foreach (var dto in list)
+                    Projects.Add(ToProjectInfo(dto));
+            });
+        }
+        catch
+        {
+            // ignore load failures
+        }
     }
 
     private static string FormatTimeAgo(DateTimeOffset timestamp)
@@ -772,17 +713,14 @@ public partial class MainViewModel : ObservableObject
         var completedShots = Shots.Count(s => !string.IsNullOrWhiteSpace(s.GeneratedVideoPath) && File.Exists(s.GeneratedVideoPath));
         var hasImages = Shots.Count(s => (!string.IsNullOrWhiteSpace(s.FirstFrameImagePath) && File.Exists(s.FirstFrameImagePath))
                                        || (!string.IsNullOrWhiteSpace(s.LastFrameImagePath) && File.Exists(s.LastFrameImagePath)));
-        var duration = Shots.Sum(s => s.Duration);
-
-        var dto = new ProjectHistoryDto(
+        var updatedAt = DateTimeOffset.Now;
+        var dto = new ProjectSummary(
             CurrentProjectId!,
             ProjectName,
-            DateTimeOffset.Now,
+            updatedAt,
             totalShots,
             completedShots,
-            hasImages,
-            duration,
-            HasVideoFile);
+            hasImages);
 
         var existing = Projects.FirstOrDefault(p => p.Id == dto.Id);
         if (existing == null)
@@ -806,7 +744,65 @@ public partial class MainViewModel : ObservableObject
                 Projects.Move(idx, 0);
         }
 
-        SaveProjectHistory();
+        PersistCurrentProjectFireAndForget();
+    }
+
+    private ProjectState BuildCurrentProjectState()
+    {
+        var id = CurrentProjectId ?? Guid.NewGuid().ToString("N");
+        var shots = Shots
+            .OrderBy(s => s.ShotNumber)
+            .Select(s => new ShotState(
+                s.ShotNumber,
+                s.Duration,
+                s.FirstFramePrompt,
+                s.LastFramePrompt,
+                s.ShotType,
+                s.CoreContent,
+                s.ActionCommand,
+                s.SceneSettings,
+                s.SelectedModel,
+                s.FirstFrameImagePath,
+                s.LastFrameImagePath,
+                s.GeneratedVideoPath,
+                s.MaterialThumbnailPath,
+                s.MaterialFilePath))
+            .ToList();
+
+        return new ProjectState(
+            id,
+            ProjectName,
+            SelectedVideoPath,
+            HasVideoFile,
+            VideoFileDuration,
+            VideoFileResolution,
+            VideoFileFps,
+            ExtractModeIndex,
+            FrameCount,
+            TimeInterval,
+            DetectionSensitivity,
+            shots);
+    }
+
+    private void PersistCurrentProjectFireAndForget()
+    {
+        if (!HasCurrentProject)
+            return;
+
+        var state = BuildCurrentProjectState();
+        CurrentProjectId = state.Id;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _projectStore.SaveAsync(state).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore save failures
+            }
+        });
     }
 
     public ObservableCollection<GenerationJob> JobHistory => _jobQueue.Jobs;
@@ -902,9 +898,65 @@ public partial class MainViewModel : ObservableObject
             HasCurrentProject = true;
             Shots.Clear();
             SelectedShot = null;
+        });
 
-            // Placeholder: no persisted shot content yet.
-            UpsertFromCurrentProject();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var state = await _projectStore.LoadAsync(project.Id).ConfigureAwait(false);
+                if (state == null)
+                    return;
+
+                OnUi(() =>
+                {
+                    RunWithoutHistory(() =>
+                    {
+                        CurrentProjectId = state.Id;
+                        ProjectName = state.Name;
+                        HasCurrentProject = true;
+                        SelectedVideoPath = state.SelectedVideoPath;
+                        HasVideoFile = state.HasVideoFile;
+                        VideoFileDuration = state.VideoFileDuration;
+                        VideoFileResolution = state.VideoFileResolution;
+                        VideoFileFps = state.VideoFileFps;
+                        ExtractModeIndex = state.ExtractModeIndex;
+                        FrameCount = state.FrameCount;
+                        TimeInterval = state.TimeInterval;
+                        DetectionSensitivity = state.DetectionSensitivity;
+
+                        Shots.Clear();
+                        foreach (var s in state.Shots.OrderBy(s => s.ShotNumber))
+                        {
+                            var shot = new ShotItem(s.ShotNumber)
+                            {
+                                Duration = s.Duration,
+                                FirstFramePrompt = s.FirstFramePrompt,
+                                LastFramePrompt = s.LastFramePrompt,
+                                ShotType = s.ShotType,
+                                CoreContent = s.CoreContent,
+                                ActionCommand = s.ActionCommand,
+                                SceneSettings = s.SceneSettings,
+                                SelectedModel = s.SelectedModel,
+                                FirstFrameImagePath = s.FirstFrameImagePath,
+                                LastFrameImagePath = s.LastFrameImagePath,
+                                GeneratedVideoPath = s.GeneratedVideoPath,
+                                MaterialThumbnailPath = s.MaterialThumbnailPath,
+                                MaterialFilePath = s.MaterialFilePath
+                            };
+                            AttachShotEventHandlers(shot);
+                            Shots.Add(shot);
+                        }
+                        RenumberShots();
+                    });
+
+                    InitializeHistory();
+                });
+            }
+            catch
+            {
+                // ignore load failures
+            }
         });
 
         InitializeHistory();
@@ -917,7 +969,17 @@ public partial class MainViewModel : ObservableObject
             return;
 
         Projects.Remove(project);
-        SaveProjectHistory();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _projectStore.DeleteAsync(project.Id).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore delete failures
+            }
+        });
     }
 
     [RelayCommand]

@@ -10,11 +10,13 @@ using Storyboard.Views;
 using Storyboard.AI;
 using Storyboard.AI.Core;
 using Storyboard.Services;
+using Storyboard.Infrastructure.DependencyInjection;
 using System.IO;
+using System;
 
 namespace Storyboard;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
@@ -52,6 +54,12 @@ public partial class App : Application
         services.AddSingleton<IConfiguration>(configuration);
         services.Configure<AIServicesConfiguration>(configuration.GetSection("AIServices"));
 
+        // Persistence (SQLite + EF Core)
+        var dbRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StoryboardStudio");
+        Directory.CreateDirectory(dbRoot);
+        var dbPath = Path.Combine(dbRoot, "storyboard.db");
+        services.AddStoryboardPersistence(dbPath);
+
         // Logging
         services.AddLogging(builder =>
         {
@@ -60,7 +68,7 @@ public partial class App : Application
         });
 
         // ViewModels
-        services.AddSingleton<MainViewModel>();
+        services.AddTransient<MainViewModel>();
         services.AddTransient<ApiKeyViewModel>();
 
         // Services - 保持现有业务逻辑
