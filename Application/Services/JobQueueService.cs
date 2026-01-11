@@ -1,26 +1,17 @@
-using Storyboard.Models;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
-using Avalonia.Threading;
+using Storyboard.Application.Abstractions;
+using Storyboard.Models;
 
-namespace Storyboard.Services;
-
-public interface IJobQueueService
-{
-    ObservableCollection<GenerationJob> Jobs { get; }
-    GenerationJob Enqueue(GenerationJobType type, int? shotNumber, Func<CancellationToken, IProgress<double>, Task> runner, int maxAttempts = 2);
-    void Cancel(GenerationJob job);
-}
+namespace Storyboard.Application.Services;
 
 public sealed class JobQueueService : IJobQueueService
 {
+    private readonly IUiDispatcher _ui;
     private readonly SemaphoreSlim _concurrency;
     private readonly Channel<Guid> _channel = Channel.CreateUnbounded<Guid>(new UnboundedChannelOptions
     {
@@ -36,8 +27,9 @@ public sealed class JobQueueService : IJobQueueService
 
     public ObservableCollection<GenerationJob> Jobs { get; } = new();
 
-    public JobQueueService(int maxConcurrency = 2)
+    public JobQueueService(IUiDispatcher ui, int maxConcurrency = 2)
     {
+        _ui = ui;
         _concurrency = new SemaphoreSlim(Math.Max(1, maxConcurrency));
         _historyFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "job-history.json");
 
@@ -240,7 +232,6 @@ public sealed class JobQueueService : IJobQueueService
     {
         try
         {
-            // Keep only recent N
             var snapshot = Jobs
                 .Take(200)
                 .Select(j => new GenerationJobSnapshot
@@ -268,17 +259,7 @@ public sealed class JobQueueService : IJobQueueService
         }
     }
 
-    private static void OnUi(Action action)
-    {
-        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
-        {
-            action();
-        }
-        else
-        {
-            Avalonia.Threading.Dispatcher.UIThread.Post(action);
-        }
-    }
+    private void OnUi(Action action) => _ui.Post(action);
 
     private sealed class GenerationJobSnapshot
     {

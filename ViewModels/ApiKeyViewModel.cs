@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Storyboard.AI;
 using Storyboard.AI.Core;
 using Storyboard.Models;
-using Storyboard.Services;
+using Storyboard.Infrastructure.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

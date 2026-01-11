@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Storyboard.Services;
+namespace Storyboard.Infrastructure.Media;
 
 internal static class FfmpegLocator
 {
@@ -12,7 +12,6 @@ internal static class FfmpegLocator
 
     private static string? GetToolPath(string exeName)
     {
-        // Prefer shipping binaries next to the app.
         var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
         var candidates = new[]

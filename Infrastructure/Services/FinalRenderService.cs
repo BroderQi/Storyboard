@@ -1,15 +1,12 @@
 using Microsoft.Extensions.Logging;
+using Storyboard.Application.Abstractions;
+using Storyboard.Infrastructure.Media;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Storyboard.Services;
-
-public interface IFinalRenderService
-{
-    Task<string> RenderAsync(IReadOnlyList<string> clipPaths, CancellationToken cancellationToken, IProgress<double>? progress = null);
-}
+namespace Storyboard.Infrastructure.Services;
 
 public sealed class FinalRenderService : IFinalRenderService
 {
@@ -37,8 +34,6 @@ public sealed class FinalRenderService : IFinalRenderService
 
         try
         {
-            // ffmpeg concat demuxer list
-            // Use absolute paths, escape single quotes
             var sb = new StringBuilder();
             foreach (var p in clipPaths)
             {
@@ -51,14 +46,12 @@ public sealed class FinalRenderService : IFinalRenderService
 
             progress?.Report(0);
 
-            // Try stream copy first for speed
             var copyArgs = $"-y -hide_banner -loglevel error -f concat -safe 0 -i \"{listFile}\" -c copy \"{outputPath}\"";
             var (code1, _out1, err1) = await RunProcessCaptureAsync(FfmpegLocator.GetFfmpegPath(), copyArgs, cancellationToken).ConfigureAwait(false);
             if (code1 != 0)
             {
                 _logger.LogWarning("ffmpeg concat copy 失败，将尝试重编码。原因: {Error}", err1);
 
-                // Re-encode for compatibility
                 var reArgs = $"-y -hide_banner -loglevel error -f concat -safe 0 -i \"{listFile}\" -c:v libx264 -preset veryfast -crf 20 -c:a aac -movflags +faststart \"{outputPath}\"";
                 var (code2, _out2, err2) = await RunProcessCaptureAsync(FfmpegLocator.GetFfmpegPath(), reArgs, cancellationToken).ConfigureAwait(false);
                 if (code2 != 0)

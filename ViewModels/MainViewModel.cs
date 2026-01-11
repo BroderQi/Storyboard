@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 // using System.Windows; // WPF specific - remove for Avalonia
 using Storyboard.Models;
-using Storyboard.Services;
+using Storyboard.Application.Abstractions;
 // using Storyboard.Views.Windows; // Old WPF views - remove for Avalonia
 using System;
 using System.Threading;

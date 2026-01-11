@@ -1,18 +1,14 @@
+using Storyboard.Application.Abstractions;
+using Storyboard.Infrastructure.Media;
 using Storyboard.Models;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 
-namespace Storyboard.Services;
+namespace Storyboard.Infrastructure.Services;
 
-public interface IVideoGenerationService
-{
-    Task<string> GenerateVideoAsync(ShotItem shot);
-}
-
-public class VideoGenerationService : IVideoGenerationService
+public sealed class VideoGenerationService : IVideoGenerationService
 {
     public async Task<string> GenerateVideoAsync(ShotItem shot)
     {
@@ -27,7 +23,6 @@ public class VideoGenerationService : IVideoGenerationService
         var duration = Math.Max(0.2, shot.Duration);
         var outputPath = Path.Combine(outDir, $"shot_{shot.ShotNumber:000}_{DateTime.Now:yyyyMMdd_HHmmss_fff}.mp4");
 
-        // 最小可用：用首帧图生成一段静帧视频（真实落盘，便于后续 concat）
         string args;
         if (!string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && File.Exists(shot.FirstFrameImagePath))
         {
@@ -36,7 +31,6 @@ public class VideoGenerationService : IVideoGenerationService
         }
         else
         {
-            // 没有首帧图时，生成一个纯色测试视频
             var dur = duration.ToString("0.###", CultureInfo.InvariantCulture);
             args = $"-y -hide_banner -loglevel error -f lavfi -i color=c=black:s=1280x720:r=30 -t {dur} -vf format=yuv420p -an \"{outputPath}\"";
         }

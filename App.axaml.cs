@@ -9,8 +9,12 @@ using Storyboard.ViewModels;
 using Storyboard.Views;
 using Storyboard.AI;
 using Storyboard.AI.Core;
-using Storyboard.Services;
+using Storyboard.Application.Abstractions;
+using Storyboard.Application.Services;
+using Storyboard.Infrastructure.Configuration;
 using Storyboard.Infrastructure.DependencyInjection;
+using Storyboard.Infrastructure.Services;
+using Storyboard.Infrastructure.Ui;
 using System.IO;
 using System;
 
@@ -75,9 +79,12 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IVideoAnalysisService, VideoAnalysisService>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
-        services.AddSingleton<IJobQueueService, JobQueueService>();
         services.AddSingleton<IFinalRenderService, FinalRenderService>();
         services.AddSingleton<AppSettingsStore>();
+
+        services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
+        services.AddSingleton<IJobQueueService>(sp =>
+            new JobQueueService(sp.GetRequiredService<IUiDispatcher>(), maxConcurrency: 2));
 
         // AI Services - 保持现有 AI 架构
         services.AddSingleton<AI.Prompts.PromptManagementService>();

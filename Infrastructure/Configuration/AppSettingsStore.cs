@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using Storyboard.AI.Core;
 
-namespace Storyboard.Services;
+namespace Storyboard.Infrastructure.Configuration;
 
 /// <summary>
 /// Reads/writes appsettings.json at runtime (keeps non-AIServices sections intact).
@@ -64,7 +64,6 @@ public sealed class AppSettingsStore
 
         File.WriteAllText(SettingsFilePath, root.ToJsonString(JsonOptions));
 
-        // Force reload so IOptionsMonitor-backed providers see changes immediately.
         if (_configuration is IConfigurationRoot cfgRoot)
         {
             cfgRoot.Reload();
