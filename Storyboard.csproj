@@ -9,7 +9,7 @@
     <Product>帧大师-Storyboard</Product>
     <ApplicationTitle>帧大师-Storyboard</ApplicationTitle>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest>App\app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -48,11 +48,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Assets/icon.ico" />
+    <AvaloniaResource Include="App\Assets\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="ffmpeg\**\*">
+    <None Include="Tools\ffmpeg\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

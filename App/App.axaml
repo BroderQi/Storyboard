@@ -4,6 +4,6 @@
              RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://Storyboard/Styles/AppStyles.axaml" />
+        <StyleInclude Source="avares://Storyboard/App/Styles/AppStyles.axaml" />
     </Application.Styles>
 </Application>

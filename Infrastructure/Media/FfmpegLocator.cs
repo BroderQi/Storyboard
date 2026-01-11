@@ -18,6 +18,7 @@ internal static class FfmpegLocator
         {
             Path.Combine(baseDir, exeName),
             Path.Combine(baseDir, "ffmpeg", exeName),
+            Path.Combine(baseDir, "Tools", "ffmpeg", exeName),
         };
 
         foreach (var p in candidates)
