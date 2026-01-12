@@ -31,8 +31,8 @@
 - ✅ Export: storyboard JSON and final video output.
 
 ## 🌐 Web Demo
-
-http://47.100.163.84/ (UI only, no backend implementation)
+UI only, no backend implementation
+http://47.100.163.84/
 
 ## 🖼️ UI Preview
 
@@ -118,7 +118,7 @@ Notes:
 
 ## 📦 Data & Output
 
-- Database location: `%LOCALAPPDATA%/StoryboardStudio/storyboard.db`
+- Database location: `Data/storyboard.db` (under the app base directory)
 - Output paths: `output/projects/<ProjectId>/images`, `output/projects/<ProjectId>/videos`
 
 ## 🧰 FFmpeg Dependency

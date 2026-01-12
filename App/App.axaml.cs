@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,7 +61,7 @@ public partial class App : Avalonia.Application
         services.Configure<AIServicesConfiguration>(configuration.GetSection("AIServices"));
 
         // Persistence (SQLite + EF Core)
-        var dbRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StoryboardStudio");
+        var dbRoot = Path.Combine(AppContext.BaseDirectory, "Data");
         Directory.CreateDirectory(dbRoot);
         var dbPath = Path.Combine(dbRoot, "storyboard.db");
         services.AddStoryboardPersistence(dbPath);

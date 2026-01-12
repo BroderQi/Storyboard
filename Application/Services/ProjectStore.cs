@@ -19,25 +19,25 @@ public sealed class ProjectStore : IProjectStore
 
         var projects = await uow.Projects.Query()
             .AsNoTracking()
-            .OrderByDescending(p => p.UpdatedAt)
-            .Take(50)
-            .Select(p => new
-            {
-                p.Id,
-                p.Name,
-                p.UpdatedAt,
-                TotalShots = p.Shots.Count,
-                CompletedShots = p.Shots.Count(s => s.GeneratedVideoPath != null && s.GeneratedVideoPath != ""),
-                HasImages = p.Shots.SelectMany(s => s.Assets)
-                    .Count(a => a.Type == ShotAssetType.FirstFrameImage || a.Type == ShotAssetType.LastFrameImage)
-                    + p.Shots.Count(s => s.Assets.Count == 0 && ((s.FirstFrameImagePath != null && s.FirstFrameImagePath != "") || (s.LastFrameImagePath != null && s.LastFrameImagePath != "")))
-            })
+            .Include(p => p.Shots)
+            .ThenInclude(s => s.Assets)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return projects
-            .Select(p => new ProjectSummary(p.Id, p.Name, p.UpdatedAt, p.TotalShots, p.CompletedShots, p.HasImages))
-            .ToList();
+            .OrderByDescending(p => p.UpdatedAt)
+            .Take(50)
+            .Select(p =>
+        {
+            var totalShots = p.Shots.Count;
+            var completedShots = p.Shots.Count(s => !string.IsNullOrWhiteSpace(s.GeneratedVideoPath));
+            var assetImages = p.Shots.SelectMany(s => s.Assets)
+                .Count(a => a.Type == ShotAssetType.FirstFrameImage || a.Type == ShotAssetType.LastFrameImage);
+            var fallbackImages = p.Shots.Count(s => s.Assets.Count == 0
+                && (!string.IsNullOrWhiteSpace(s.FirstFrameImagePath) || !string.IsNullOrWhiteSpace(s.LastFrameImagePath)));
+
+            return new ProjectSummary(p.Id, p.Name, p.UpdatedAt, totalShots, completedShots, assetImages + fallbackImages);
+        }).ToList();
     }
 
     public async Task<ProjectState?> LoadAsync(string projectId, CancellationToken cancellationToken = default)

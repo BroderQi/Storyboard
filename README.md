@@ -31,8 +31,8 @@
 - ✅ 导出：分镜 JSON 与合成成片输出。
 
 ## 🌐 Web 演示
-
-地址：http://47.100.163.84/（只包含 UI，没有后端实现）
+只包含 UI，没有后端实现
+地址：http://47.100.163.84/
 
 ## 🖼️ 界面预览
 
@@ -119,7 +119,7 @@ dotnet run
 
 ## 📦 数据与输出
 
-- 数据库位置：`%LOCALAPPDATA%/StoryboardStudio/storyboard.db`
+- 数据库位置：`Data/storyboard.db`（程序启动目录下）
 - 输出目录：`output/projects/<ProjectId>/images`、`output/projects/<ProjectId>/videos`
 
 
