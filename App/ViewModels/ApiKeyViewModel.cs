@@ -23,11 +23,15 @@ public partial class ApiKeyViewModel : ObservableObject
         _aiManager = aiManager;
 
         AvailableProviderTypes = Enum.GetValues(typeof(AIProviderType)).Cast<AIProviderType>().ToList();
+        AvailableImageProviderTypes = Enum.GetValues(typeof(ImageProviderType)).Cast<ImageProviderType>().ToList();
+        AvailableVideoProviderTypes = Enum.GetValues(typeof(VideoProviderType)).Cast<VideoProviderType>().ToList();
 
         LoadFromFile();
     }
 
     public IReadOnlyList<AIProviderType> AvailableProviderTypes { get; }
+    public IReadOnlyList<ImageProviderType> AvailableImageProviderTypes { get; }
+    public IReadOnlyList<VideoProviderType> AvailableVideoProviderTypes { get; }
 
     public ObservableCollection<ProviderValidationResult> ValidationResults { get; } = new();
 
@@ -38,7 +42,19 @@ public partial class ApiKeyViewModel : ObservableObject
     private AIProviderType _defaultProvider = AIProviderType.Qwen;
 
     [ObservableProperty]
+    private ImageProviderType _defaultImageProvider = ImageProviderType.Local;
+
+    [ObservableProperty]
+    private VideoProviderType _defaultVideoProvider = VideoProviderType.Local;
+
+    [ObservableProperty]
     private AIProviderType _selectedProvider = AIProviderType.Qwen;
+
+    [ObservableProperty]
+    private ImageProviderType _selectedImageProvider = ImageProviderType.Local;
+
+    [ObservableProperty]
+    private VideoProviderType _selectedVideoProvider = VideoProviderType.Local;
 
     // Qwen
     [ObservableProperty] private bool _qwenEnabled;
@@ -86,19 +102,50 @@ public partial class ApiKeyViewModel : ObservableObject
     [ObservableProperty] private string _azureOpenAIApiVersion = string.Empty;
     [ObservableProperty] private int _azureOpenAITimeoutSeconds = 120;
 
+    // Image - Local
+    [ObservableProperty] private bool _imageLocalEnabled = true;
+    [ObservableProperty] private int _imageLocalWidth = 1024;
+    [ObservableProperty] private int _imageLocalHeight = 576;
+    [ObservableProperty] private string _imageLocalStyle = "Poster";
+
+    // Image - OpenAI
+    [ObservableProperty] private bool _imageOpenAIEnabled;
+    [ObservableProperty] private string _imageOpenAIApiKey = string.Empty;
+    [ObservableProperty] private string _imageOpenAIDefaultModel = "gpt-image-1";
+    [ObservableProperty] private string _imageOpenAIEndpoint = "https://api.openai.com/v1";
+    [ObservableProperty] private string _imageOpenAISize = "1024x1024";
+    [ObservableProperty] private string _imageOpenAIQuality = "standard";
+    [ObservableProperty] private int _imageOpenAITimeoutSeconds = 120;
+
+    // Video - Local
+    [ObservableProperty] private bool _videoLocalEnabled = true;
+    [ObservableProperty] private int _videoLocalWidth = 1280;
+    [ObservableProperty] private int _videoLocalHeight = 720;
+    [ObservableProperty] private int _videoLocalFps = 30;
+    [ObservableProperty] private int _videoLocalBitrateKbps = 4000;
+    [ObservableProperty] private double _videoLocalTransitionSeconds = 0.5;
+    [ObservableProperty] private bool _videoLocalUseKenBurns = true;
+
     public bool IsQwenSelected => SelectedProvider == AIProviderType.Qwen;
     public bool IsWenxinSelected => SelectedProvider == AIProviderType.Wenxin;
     public bool IsZhipuSelected => SelectedProvider == AIProviderType.Zhipu;
     public bool IsVolcengineSelected => SelectedProvider == AIProviderType.Volcengine;
     public bool IsOpenAISelected => SelectedProvider == AIProviderType.OpenAI;
     public bool IsAzureOpenAISelected => SelectedProvider == AIProviderType.AzureOpenAI;
+    public bool IsImageLocalSelected => SelectedImageProvider == ImageProviderType.Local;
+    public bool IsImageOpenAISelected => SelectedImageProvider == ImageProviderType.OpenAI;
+    public bool IsVideoLocalSelected => SelectedVideoProvider == VideoProviderType.Local;
 
     private void LoadFromFile()
     {
         var cfg = _settingsStore.LoadAIServices();
 
         DefaultProvider = cfg.DefaultProvider;
+        DefaultImageProvider = cfg.Image.DefaultProvider;
+        DefaultVideoProvider = cfg.Video.DefaultProvider;
         SelectedProvider = cfg.DefaultProvider;
+        SelectedImageProvider = cfg.Image.DefaultProvider;
+        SelectedVideoProvider = cfg.Video.DefaultProvider;
 
         QwenEnabled = cfg.Qwen.Enabled;
         QwenApiKey = cfg.Qwen.ApiKey;
@@ -139,6 +186,27 @@ public partial class ApiKeyViewModel : ObservableObject
         AzureOpenAIDefaultModel = cfg.AzureOpenAI.DefaultModel;
         AzureOpenAIApiVersion = cfg.AzureOpenAI.ApiVersion;
         AzureOpenAITimeoutSeconds = cfg.AzureOpenAI.TimeoutSeconds;
+
+        ImageLocalEnabled = cfg.Image.Local.Enabled;
+        ImageLocalWidth = cfg.Image.Local.Width;
+        ImageLocalHeight = cfg.Image.Local.Height;
+        ImageLocalStyle = cfg.Image.Local.Style;
+
+        ImageOpenAIEnabled = cfg.Image.OpenAI.Enabled;
+        ImageOpenAIApiKey = cfg.Image.OpenAI.ApiKey;
+        ImageOpenAIDefaultModel = cfg.Image.OpenAI.DefaultModel;
+        ImageOpenAIEndpoint = cfg.Image.OpenAI.Endpoint;
+        ImageOpenAISize = cfg.Image.OpenAI.Size;
+        ImageOpenAIQuality = cfg.Image.OpenAI.Quality;
+        ImageOpenAITimeoutSeconds = cfg.Image.OpenAI.TimeoutSeconds;
+
+        VideoLocalEnabled = cfg.Video.Local.Enabled;
+        VideoLocalWidth = cfg.Video.Local.Width;
+        VideoLocalHeight = cfg.Video.Local.Height;
+        VideoLocalFps = cfg.Video.Local.Fps;
+        VideoLocalBitrateKbps = cfg.Video.Local.BitrateKbps;
+        VideoLocalTransitionSeconds = cfg.Video.Local.TransitionSeconds;
+        VideoLocalUseKenBurns = cfg.Video.Local.UseKenBurns;
     }
 
     private AIServicesConfiguration BuildConfig()
@@ -197,6 +265,41 @@ public partial class ApiKeyViewModel : ObservableObject
                 DefaultModel = AzureOpenAIDefaultModel?.Trim() ?? string.Empty,
                 ApiVersion = AzureOpenAIApiVersion?.Trim() ?? string.Empty,
                 TimeoutSeconds = AzureOpenAITimeoutSeconds
+            },
+            Image = new ImageServicesConfiguration
+            {
+                DefaultProvider = DefaultImageProvider,
+                Local = new LocalImageConfig
+                {
+                    Enabled = ImageLocalEnabled,
+                    Width = ImageLocalWidth,
+                    Height = ImageLocalHeight,
+                    Style = ImageLocalStyle?.Trim() ?? string.Empty
+                },
+                OpenAI = new OpenAIImageConfig
+                {
+                    Enabled = ImageOpenAIEnabled,
+                    ApiKey = ImageOpenAIApiKey?.Trim() ?? string.Empty,
+                    DefaultModel = ImageOpenAIDefaultModel?.Trim() ?? string.Empty,
+                    Endpoint = ImageOpenAIEndpoint?.Trim() ?? string.Empty,
+                    Size = ImageOpenAISize?.Trim() ?? string.Empty,
+                    Quality = ImageOpenAIQuality?.Trim() ?? string.Empty,
+                    TimeoutSeconds = ImageOpenAITimeoutSeconds
+                }
+            },
+            Video = new VideoServicesConfiguration
+            {
+                DefaultProvider = DefaultVideoProvider,
+                Local = new LocalVideoConfig
+                {
+                    Enabled = VideoLocalEnabled,
+                    Width = VideoLocalWidth,
+                    Height = VideoLocalHeight,
+                    Fps = VideoLocalFps,
+                    BitrateKbps = VideoLocalBitrateKbps,
+                    TransitionSeconds = VideoLocalTransitionSeconds,
+                    UseKenBurns = VideoLocalUseKenBurns
+                }
             }
         };
     }
@@ -209,6 +312,17 @@ public partial class ApiKeyViewModel : ObservableObject
         OnPropertyChanged(nameof(IsVolcengineSelected));
         OnPropertyChanged(nameof(IsOpenAISelected));
         OnPropertyChanged(nameof(IsAzureOpenAISelected));
+    }
+
+    partial void OnSelectedImageProviderChanged(ImageProviderType value)
+    {
+        OnPropertyChanged(nameof(IsImageLocalSelected));
+        OnPropertyChanged(nameof(IsImageOpenAISelected));
+    }
+
+    partial void OnSelectedVideoProviderChanged(VideoProviderType value)
+    {
+        OnPropertyChanged(nameof(IsVideoLocalSelected));
     }
 
     [RelayCommand]

@@ -79,6 +79,45 @@ public class AzureOpenAIConfig : AIServiceConfig
     public string ApiVersion { get; set; } = "2024-02-15-preview";
 }
 
+public class LocalImageConfig
+{
+    public bool Enabled { get; set; } = true;
+    public int Width { get; set; } = 1024;
+    public int Height { get; set; } = 576;
+    public string Style { get; set; } = "Poster";
+}
+
+public class OpenAIImageConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://api.openai.com/v1";
+    public string Size { get; set; } = "1024x1024";
+    public string Quality { get; set; } = "standard";
+}
+
+public class ImageServicesConfiguration
+{
+    public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Local;
+    public LocalImageConfig Local { get; set; } = new();
+    public OpenAIImageConfig OpenAI { get; set; } = new();
+}
+
+public class LocalVideoConfig
+{
+    public bool Enabled { get; set; } = true;
+    public int Width { get; set; } = 1280;
+    public int Height { get; set; } = 720;
+    public int Fps { get; set; } = 30;
+    public int BitrateKbps { get; set; } = 4000;
+    public double TransitionSeconds { get; set; } = 0.5;
+    public bool UseKenBurns { get; set; } = true;
+}
+
+public class VideoServicesConfiguration
+{
+    public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Local;
+    public LocalVideoConfig Local { get; set; } = new();
+}
+
 /// <summary>
 /// AI服务总配置
 /// </summary>
@@ -90,6 +129,8 @@ public class AIServicesConfiguration
     public VolcengineConfig Volcengine { get; set; } = new();
     public OpenAIConfig OpenAI { get; set; } = new();
     public AzureOpenAIConfig AzureOpenAI { get; set; } = new();
+    public ImageServicesConfiguration Image { get; set; } = new();
+    public VideoServicesConfiguration Video { get; set; } = new();
 
     /// <summary>
     /// 默认提供商

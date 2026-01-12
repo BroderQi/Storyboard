@@ -30,6 +30,22 @@
             <TabItem Header="文本理解">
                 <ScrollViewer Margin="0,16">
                     <StackPanel Spacing="12">
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="默认提供商"
+                                           FontSize="13"
+                                           Foreground="#a1a1aa" />
+                                <ComboBox ItemsSource="{Binding AvailableProviderTypes}"
+                                          SelectedItem="{Binding DefaultProvider}"
+                                          HorizontalAlignment="Stretch"
+                                          Background="#0a0a0a"
+                                          BorderBrush="#27272a" />
+                            </StackPanel>
+                        </Border>
 
                         <!-- Qwen -->
                         <Border Background="#18181b"
@@ -261,7 +277,7 @@
                                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                                     <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
                                         <TextBlock Text="Azure OpenAI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding DefaultProvider}" FontSize="12" Foreground="#a1a1aa" />
+                                        <TextBlock Text="{Binding AzureOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding AzureOpenAIEnabled}">
@@ -295,18 +311,197 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Image Providers (not wired yet) -->
             <TabItem Header="图片生成">
-                <Border Margin="0,16" Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <TextBlock Text="当前版本仅支持文本理解提供商配置（AIServices）。" Foreground="#a1a1aa" TextWrapping="Wrap" />
-                </Border>
+                <ScrollViewer Margin="0,16">
+                    <StackPanel Spacing="12">
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="默认提供商"
+                                           FontSize="13"
+                                           Foreground="#a1a1aa" />
+                                <ComboBox ItemsSource="{Binding AvailableImageProviderTypes}"
+                                          SelectedItem="{Binding DefaultImageProvider}"
+                                          HorizontalAlignment="Stretch"
+                                          Background="#0a0a0a"
+                                          BorderBrush="#27272a" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="Local"
+                                PointerPressed="OnImageProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="本地渲染" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding ImageLocalStyle}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageLocalEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding ImageLocalEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsImageLocalSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="宽度" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageLocalWidth}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="高度" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageLocalHeight}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="样式" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageLocalStyle}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="OpenAI"
+                                PointerPressed="OnImageProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="OpenAI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding ImageOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageOpenAIEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding ImageOpenAIEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsImageOpenAISelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAIApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAIDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAIEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="尺寸" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAISize}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="质量" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAIQuality}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="超时（秒）" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageOpenAITimeoutSeconds}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
-            <!-- Video Providers (not wired yet) -->
             <TabItem Header="视频生成">
-                <Border Margin="0,16" Background="#18181b" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <TextBlock Text="当前版本仅支持文本理解提供商配置（AIServices）。" Foreground="#a1a1aa" TextWrapping="Wrap" />
-                </Border>
+                <ScrollViewer Margin="0,16">
+                    <StackPanel Spacing="12">
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="默认提供商"
+                                           FontSize="13"
+                                           Foreground="#a1a1aa" />
+                                <ComboBox ItemsSource="{Binding AvailableVideoProviderTypes}"
+                                          SelectedItem="{Binding DefaultVideoProvider}"
+                                          HorizontalAlignment="Stretch"
+                                          Background="#0a0a0a"
+                                          BorderBrush="#27272a" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="Local"
+                                PointerPressed="OnVideoProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="本地合成（FFmpeg）" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="适用于本地拼接/转场" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoLocalEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding VideoLocalEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsVideoLocalSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="宽度" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoLocalWidth}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="高度" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoLocalHeight}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="帧率" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoLocalFps}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="码率（Kbps）" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoLocalBitrateKbps}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="转场时长（秒）" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoLocalTransitionSeconds}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <ToggleSwitch IsChecked="{Binding VideoLocalUseKenBurns}" />
+                                            <TextBlock Text="启用轻微推拉效果" Foreground="#a1a1aa" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
         </TabControl>

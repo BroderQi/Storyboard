@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
+using System.IO;
 using System.Collections.ObjectModel;
 using Storyboard.Domain.Entities;
 
@@ -93,7 +94,10 @@ public partial class ShotItem : ObservableObject
     private double _timelineWidth;
 
     public string? VideoOutputPath => GeneratedVideoPath;
-    public bool CanGenerateVideo => !string.IsNullOrEmpty(FirstFrameImagePath) && !string.IsNullOrEmpty(LastFrameImagePath);
+    public bool CanGenerateVideo => !string.IsNullOrEmpty(FirstFrameImagePath)
+        && File.Exists(FirstFrameImagePath)
+        && !string.IsNullOrEmpty(LastFrameImagePath)
+        && File.Exists(LastFrameImagePath);
 
     // Events for communicating with parent ViewModel
     public event EventHandler? DuplicateRequested;
@@ -181,13 +185,22 @@ public partial class ShotItem : ObservableObject
     }
 
     partial void OnFirstFrameImagePathChanged(string? value)
-        => UpdateAssetSelections(ShotAssetType.FirstFrameImage);
+    {
+        UpdateAssetSelections(ShotAssetType.FirstFrameImage);
+        OnPropertyChanged(nameof(CanGenerateVideo));
+    }
 
     partial void OnLastFrameImagePathChanged(string? value)
-        => UpdateAssetSelections(ShotAssetType.LastFrameImage);
+    {
+        UpdateAssetSelections(ShotAssetType.LastFrameImage);
+        OnPropertyChanged(nameof(CanGenerateVideo));
+    }
 
     partial void OnGeneratedVideoPathChanged(string? value)
-        => UpdateAssetSelections(ShotAssetType.GeneratedVideo);
+    {
+        UpdateAssetSelections(ShotAssetType.GeneratedVideo);
+        OnPropertyChanged(nameof(VideoOutputPath));
+    }
 
     private void UpdateAssetSelections(ShotAssetType type)
     {

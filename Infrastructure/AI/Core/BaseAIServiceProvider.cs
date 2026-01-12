@@ -20,6 +20,11 @@ public abstract class BaseAIServiceProvider : IAIServiceProvider
     public abstract string DisplayName { get; }
     public abstract bool IsConfigured { get; }
     public abstract IReadOnlyList<string> SupportedModels { get; }
+    public virtual AIProviderCapability Capabilities => AIProviderCapability.TextUnderstanding;
+    public virtual IReadOnlyList<ProviderCapabilityDeclaration> CapabilityDeclarations => new[]
+    {
+        new ProviderCapabilityDeclaration(AIProviderCapability.TextUnderstanding, "MaxTokens: 2000", "text/plain")
+    };
 
     public virtual async Task<Kernel> GetKernelAsync(string? modelId = null)
     {

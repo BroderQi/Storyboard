@@ -2,6 +2,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using Storyboard.AI.Core;
 using Storyboard.AI.Prompts;
@@ -16,6 +17,7 @@ public class AIServiceManager
 {
     private readonly ILogger<AIServiceManager> _logger;
     private readonly IEnumerable<IAIServiceProvider> _providers;
+    private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
     private readonly PromptManagementService _promptService;
     private readonly FunctionManagementService _functionService;
     private IAIServiceProvider? _currentProvider;
@@ -23,11 +25,13 @@ public class AIServiceManager
     public AIServiceManager(
         ILogger<AIServiceManager> logger,
         IEnumerable<IAIServiceProvider> providers,
+        IOptionsMonitor<AIServicesConfiguration> configMonitor,
         PromptManagementService promptService,
         FunctionManagementService functionService)
     {
         _logger = logger;
         _providers = providers;
+        _configMonitor = configMonitor;
         _promptService = promptService;
         _functionService = functionService;
     }
@@ -50,6 +54,14 @@ public class AIServiceManager
     }
 
     /// <summary>
+    /// 获取指定能力的可用提供商
+    /// </summary>
+    public IEnumerable<IAIServiceProvider> GetAvailableProviders(AIProviderCapability capability)
+    {
+        return _providers.Where(p => p.IsConfigured && p.Capabilities.HasFlag(capability));
+    }
+
+    /// <summary>
     /// 设置当前提供商
     /// </summary>
     public void SetProvider(AIProviderType providerType)
@@ -67,14 +79,21 @@ public class AIServiceManager
     /// </summary>
     public IAIServiceProvider GetCurrentProvider()
     {
-        if (_currentProvider == null)
+        var configuredDefault = _configMonitor.CurrentValue.DefaultProvider;
+        if (_currentProvider == null || _currentProvider.ProviderType != configuredDefault || !_currentProvider.IsConfigured)
         {
-            var firstAvailable = GetAvailableProviders().FirstOrDefault();
-            if (firstAvailable == null)
+            _currentProvider = _providers.FirstOrDefault(p => p.ProviderType == configuredDefault && p.IsConfigured);
+
+            if (_currentProvider == null)
             {
-                throw new InvalidOperationException("没有可用的AI服务提供商");
+                var firstAvailable = GetAvailableProviders().FirstOrDefault();
+                if (firstAvailable == null)
+                {
+                    throw new InvalidOperationException("没有可用的AI服务提供商");
+                }
+                _currentProvider = firstAvailable;
+                _logger.LogWarning("默认提供商不可用，已切换到 {Provider}", _currentProvider.DisplayName);
             }
-            _currentProvider = firstAvailable;
         }
         return _currentProvider;
     }

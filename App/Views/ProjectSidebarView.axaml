@@ -160,8 +160,8 @@
                                            BorderBrush="#3f3f46" />
                         </StackPanel>
 
-                        <!-- Sensitivity (for dynamic mode) -->
-                        <StackPanel Spacing="8" IsVisible="{Binding IsDynamicMode}">
+                        <!-- Sensitivity (for keyframe mode) -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsKeyframeMode}">
                             <TextBlock Text="检测灵敏度" 
                                        FontSize="13" 
                                        Foreground="#f5f5f5" 

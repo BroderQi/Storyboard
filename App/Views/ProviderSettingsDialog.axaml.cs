@@ -36,6 +36,46 @@ public partial class ProviderSettingsDialog : Window
         }
     }
 
+    private void OnImageProviderCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Control sourceControl && sourceControl.FindAncestorOfType<ToggleSwitch>() is not null)
+            return;
+
+        if (sender is not Control control)
+            return;
+
+        if (control.Tag is not string tag)
+            return;
+
+        if (DataContext is not ApiKeyViewModel vm)
+            return;
+
+        if (Enum.TryParse<ImageProviderType>(tag, out var provider))
+        {
+            vm.SelectedImageProvider = provider;
+        }
+    }
+
+    private void OnVideoProviderCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Control sourceControl && sourceControl.FindAncestorOfType<ToggleSwitch>() is not null)
+            return;
+
+        if (sender is not Control control)
+            return;
+
+        if (control.Tag is not string tag)
+            return;
+
+        if (DataContext is not ApiKeyViewModel vm)
+            return;
+
+        if (Enum.TryParse<VideoProviderType>(tag, out var provider))
+        {
+            vm.SelectedVideoProvider = provider;
+        }
+    }
+
     private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         Close();

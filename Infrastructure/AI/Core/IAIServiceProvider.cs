@@ -21,6 +21,19 @@ public enum AIProviderType
     AzureOpenAI
 }
 
+[Flags]
+public enum AIProviderCapability
+{
+    TextUnderstanding = 1,
+    ImageGeneration = 2,
+    VideoGeneration = 4
+}
+
+public sealed record ProviderCapabilityDeclaration(
+    AIProviderCapability Capability,
+    string InputLimit,
+    string OutputFormat);
+
 /// <summary>
 /// AI服务提供商接口
 /// </summary>
@@ -45,6 +58,16 @@ public interface IAIServiceProvider
     /// 支持的模型列表
     /// </summary>
     IReadOnlyList<string> SupportedModels { get; }
+
+    /// <summary>
+    /// 提供商支持的能力类型
+    /// </summary>
+    AIProviderCapability Capabilities { get; }
+
+    /// <summary>
+    /// 提供商能力声明
+    /// </summary>
+    IReadOnlyList<ProviderCapabilityDeclaration> CapabilityDeclarations { get; }
 
     /// <summary>
     /// 获取Kernel实例

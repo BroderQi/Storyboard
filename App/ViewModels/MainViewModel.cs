@@ -222,12 +222,14 @@ public partial class MainViewModel : ObservableObject
     public bool IsFixedOrDynamicMode => ExtractModeIndex == 0 || ExtractModeIndex == 1;
     public bool IsIntervalMode => ExtractModeIndex == 2;
     public bool IsDynamicMode => ExtractModeIndex == 1;
+    public bool IsKeyframeMode => ExtractModeIndex == 3;
 
     partial void OnExtractModeIndexChanged(int value)
     {
         OnPropertyChanged(nameof(IsFixedOrDynamicMode));
         OnPropertyChanged(nameof(IsIntervalMode));
         OnPropertyChanged(nameof(IsDynamicMode));
+        OnPropertyChanged(nameof(IsKeyframeMode));
     }
 
     private readonly HashSet<ShotItem> _trackedShots = new();
@@ -1708,12 +1710,20 @@ public partial class MainViewModel : ObservableObject
     {
         foreach (var shot in Shots)
         {
-            if (string.IsNullOrWhiteSpace(shot.GeneratedVideoPath) && !shot.IsVideoGenerating)
+            if (shot.CanGenerateVideo && string.IsNullOrWhiteSpace(shot.GeneratedVideoPath) && !shot.IsVideoGenerating)
                 EnqueueVideoJob(shot);
         }
 
-        // 整片合成（Full Render）也进入队列：一键完成最终视频输出
-        EnqueueFullRenderJob();
+        var canRenderAll = Shots.All(s => s.CanGenerateVideo || !string.IsNullOrWhiteSpace(s.GeneratedVideoPath));
+        if (canRenderAll)
+        {
+            // 整片合成（Full Render）也进入队列：一键完成最终视频输出
+            EnqueueFullRenderJob();
+        }
+        else
+        {
+            StatusMessage = "存在未绑定首尾帧的分镜，已跳过整片合成。";
+        }
     }
 
     private void EnqueueFullRenderJob()
@@ -2103,15 +2113,15 @@ public partial class MainViewModel : ObservableObject
             ThumbnailPath = filePath,
             Prompt = prompt,
             Model = model,
-            CreatedAt = DateTimeOffset.Now
+            CreatedAt = DateTimeOffset.Now,
+            IsSelected = type switch
+            {
+                ShotAssetType.FirstFrameImage => string.Equals(shot.FirstFrameImagePath, filePath, StringComparison.OrdinalIgnoreCase),
+                ShotAssetType.LastFrameImage => string.Equals(shot.LastFrameImagePath, filePath, StringComparison.OrdinalIgnoreCase),
+                ShotAssetType.GeneratedVideo => string.Equals(shot.GeneratedVideoPath, filePath, StringComparison.OrdinalIgnoreCase),
+                _ => false
+            }
         });
-
-        if (type == ShotAssetType.FirstFrameImage && string.IsNullOrWhiteSpace(shot.FirstFrameImagePath))
-            shot.FirstFrameImagePath = filePath;
-        if (type == ShotAssetType.LastFrameImage && string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
-            shot.LastFrameImagePath = filePath;
-        if (type == ShotAssetType.GeneratedVideo && string.IsNullOrWhiteSpace(shot.GeneratedVideoPath))
-            shot.GeneratedVideoPath = filePath;
 
         MarkUndoableChange();
         UpdateSummaryCounts();
