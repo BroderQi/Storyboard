@@ -1,146 +1,86 @@
-# Storyboard - WPF 应用程序
+# 分镜大师 Storyboard Studio
 
-## 功能概述
+面向创作者与制作团队的本地分镜工作台：从视频导入、抽帧、AI 分析、图像/视频生成，到批量任务与成片合成，一条链路完成分镜资产管理与输出。
 
-一个完整的 WPF 应用程序，用于视频分镜编辑和 AI 生成：
+## 特性亮点
 
-✅ **上传视频** → AI 自动分镜分析
-✅ **表格编辑** → 可编辑所有参数
-✅ **图像生成** → AI 生成首帧和尾帧
-✅ **视频生成** → 基于参数生成视频
-✅ **查看/定位文件** → 查看大图 / 观看视频 / 打开文件位置
-✅ **拖拽排序** → 拖拽镜头号可调整顺序
-✅ **横向滚动** → 查看所有列
-✅ **固定列** → 镜头号列固定在左侧
-✅ **顶部导航** → 分镜管理 / 使用文档 / 密钥配置
-
-## 项目结构
-
-```
-Storyboard/
-├── AI/                              # AI 能力与适配层
-├── Models/                          # 数据模型
-│   ├── ShotItem.cs                 # 分镜项模型
-│   └── VideoAnalysisResult.cs      # 视频分析结果
-├── ViewModels/                      # 视图模型
-│   └── MainViewModel.cs            # 主窗口 ViewModel
-├── Services/                        # 服务层
-│   ├── VideoAnalysisService.cs     # 视频分析服务
-│   ├── ImageGenerationService.cs   # 图像生成服务
-│   └── VideoGenerationService.cs   # 视频生成服务
-├── Converters/                      # 值转换器
-│   └── ValueConverters.cs          # 布尔值等转换器
-├── Resources/                       # 资源字典（颜色/样式）
-│   └── Theme/
-│       ├── Colors.xaml
-│       ├── Controls.xaml
-│       └── DataGrid.xaml
-├── Views/                           # 视图层（Window/UserControl）
-│   ├── MainWindow.xaml             # 主窗口 UI
-│   ├── MainWindow.xaml.cs          # 主窗口代码
-│   └── Windows/                    # 子窗口
-│       ├── ImagePreviewWindow.xaml
-│       ├── ImagePreviewWindow.xaml.cs
-│       ├── AIConfigWindow.xaml
-│       └── AIConfigWindow.xaml.cs
-├── App.xaml                         # 应用程序配置
-├── App.xaml.cs                     # 应用程序代码
-├── appsettings.json                 # 配置文件
-└── Storyboard.csproj                  # 项目文件
-```
+- 项目化管理：创建/打开项目，SQLite 持久化，最近项目历史。
+- 视频导入与元数据解析：时长/分辨率/帧率自动识别（ffprobe）。
+- 抽帧四模式：定数、动态间隔、等时、关键帧检测。
+- 分镜编辑：镜头字段全量编辑，拖拽排序，时间线视图。
+- AI 镜头解析：首尾帧特征 → 结构化镜头描述（覆盖/追加/放弃）。
+- 文本生成分镜：自然语言描述自动拆分多镜头。
+- 图像/视频生成：首帧、尾帧、成片多次生成保留历史，用户显式绑定。
+- 配置管理：多 Provider 多模型组合，文本/图片/视频各自独立配置，支持本地模型/本地合成与云端服务切换。
+- 批量任务与任务管理：解析/生成/合成批处理，不互相影响。
+- 导出：分镜 JSON 与合成成片输出。
 
 ## 技术栈
 
-- **框架**: .NET 8.0 + WPF
-- **架构**: MVVM (Model-View-ViewModel)
-- **依赖注入**: Microsoft.Extensions.DependencyInjection
-- **MVVM 工具**: CommunityToolkit.Mvvm
+- 框架：.NET 8 + Avalonia
+- 架构：MVVM + 分层（Domain / Application / Infrastructure / App）
+- 数据：SQLite + EF Core
+- AI：Semantic Kernel + 多 Provider 适配
+- 媒体：FFmpeg / FFprobe
 
-## 功能特性
+## 目录结构
 
-### 1. 上传视频与 AI 分析
-- 点击右上角“📁 上传视频”按钮选择视频文件
-- AI 自动分析视频，提取分镜信息
-- 显示加载动画和进度提示
+```
+分镜大师/
+├─ App/                     # Avalonia UI
+├─ Application/             # 应用层
+├─ Domain/                  # 领域模型
+├─ Infrastructure/          # 基础设施（持久化/AI/媒体服务）
+├─ Shared/                  # 跨层模型与 DTO
+├─ Tools/ffmpeg/            # 内置 ffmpeg/ffprobe
+├─ appsettings.json
+└─ Storyboard.sln
+```
 
-### 2. 表格编辑
-表格包含以下列：
-- **镜头号** (#) - 固定列，拖拽可调整顺序
-- **时长** - 可编辑
-- **首帧提示词** - 可编辑，支持多行
-- **尾帧提示词** - 可编辑，支持多行
-- **镜头类型** - 推镜/特写/中景等
-- **核心画面** - 场景描述
-- **动作指令** - 镜头运动描述
-- **场景设定** - 光线、色调等
-- **选用模型** - RunwayGen3/Pika/Stable Diffusion
-- **首帧图** - 无图时显示“🎨 生成首帧”；有图时显示缩略图 + “查看大图 / 打开文件位置”
-- **尾帧图** - 无图时显示“🎨 生成尾帧”；有图时显示缩略图 + “查看大图 / 打开文件位置”
-- **视频** - 无视频时显示“🎬 生成视频”；有视频时显示封面 + “观看视频 / 打开文件位置”
+## 快速开始
 
-### 3. 拖拽排序
-- 点击并拖拽镜头号列可调整分镜顺序
-- 自动更新镜头编号
-- 视觉反馈
+1. 安装 .NET 8 SDK
+2. 在项目根目录执行：
 
-### 4. 图像和视频生成
-- 异步生成，不阻塞 UI
-- 生成中显示"生成中..."状态
-- 生成完成后显示缩略图/封面，并提供快捷操作按钮
-- 底部状态栏显示进度
-
-### 5. 顶部导航
-- **分镜管理**：主表格与生成入口
-- **使用文档**：内置的使用说明（应用内可直接查看）
-- **密钥配置**：用于配置第三方服务密钥（当前以界面为主，具体接入可按服务实现补齐）
-
-## 运行项目
-
-1. 确保已安装 .NET 8.0 SDK
-2. 打开项目文件夹
-3. 运行命令：
 ```bash
 dotnet restore
 dotnet build
 dotnet run
 ```
 
-也可以直接运行：
-```powershell
-.\bin\Debug\net8.0-windows\Storyboard.exe
-```
+也可在 Visual Studio 2022 打开 `Storyboard.sln` 直接运行。
 
-或使用 Visual Studio 2022 打开 `Storyboard.sln` 直接运行。
+## 配置说明
 
-## 待实现功能
+配置入口：
+- 应用内「提供商设置」界面（推荐）
+- 或直接编辑 `appsettings.json`
 
-以下功能目前返回模拟数据，需要集成真实的 AI 服务：
+关键配置模块：
+- `AIServices`: 文本理解 Provider（Qwen / Zhipu / Wenxin / Volcengine / OpenAI / Azure OpenAI）
+- `Image`: 图片生成 Provider（本地渲染 / OpenAI）
+- `Video`: 视频生成 Provider（本地 FFmpeg 合成）
 
-- [ ] **VideoAnalysisService**: 集成真实的视频分析 AI API
-- [ ] **ImageGenerationService**: 集成 Stable Diffusion/DALL-E 等图像生成 API
-- [ ] **VideoGenerationService**: 集成 RunwayML/Pika 等视频生成 API
-- [ ] **本地存储**: 保存和加载项目
-- [ ] **导出功能**: 导出最终合成视频
+配置管理能力：
+- 支持多 Provider、多模型并存，界面选择默认 Provider。
+- 本地模型/本地渲染与云端模型可并行配置，按任务选择与切换。
 
-## UI 截图说明
+## 数据与输出
 
-应用程序界面包含：
-- **顶部栏**: 标题和上传按钮
-- **顶部导航**: 分镜管理 / 使用文档 / 密钥配置
-- **提示栏**: 操作说明
-- **主表格**: 可编辑的分镜数据
-- **底部栏**: 总时长和生成进度统计
+- 数据库位置：`%LOCALAPPDATA%/StoryboardStudio/storyboard.db`
+- 输出目录：`output/projects/<ProjectId>/images`、`output/projects/<ProjectId>/videos`
 
-## 开发说明
+## FFmpeg 依赖
 
-### 添加新的 AI 模型
-在 `MainWindow.xaml` 中的 ComboBox 添加新选项：
-```xml
-<sys:String>新模型名称</sys:String>
-```
+项目已内置 `Tools/ffmpeg`，视频导入、抽帧与本地视频合成都会自动使用。
 
-### 修改表格列
-在 `MainWindow.xaml` 的 `DataGrid.Columns` 中添加或修改列定义。
+## 路线图（不在本期）
 
-### 自定义样式
-修改 `Styles/DataGridStyles.xaml` 文件来调整表格样式。
+- TTS 配音
+- 自动剪辑优化
+- 自动风格迁移
+- 社交发布
+
+## 许可证
+
+待补充。
