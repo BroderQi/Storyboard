@@ -28,7 +28,9 @@ public sealed class ProjectStore : IProjectStore
                 p.UpdatedAt,
                 TotalShots = p.Shots.Count,
                 CompletedShots = p.Shots.Count(s => s.GeneratedVideoPath != null && s.GeneratedVideoPath != ""),
-                HasImages = p.Shots.Count(s => (s.FirstFrameImagePath != null && s.FirstFrameImagePath != "") || (s.LastFrameImagePath != null && s.LastFrameImagePath != ""))
+                HasImages = p.Shots.SelectMany(s => s.Assets)
+                    .Count(a => a.Type == ShotAssetType.FirstFrameImage || a.Type == ShotAssetType.LastFrameImage)
+                    + p.Shots.Count(s => s.Assets.Count == 0 && ((s.FirstFrameImagePath != null && s.FirstFrameImagePath != "") || (s.LastFrameImagePath != null && s.LastFrameImagePath != "")))
             })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -45,6 +47,7 @@ public sealed class ProjectStore : IProjectStore
         var project = await uow.Projects.Query()
             .AsNoTracking()
             .Include(p => p.Shots)
+            .ThenInclude(s => s.Assets)
             .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken)
             .ConfigureAwait(false);
 
@@ -56,6 +59,8 @@ public sealed class ProjectStore : IProjectStore
             .Select(s => new ShotState(
                 s.ShotNumber,
                 s.Duration,
+                s.StartTime,
+                s.EndTime,
                 s.FirstFramePrompt,
                 s.LastFramePrompt,
                 s.ShotType,
@@ -67,7 +72,8 @@ public sealed class ProjectStore : IProjectStore
                 s.LastFrameImagePath,
                 s.GeneratedVideoPath,
                 s.MaterialThumbnailPath,
-                s.MaterialFilePath))
+                s.MaterialFilePath,
+                BuildAssetStates(s)))
             .ToList();
 
         return new ProjectState(
@@ -83,6 +89,32 @@ public sealed class ProjectStore : IProjectStore
             project.TimeInterval,
             project.DetectionSensitivity,
             shots);
+    }
+
+    private static IReadOnlyList<ShotAssetState> BuildAssetStates(Shot shot)
+    {
+        var list = shot.Assets
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new ShotAssetState(
+                a.Type,
+                a.FilePath,
+                a.ThumbnailPath,
+                a.Prompt,
+                a.Model,
+                a.CreatedAt))
+            .ToList();
+
+        if (list.Count == 0)
+        {
+            if (!string.IsNullOrWhiteSpace(shot.FirstFrameImagePath))
+                list.Add(new ShotAssetState(ShotAssetType.FirstFrameImage, shot.FirstFrameImagePath, shot.FirstFrameImagePath, shot.FirstFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
+            if (!string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
+                list.Add(new ShotAssetState(ShotAssetType.LastFrameImage, shot.LastFrameImagePath, shot.LastFrameImagePath, shot.LastFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
+            if (!string.IsNullOrWhiteSpace(shot.GeneratedVideoPath))
+                list.Add(new ShotAssetState(ShotAssetType.GeneratedVideo, shot.GeneratedVideoPath, null, null, shot.SelectedModel, DateTimeOffset.Now));
+        }
+
+        return list;
     }
 
     public async Task<string> CreateAsync(string projectName, CancellationToken cancellationToken = default)
@@ -149,6 +181,8 @@ public sealed class ProjectStore : IProjectStore
                 ProjectId = project.Id,
                 ShotNumber = s.ShotNumber,
                 Duration = s.Duration,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
                 FirstFramePrompt = s.FirstFramePrompt,
                 LastFramePrompt = s.LastFramePrompt,
                 ShotType = s.ShotType,
@@ -160,7 +194,19 @@ public sealed class ProjectStore : IProjectStore
                 LastFrameImagePath = s.LastFrameImagePath,
                 GeneratedVideoPath = s.GeneratedVideoPath,
                 MaterialThumbnailPath = s.MaterialThumbnailPath,
-                MaterialFilePath = s.MaterialFilePath
+                MaterialFilePath = s.MaterialFilePath,
+                Assets = s.Assets
+                    .Select(a => new ShotAsset
+                    {
+                        ProjectId = project.Id,
+                        Type = a.Type,
+                        FilePath = a.FilePath,
+                        ThumbnailPath = a.ThumbnailPath,
+                        Prompt = a.Prompt,
+                        Model = a.Model,
+                        CreatedAt = a.CreatedAt
+                    })
+                    .ToList()
             })
             .ToList();
 

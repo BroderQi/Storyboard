@@ -47,7 +47,7 @@
                         </StackPanel>
                         
                         <!-- Video Info or Import Button -->
-                        <StackPanel Spacing="12" IsVisible="{Binding !HasVideoFile}">
+                        <StackPanel Spacing="12" IsVisible="{Binding HasVideoFile, Converter={StaticResource BoolNot}}">
                             <Button Classes="Secondary" 
                                     HorizontalAlignment="Stretch"
                                     Command="{Binding ImportVideoCommand}">
@@ -67,7 +67,7 @@
                                            FontSize="13" 
                                            Foreground="#71717a" />
                                 <TextBlock Grid.Column="1" 
-                                           Text="{Binding VideoFileDuration, StringFormat='{}{0}s'}" 
+                                           Text="{Binding VideoFileDuration}" 
                                            FontSize="13" 
                                            Foreground="#f5f5f5" />
                             </Grid>

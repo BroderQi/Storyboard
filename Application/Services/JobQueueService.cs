@@ -74,6 +74,35 @@ public sealed class JobQueueService : IJobQueueService
         try { cts.Cancel(); } catch { }
     }
 
+    public void Retry(GenerationJob job)
+    {
+        if (!_runners.ContainsKey(job.Id))
+        {
+            OnUi(() =>
+            {
+                job.Status = GenerationJobStatus.Failed;
+                job.Error = "无法重试：缺少任务执行器（可能来自历史记录）。";
+            });
+            return;
+        }
+
+        _cancellations[job.Id] = new CancellationTokenSource();
+
+        OnUi(() =>
+        {
+            job.Status = GenerationJobStatus.Queued;
+            job.Error = string.Empty;
+            job.Attempt = 0;
+            job.Progress = 0;
+            job.StartedAt = null;
+            job.CompletedAt = null;
+        });
+
+        _channel.Writer.TryWrite(job.Id);
+        StartWorkerIfNeeded();
+        SaveHistory();
+    }
+
     private void StartWorkerIfNeeded()
     {
         if (_workerStarted)

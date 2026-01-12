@@ -169,7 +169,7 @@
                                             Padding="6,2" 
                                             HorizontalAlignment="Left"
                                             Margin="0,4,0,0"
-                                            IsVisible="{Binding ShotType, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            IsVisible="{Binding ShotType, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                                         <TextBlock Text="{Binding ShotType}" 
                                                    FontSize="10" 
                                                    Foreground="#f5f5f5" />
@@ -186,12 +186,12 @@
                                             <Panel>
                                                 <Image Source="{Binding FirstFrameImagePath}" 
                                                        Stretch="UniformToFill"
-                                                       IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                       IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                                 <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                                           Width="16" 
                                                           Height="16" 
                                                           Foreground="#3f3f46"
-                                                          IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                          IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
                                             </Panel>
                                         </Border>
                                         
@@ -202,12 +202,12 @@
                                             <Panel>
                                                 <Image Source="{Binding LastFrameImagePath}" 
                                                        Stretch="UniformToFill"
-                                                       IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                       IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                                 <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                                           Width="16" 
                                                           Height="16" 
                                                           Foreground="#3f3f46"
-                                                          IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                          IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
                                             </Panel>
                                         </Border>
                                     </Grid>
@@ -221,17 +221,17 @@
                                                   Width="12" 
                                                   Height="12" 
                                                   Foreground="#22c55e"
-                                                  IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                  IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                                   Width="12" 
                                                   Height="12" 
                                                   Foreground="#22c55e"
-                                                  IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                  IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
                                                   Width="12" 
                                                   Height="12" 
                                                   Foreground="#8b5cf6"
-                                                  IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                  IsVisible="{Binding VideoOutputPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

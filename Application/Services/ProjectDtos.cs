@@ -25,6 +25,8 @@ public sealed record ProjectState(
 public sealed record ShotState(
     int ShotNumber,
     double Duration,
+    double StartTime,
+    double EndTime,
     string FirstFramePrompt,
     string LastFramePrompt,
     string ShotType,
@@ -36,4 +38,13 @@ public sealed record ShotState(
     string? LastFrameImagePath,
     string? GeneratedVideoPath,
     string? MaterialThumbnailPath,
-    string? MaterialFilePath);
+    string? MaterialFilePath,
+    IReadOnlyList<ShotAssetState> Assets);
+
+public sealed record ShotAssetState(
+    Domain.Entities.ShotAssetType Type,
+    string FilePath,
+    string? ThumbnailPath,
+    string? Prompt,
+    string? Model,
+    DateTimeOffset CreatedAt);

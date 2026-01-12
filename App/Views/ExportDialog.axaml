@@ -115,7 +115,7 @@
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="12"
-                            IsVisible="{Binding !CanExportVideo}">
+                            IsVisible="{Binding CanExportVideo, Converter={StaticResource BoolNot}}">
                         <StackPanel Spacing="4">
                             <TextBlock Text="⚠️ 所有分镜必须生成完成视频后才能导出最终成品" FontSize="12" Foreground="#fbbf24" />
                             <TextBlock FontSize="12" Foreground="#fbbf24">

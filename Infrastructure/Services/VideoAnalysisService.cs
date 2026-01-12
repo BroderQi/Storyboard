@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace Storyboard.Infrastructure.Services;
 
-public sealed class VideoAnalysisService : IVideoAnalysisService
+public sealed class VideoAnalysisService : IVideoAnalysisService, IVideoMetadataService
 {
     private readonly ILogger<VideoAnalysisService> _logger;
 
@@ -28,7 +28,7 @@ public sealed class VideoAnalysisService : IVideoAnalysisService
         if (!File.Exists(videoPath))
             throw new FileNotFoundException("视频文件不存在", videoPath);
 
-        var probe = await ProbeAsync(videoPath).ConfigureAwait(false);
+        var probe = await ProbeAsync(videoPath, CancellationToken.None).ConfigureAwait(false);
         var sceneCuts = await TryDetectSceneCutsAsync(videoPath, probe.DurationSeconds).ConfigureAwait(false);
         var segments = BuildSegments(probe.DurationSeconds, sceneCuts);
 
@@ -59,10 +59,28 @@ public sealed class VideoAnalysisService : IVideoAnalysisService
 
     private sealed record VideoProbe(double DurationSeconds, double Fps, int Width, int Height, long? FrameCount);
 
-    private async Task<VideoProbe> ProbeAsync(string videoPath)
+    public async Task<VideoMetadata> GetMetadataAsync(string videoPath, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(videoPath))
+            throw new ArgumentException("视频路径为空", nameof(videoPath));
+
+        if (!File.Exists(videoPath))
+            throw new FileNotFoundException("视频文件不存在", videoPath);
+
+        var probe = await ProbeAsync(videoPath, cancellationToken).ConfigureAwait(false);
+        return new VideoMetadata(
+            videoPath,
+            probe.DurationSeconds,
+            probe.Fps,
+            probe.Width,
+            probe.Height,
+            probe.FrameCount);
+    }
+
+    private async Task<VideoProbe> ProbeAsync(string videoPath, CancellationToken cancellationToken)
     {
         var args = $"-v error -print_format json -show_format -show_streams \"{videoPath}\"";
-        var (exitCode, stdout, stderr) = await RunProcessCaptureAsync(FfmpegLocator.GetFfprobePath(), args, CancellationToken.None).ConfigureAwait(false);
+        var (exitCode, stdout, stderr) = await RunProcessCaptureAsync(FfmpegLocator.GetFfprobePath(), args, cancellationToken).ConfigureAwait(false);
         if (exitCode != 0)
             throw new InvalidOperationException($"ffprobe 失败（请确保已安装 ffmpeg/ffprobe 并加入 PATH）。\n{stderr}");
 
@@ -226,6 +244,8 @@ public sealed class VideoAnalysisService : IVideoAnalysisService
             list.Add(new ShotItem(i++)
             {
                 Duration = dur,
+                StartTime = Start,
+                EndTime = End,
                 ShotType = dur > 4 ? "远景" : "中景",
                 CoreContent = "画面内容（待分析）",
                 ActionCommand = "镜头平稳推进",

@@ -9,6 +9,8 @@ public sealed class Shot
 
     public int ShotNumber { get; set; }
     public double Duration { get; set; }
+    public double StartTime { get; set; }
+    public double EndTime { get; set; }
 
     public string FirstFramePrompt { get; set; } = string.Empty;
     public string LastFramePrompt { get; set; } = string.Empty;
@@ -24,4 +26,6 @@ public sealed class Shot
 
     public string? MaterialThumbnailPath { get; set; }
     public string? MaterialFilePath { get; set; }
+
+    public List<ShotAsset> Assets { get; set; } = new();
 }

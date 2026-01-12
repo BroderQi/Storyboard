@@ -9,6 +9,7 @@ public sealed class StoryboardDbContext : DbContext
 
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Shot> Shots => Set<Shot>();
+    public DbSet<ShotAsset> ShotAssets => Set<ShotAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,6 +40,20 @@ public sealed class StoryboardDbContext : DbContext
             b.Property(s => s.ActionCommand);
             b.Property(s => s.SceneSettings);
             b.Property(s => s.SelectedModel);
+
+            b.HasMany(s => s.Assets)
+                .WithOne(a => a.Shot)
+                .HasForeignKey(a => a.ShotId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ShotAsset>(b =>
+        {
+            b.ToTable("ShotAssets");
+            b.HasKey(a => a.Id);
+            b.Property(a => a.ProjectId).HasMaxLength(32);
+            b.Property(a => a.FilePath).IsRequired();
+            b.HasIndex(a => new { a.ProjectId, a.ShotId, a.Type });
         });
     }
 }

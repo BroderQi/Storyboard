@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Storyboard.Views.AiWriteModeDialog"
+        Title="写入方式"
+        Width="420"
+        Height="260"
+        WindowStartupLocation="CenterOwner"
+        Background="#0a0a0a"
+        CanResize="False">
+
+    <StackPanel Margin="24" Spacing="16">
+        <TextBlock Text="检测到已有内容"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Foreground="#f5f5f5" />
+        <TextBlock Text="请选择 AI 解析结果的写入方式："
+                   FontSize="13"
+                   Foreground="#a1a1aa" />
+
+        <Border Background="#18181b"
+                BorderBrush="#27272a"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+            <StackPanel Spacing="8">
+                <TextBlock Text="覆盖：用 AI 输出替换原有内容" Foreground="#e4e4e7" FontSize="12" />
+                <TextBlock Text="追加：在原有内容后追加 AI 输出" Foreground="#e4e4e7" FontSize="12" />
+                <TextBlock Text="放弃：保留原有内容，不写入" Foreground="#e4e4e7" FontSize="12" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Classes="Secondary" Content="放弃" Width="90" Click="OnSkipClick" />
+            <Button Classes="Secondary" Content="追加" Width="90" Click="OnAppendClick" />
+            <Button Classes="Primary" Content="覆盖" Width="90" Click="OnOverwriteClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>

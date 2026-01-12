@@ -19,30 +19,19 @@ public enum BatchOperationKind
     Video
 }
 
-public enum BatchTaskStatus
-{
-    Pending,
-    Running,
-    Completed,
-    Failed
-}
-
 public partial class BatchTaskViewModel : ObservableObject
 {
-    public int ShotNumber { get; }
+    public GenerationJob Job { get; }
     public BatchOperationKind Operation { get; }
 
-    [ObservableProperty]
-    private BatchTaskStatus status = BatchTaskStatus.Pending;
-
-    [ObservableProperty]
-    private int progress;
-
-    public BatchTaskViewModel(int shotNumber, BatchOperationKind operation)
+    public BatchTaskViewModel(GenerationJob job, BatchOperationKind operation)
     {
-        ShotNumber = shotNumber;
+        Job = job;
         Operation = operation;
+        Job.PropertyChanged += Job_PropertyChanged;
     }
+
+    public int ShotNumber => Job.ShotNumber ?? 0;
 
     public string OperationName => Operation switch
     {
@@ -55,21 +44,30 @@ public partial class BatchTaskViewModel : ObservableObject
 
     public string Title => $"分镜 #{ShotNumber} - {OperationName}";
 
-    public string StatusText => Status switch
-    {
-        BatchTaskStatus.Pending => "等待",
-        BatchTaskStatus.Running => "执行中",
-        BatchTaskStatus.Completed => "完成",
-        BatchTaskStatus.Failed => "失败",
-        _ => "未知"
-    };
+    public string StatusText => Job.StatusText;
 
-    public bool IsRunning => Status == BatchTaskStatus.Running;
+    public bool IsRunning => Job.Status is GenerationJobStatus.Queued or GenerationJobStatus.Running or GenerationJobStatus.Retrying;
+    public bool IsCompleted => Job.Status is GenerationJobStatus.Succeeded;
+    public bool IsFailed => Job.Status is GenerationJobStatus.Failed or GenerationJobStatus.Canceled;
+    public int Progress => (int)Math.Round(Job.Progress * 100);
+
+    private void Job_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(GenerationJob.Status)
+            or nameof(GenerationJob.Progress))
+        {
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(IsRunning));
+            OnPropertyChanged(nameof(IsCompleted));
+            OnPropertyChanged(nameof(IsFailed));
+            OnPropertyChanged(nameof(Progress));
+        }
+    }
 }
 
 public partial class BatchOperationsViewModel : ObservableObject
 {
-    private CancellationTokenSource? _cts;
+    private readonly MainViewModel _mainViewModel;
 
     public ObservableCollection<ShotItem> Shots { get; }
 
@@ -87,12 +85,18 @@ public partial class BatchOperationsViewModel : ObservableObject
     [ObservableProperty]
     private bool video;
 
+    partial void OnParseChanged(bool value) => RaiseSelectionDependent();
+    partial void OnImageFirstChanged(bool value) => RaiseSelectionDependent();
+    partial void OnImageLastChanged(bool value) => RaiseSelectionDependent();
+    partial void OnVideoChanged(bool value) => RaiseSelectionDependent();
+
     [ObservableProperty]
     private bool isRunning;
 
-    public BatchOperationsViewModel(ObservableCollection<ShotItem> shots)
+    public BatchOperationsViewModel(MainViewModel mainViewModel)
     {
-        Shots = shots;
+        _mainViewModel = mainViewModel;
+        Shots = mainViewModel.Shots;
 
         Shots.CollectionChanged += Shots_CollectionChanged;
         foreach (var shot in Shots)
@@ -107,7 +111,7 @@ public partial class BatchOperationsViewModel : ObservableObject
     public bool HasSelectedShots => SelectedShotsCount > 0;
     public string SelectedShotsCountText => $"{SelectedShotsCount} / {Shots.Count}";
 
-    public int CompletedTasksCount => Tasks.Count(t => t.Status == BatchTaskStatus.Completed);
+    public int CompletedTasksCount => Tasks.Count(t => t.IsCompleted);
     public int TotalTasksCount => Tasks.Count;
 
     public bool HasTasks => TotalTasksCount > 0;
@@ -124,7 +128,8 @@ public partial class BatchOperationsViewModel : ObservableObject
         ? ""
         : $"{CompletedTasksCount} / {TotalTasksCount}";
 
-    public bool CanStart => !IsRunning && HasSelectedShots;
+    public bool HasOperationsSelected => Parse || ImageFirst || ImageLast || Video;
+    public bool CanStart => !IsRunning && HasSelectedShots && HasOperationsSelected;
 
     [RelayCommand]
     private void SelectAll()
@@ -149,7 +154,11 @@ public partial class BatchOperationsViewModel : ObservableObject
     [RelayCommand]
     private void Cancel()
     {
-        _cts?.Cancel();
+        foreach (var task in Tasks)
+        {
+            if (task.Job.CanCancel)
+                _mainViewModel.CancelJobCommand.Execute(task.Job);
+        }
         RequestClose?.Invoke(this, EventArgs.Empty);
     }
 
@@ -159,57 +168,76 @@ public partial class BatchOperationsViewModel : ObservableObject
         if (!CanStart)
             return;
 
-        _cts?.Cancel();
-        _cts = new CancellationTokenSource();
-        var token = _cts.Token;
-
         IsRunning = true;
         try
         {
             Tasks.Clear();
 
             var selectedShots = Shots.Where(s => s.IsChecked).ToList();
+            if (!Parse && !ImageFirst && !ImageLast && !Video)
+            {
+                IsRunning = false;
+                RaiseSelectionDependent();
+                return;
+            }
+            AiWriteMode? writeMode = null;
+            if (Parse && selectedShots.Any(_mainViewModel.NeedsAiWriteModeForBatch))
+            {
+                writeMode = await _mainViewModel.PromptAiWriteModeAsync();
+                if (writeMode == null)
+                {
+                    IsRunning = false;
+                    RaiseSelectionDependent();
+                    return;
+                }
+            }
+
             foreach (var shot in selectedShots)
             {
                 if (Parse)
-                    Tasks.Add(new BatchTaskViewModel(shot.ShotNumber, BatchOperationKind.Parse));
+                {
+                    var job = _mainViewModel.QueueAiParse(shot, writeMode);
+                    Tasks.Add(new BatchTaskViewModel(job, BatchOperationKind.Parse));
+                }
                 if (ImageFirst)
-                    Tasks.Add(new BatchTaskViewModel(shot.ShotNumber, BatchOperationKind.ImageFirst));
+                {
+                    var job = _mainViewModel.QueueFirstFrame(shot);
+                    Tasks.Add(new BatchTaskViewModel(job, BatchOperationKind.ImageFirst));
+                }
                 if (ImageLast)
-                    Tasks.Add(new BatchTaskViewModel(shot.ShotNumber, BatchOperationKind.ImageLast));
+                {
+                    var job = _mainViewModel.QueueLastFrame(shot);
+                    Tasks.Add(new BatchTaskViewModel(job, BatchOperationKind.ImageLast));
+                }
                 if (Video && shot.CanGenerateVideo)
-                    Tasks.Add(new BatchTaskViewModel(shot.ShotNumber, BatchOperationKind.Video));
+                {
+                    var job = _mainViewModel.QueueVideo(shot);
+                    Tasks.Add(new BatchTaskViewModel(job, BatchOperationKind.Video));
+                }
             }
+
+            foreach (var task in Tasks)
+                task.PropertyChanged += (_, __) => RaiseTaskDependent();
 
             RaiseTaskDependent();
 
-            for (var i = 0; i < Tasks.Count; i++)
+            // Stay running until all tasks are finished.
+            _ = Task.Run(async () =>
             {
-                token.ThrowIfCancellationRequested();
-
-                var task = Tasks[i];
-                task.Status = BatchTaskStatus.Running;
-                task.Progress = 0;
-
-                for (var progress = 0; progress <= 100; progress += 20)
+                while (Tasks.Any(t => t.IsRunning))
                 {
-                    token.ThrowIfCancellationRequested();
-                    await Task.Delay(200, token);
-                    task.Progress = progress;
+                    await Task.Delay(200);
                 }
 
-                task.Status = BatchTaskStatus.Completed;
-                task.Progress = 100;
-                RaiseTaskDependent();
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // ignored
+                OnUi(() =>
+                {
+                    IsRunning = false;
+                    RaiseSelectionDependent();
+                });
+            });
         }
         finally
         {
-            IsRunning = false;
             RaiseSelectionDependent();
         }
     }
@@ -247,6 +275,7 @@ public partial class BatchOperationsViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedShotsCount));
         OnPropertyChanged(nameof(HasSelectedShots));
         OnPropertyChanged(nameof(SelectedShotsCountText));
+        OnPropertyChanged(nameof(HasOperationsSelected));
         OnPropertyChanged(nameof(CanStart));
     }
 
@@ -258,5 +287,17 @@ public partial class BatchOperationsViewModel : ObservableObject
         OnPropertyChanged(nameof(OverallProgressPercent));
         OnPropertyChanged(nameof(OverallProgressText));
         OnPropertyChanged(nameof(CompletedTasksText));
+    }
+
+    private static void OnUi(Action action)
+    {
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+        }
+        else
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(action);
+        }
     }
 }

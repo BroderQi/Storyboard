@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:Storyboard.Models"
+             xmlns:conv="using:Storyboard.Converters"
              x:Class="Storyboard.Views.ShotEditorView"
              x:DataType="m:ShotItem">
 
@@ -213,12 +214,12 @@
                                     <Panel>
                                         <Image Source="{Binding FirstFrameImagePath}" 
                                                Stretch="UniformToFill"
-                                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <TextBlock Text="暂无图片" 
                                                    Foreground="#52525b" 
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
-                                                   IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                   IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
                                     </Panel>
                                 </Border>
                                 
@@ -249,6 +250,46 @@
                                         </StackPanel>
                                     </Button>
                                 </Grid>
+
+                                <TextBlock Text="历史生成"
+                                           FontSize="12"
+                                           Foreground="#71717a" />
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding FirstFrameAssets}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="m:ShotAssetItem">
+                                                <Border BorderBrush="{Binding IsSelected, Converter={StaticResource SelectedBorderConverter}}"
+                                                        BorderThickness="1"
+                                                        Background="#0a0a0a"
+                                                        CornerRadius="6"
+                                                        Padding="6"
+                                                        Margin="0,0,8,8">
+                                                    <StackPanel Spacing="6" Width="120">
+                                                        <Border Height="70" CornerRadius="4" ClipToBounds="True">
+                                                            <Image Source="{Binding DisplayPath}" Stretch="UniformToFill" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm:ss}'}"
+                                                                   FontSize="10"
+                                                                   Foreground="#71717a" />
+                                                        <Button Classes="Ghost"
+                                                                x:CompileBindings="False"
+                                                                Padding="8,4"
+                                                                Command="{Binding DataContext.SelectAssetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <TextBlock Text="使用" FontSize="11" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
 
@@ -274,12 +315,12 @@
                                     <Panel>
                                         <Image Source="{Binding LastFrameImagePath}" 
                                                Stretch="UniformToFill"
-                                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <TextBlock Text="暂无图片" 
                                                    Foreground="#52525b" 
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
-                                                   IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                   IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
                                     </Panel>
                                 </Border>
                                 
@@ -310,6 +351,46 @@
                                         </StackPanel>
                                     </Button>
                                 </Grid>
+
+                                <TextBlock Text="历史生成"
+                                           FontSize="12"
+                                           Foreground="#71717a" />
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding LastFrameAssets}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="m:ShotAssetItem">
+                                                <Border BorderBrush="{Binding IsSelected, Converter={StaticResource SelectedBorderConverter}}"
+                                                        BorderThickness="1"
+                                                        Background="#0a0a0a"
+                                                        CornerRadius="6"
+                                                        Padding="6"
+                                                        Margin="0,0,8,8">
+                                                    <StackPanel Spacing="6" Width="120">
+                                                        <Border Height="70" CornerRadius="4" ClipToBounds="True">
+                                                            <Image Source="{Binding DisplayPath}" Stretch="UniformToFill" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm:ss}'}"
+                                                                   FontSize="10"
+                                                                   Foreground="#71717a" />
+                                                        <Button Classes="Ghost"
+                                                                x:CompileBindings="False"
+                                                                Padding="8,4"
+                                                                Command="{Binding DataContext.SelectAssetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <TextBlock Text="使用" FontSize="11" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
 
@@ -347,7 +428,7 @@
                                                    Foreground="#52525b" 
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
-                                                   IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                   IsVisible="{Binding VideoOutputPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}" />
                                     </Panel>
                                 </Border>
                             </StackPanel>
@@ -368,7 +449,7 @@
                                 <TextBlock Text="需要首帧和尾帧图片才能生成视频" 
                                            FontSize="12" 
                                            Foreground="#71717a" 
-                                           IsVisible="{Binding !CanGenerateVideo}" />
+                                           IsVisible="{Binding CanGenerateVideo, Converter={StaticResource BoolNot}}" />
                                 
                                 <Button Classes="Primary" 
                                         HorizontalAlignment="Stretch"
@@ -381,6 +462,56 @@
                                         <TextBlock Text="生成视频" FontSize="13" />
                                     </StackPanel>
                                 </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Video Assets -->
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="生成记录"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="#f5f5f5" />
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding VideoAssets}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="m:ShotAssetItem">
+                                                <Border BorderBrush="{Binding IsSelected, Converter={StaticResource SelectedBorderConverter}}"
+                                                        BorderThickness="1"
+                                                        Background="#0a0a0a"
+                                                        CornerRadius="6"
+                                                        Padding="8"
+                                                        Margin="0,0,8,8">
+                                                    <StackPanel Spacing="6" Width="140">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontSize="12"
+                                                                   Foreground="#f5f5f5" />
+                                                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm:ss}'}"
+                                                                   FontSize="10"
+                                                                   Foreground="#71717a" />
+                                                        <Button Classes="Ghost"
+                                                                x:CompileBindings="False"
+                                                                Padding="8,4"
+                                                                Command="{Binding DataContext.SelectAssetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <TextBlock Text="使用" FontSize="11" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
 

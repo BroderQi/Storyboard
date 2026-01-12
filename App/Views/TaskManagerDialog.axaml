@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Storyboard.ViewModels"
         xmlns:m="using:Storyboard.Models"
+        xmlns:conv="using:Storyboard.Converters"
         x:Class="Storyboard.Views.TaskManagerDialog"
         x:DataType="vm:MainViewModel"
         Title="任务管理"
@@ -29,7 +30,7 @@
             <StackPanel Spacing="12">
                 
                 <!-- Empty State -->
-                <Border IsVisible="{Binding !JobHistory.Count}" 
+                <Border IsVisible="{Binding JobHistory.Count, Converter={x:Static conv:IntConverters.IsZero}}" 
                         Background="#18181b" 
                         BorderBrush="#27272a" 
                         BorderThickness="1" 
@@ -92,30 +93,45 @@
                                         </TextBlock>
                                         
                                         <!-- Progress Bar -->
-                                        <Border Height="4" 
-                                                Background="#27272a" 
-                                                CornerRadius="2"
-                                                Margin="0,4,0,0">
-                                            <Border Background="#8b5cf6" 
-                                                    CornerRadius="2"
-                                                    HorizontalAlignment="Left"
-                                                    Width="100" />
-                                        </Border>
+                                        <ProgressBar Minimum="0"
+                                                     Maximum="1"
+                                                     Value="{Binding Progress}"
+                                                     Height="4"
+                                                     Margin="0,4,0,0" />
                                     </StackPanel>
                                     
-                                    <!-- Status Badge -->
-                                    <Border Grid.Column="2" 
-                                            CornerRadius="4" 
-                                            Padding="8,4">
-                                        <Border.Background>
-                                            <MultiBinding Converter="{StaticResource StatusColorConverter}">
-                                                <Binding Path="Status" />
-                                            </MultiBinding>
-                                        </Border.Background>
-                                        <TextBlock Text="{Binding StatusText}" 
-                                                   FontSize="12" 
-                                                   Foreground="White" />
-                                    </Border>
+                                    <!-- Status + Actions -->
+                                    <StackPanel Grid.Column="2" Spacing="6" HorizontalAlignment="Right">
+                                        <Border CornerRadius="4" Padding="8,4">
+                                            <Border.Background>
+                                                <MultiBinding Converter="{StaticResource StatusColorConverter}">
+                                                    <Binding Path="Status" />
+                                                </MultiBinding>
+                                            </Border.Background>
+                                            <TextBlock Text="{Binding StatusText}" 
+                                                       FontSize="12" 
+                                                       Foreground="White" />
+                                        </Border>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                            <Button Classes="Ghost"
+                                                    x:CompileBindings="False"
+                                                    Padding="6,2"
+                                                    IsVisible="{Binding CanCancel}"
+                                                    Command="{Binding DataContext.CancelJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <TextBlock Text="取消" FontSize="11" />
+                                            </Button>
+                                            <Button Classes="Ghost"
+                                                    x:CompileBindings="False"
+                                                    Padding="6,2"
+                                                    IsVisible="{Binding CanRetry}"
+                                                    Command="{Binding DataContext.RetryJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <TextBlock Text="重试" FontSize="11" />
+                                            </Button>
+                                        </StackPanel>
+                                    </StackPanel>
                                     
                                 </Grid>
                             </Border>

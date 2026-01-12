@@ -1,4 +1,7 @@
 
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 // using Microsoft.Win32; // WPF specific - remove for Avalonia
@@ -10,6 +13,8 @@ using System.Linq;
 // using System.Windows; // WPF specific - remove for Avalonia
 using Storyboard.Models;
 using Storyboard.Application.Abstractions;
+using Storyboard.Domain.Entities;
+using Storyboard.Views;
 // using Storyboard.Views.Windows; // Old WPF views - remove for Avalonia
 using System;
 using System.Threading;
@@ -23,6 +28,9 @@ namespace Storyboard.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly IVideoAnalysisService _videoAnalysisService;
+    private readonly IVideoMetadataService _videoMetadataService;
+    private readonly IFrameExtractionService _frameExtractionService;
+    private readonly IAiShotService _aiShotService;
     private readonly IImageGenerationService _imageGenerationService;
     private readonly IVideoGenerationService _videoGenerationService;
     private readonly IFinalRenderService _finalRenderService;
@@ -80,6 +88,8 @@ public partial class MainViewModel : ObservableObject
     private sealed record ShotSnapshot(
         int ShotNumber,
         double Duration,
+        double StartTime,
+        double EndTime,
         string FirstFramePrompt,
         string LastFramePrompt,
         string ShotType,
@@ -92,10 +102,19 @@ public partial class MainViewModel : ObservableObject
         string? GeneratedVideoPath,
         string? MaterialThumbnailPath,
         string? MaterialFilePath,
+        IReadOnlyList<ShotAssetSnapshot> Assets,
         bool IsChecked,
         int SelectedTabIndex,
         double TimelineStartPosition,
         double TimelineWidth);
+
+    private sealed record ShotAssetSnapshot(
+        Storyboard.Domain.Entities.ShotAssetType Type,
+        string FilePath,
+        string? ThumbnailPath,
+        string? Prompt,
+        string? Model,
+        DateTimeOffset CreatedAt);
 
     private sealed record ProjectSnapshot(
         string ProjectName,
@@ -225,7 +244,6 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(previewPath) || !System.IO.File.Exists(previewPath))
             return;
 
-        // TODO: Implement Avalonia preview dialog
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -274,7 +292,6 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(shot?.FirstFrameImagePath) || !System.IO.File.Exists(shot.FirstFrameImagePath))
             return;
 
-        // TODO: Implement Avalonia image preview dialog
         // For now, just open in default image viewer
         try
         {
@@ -311,7 +328,6 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(shot?.LastFrameImagePath) || !System.IO.File.Exists(shot.LastFrameImagePath))
             return;
 
-        // TODO: Implement Avalonia image preview dialog
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -393,6 +409,9 @@ public partial class MainViewModel : ObservableObject
     
     public MainViewModel(
         IVideoAnalysisService videoAnalysisService,
+        IVideoMetadataService videoMetadataService,
+        IFrameExtractionService frameExtractionService,
+        IAiShotService aiShotService,
         IImageGenerationService imageGenerationService,
         IVideoGenerationService videoGenerationService,
         IFinalRenderService finalRenderService,
@@ -400,6 +419,9 @@ public partial class MainViewModel : ObservableObject
         IProjectStore projectStore)
     {
         _videoAnalysisService = videoAnalysisService;
+        _videoMetadataService = videoMetadataService;
+        _frameExtractionService = frameExtractionService;
+        _aiShotService = aiShotService;
         _imageGenerationService = imageGenerationService;
         _videoGenerationService = videoGenerationService;
         _finalRenderService = finalRenderService;
@@ -504,6 +526,8 @@ public partial class MainViewModel : ObservableObject
         var shotSnapshots = Shots.Select(s => new ShotSnapshot(
             s.ShotNumber,
             s.Duration,
+            s.StartTime,
+            s.EndTime,
             s.FirstFramePrompt,
             s.LastFramePrompt,
             s.ShotType,
@@ -516,6 +540,7 @@ public partial class MainViewModel : ObservableObject
             s.GeneratedVideoPath,
             s.MaterialThumbnailPath,
             s.MaterialFilePath,
+            BuildAssetSnapshots(s),
             s.IsChecked,
             s.SelectedTabIndex,
             s.TimelineStartPosition,
@@ -536,6 +561,34 @@ public partial class MainViewModel : ObservableObject
             DetectionSensitivity,
             selectedIndex,
             shotSnapshots);
+    }
+
+    private static IReadOnlyList<ShotAssetSnapshot> BuildAssetSnapshots(ShotItem shot)
+    {
+        var list = new List<ShotAssetSnapshot>();
+
+        AddAssetSnapshots(list, shot.FirstFrameAssets);
+        AddAssetSnapshots(list, shot.LastFrameAssets);
+        AddAssetSnapshots(list, shot.VideoAssets);
+
+        return list;
+    }
+
+    private static void AddAssetSnapshots(List<ShotAssetSnapshot> list, IEnumerable<ShotAssetItem> assets)
+    {
+        foreach (var asset in assets)
+        {
+            if (string.IsNullOrWhiteSpace(asset.FilePath))
+                continue;
+
+            list.Add(new ShotAssetSnapshot(
+                asset.Type,
+                asset.FilePath,
+                asset.ThumbnailPath,
+                asset.Prompt,
+                asset.Model,
+                asset.CreatedAt));
+        }
     }
 
     private void RestoreSnapshot(ProjectSnapshot snapshot)
@@ -562,6 +615,8 @@ public partial class MainViewModel : ObservableObject
                 var shot = new ShotItem(s.ShotNumber)
                 {
                     Duration = s.Duration,
+                    StartTime = s.StartTime,
+                    EndTime = s.EndTime,
                     FirstFramePrompt = s.FirstFramePrompt,
                     LastFramePrompt = s.LastFramePrompt,
                     ShotType = s.ShotType,
@@ -579,6 +634,7 @@ public partial class MainViewModel : ObservableObject
                     TimelineStartPosition = s.TimelineStartPosition,
                     TimelineWidth = s.TimelineWidth
                 };
+                LoadAssetsIntoShot(shot, s.Assets);
                 AttachShotEventHandlers(shot);
                 Shots.Add(shot);
             }
@@ -598,6 +654,76 @@ public partial class MainViewModel : ObservableObject
         _lastSnapshot = TakeSnapshot();
         UpdateUndoRedoState();
         _isRestoringSnapshot = false;
+    }
+
+    private static void LoadAssetsIntoShot(ShotItem shot, IReadOnlyList<ShotAssetSnapshot> assets)
+    {
+        ClearShotAssets(shot);
+        foreach (var asset in assets)
+        {
+            if (string.IsNullOrWhiteSpace(asset.FilePath))
+                continue;
+
+            var item = new ShotAssetItem
+            {
+                Type = asset.Type,
+                FilePath = asset.FilePath,
+                ThumbnailPath = asset.ThumbnailPath,
+                Prompt = asset.Prompt,
+                Model = asset.Model,
+                CreatedAt = asset.CreatedAt
+            };
+
+            AddAssetItemToShot(shot, item);
+        }
+    }
+
+    private static void LoadAssetsIntoShot(ShotItem shot, IReadOnlyList<ShotAssetState> assets)
+    {
+        ClearShotAssets(shot);
+        foreach (var asset in assets)
+        {
+            if (string.IsNullOrWhiteSpace(asset.FilePath))
+                continue;
+
+            var item = new ShotAssetItem
+            {
+                Type = asset.Type,
+                FilePath = asset.FilePath,
+                ThumbnailPath = asset.ThumbnailPath,
+                Prompt = asset.Prompt,
+                Model = asset.Model,
+                CreatedAt = asset.CreatedAt
+            };
+
+            AddAssetItemToShot(shot, item);
+        }
+    }
+
+    private static void ClearShotAssets(ShotItem shot)
+    {
+        shot.FirstFrameAssets.Clear();
+        shot.LastFrameAssets.Clear();
+        shot.VideoAssets.Clear();
+    }
+
+    private static void AddAssetItemToShot(ShotItem shot, ShotAssetItem item)
+    {
+        switch (item.Type)
+        {
+            case Storyboard.Domain.Entities.ShotAssetType.FirstFrameImage:
+                item.IsSelected = string.Equals(item.FilePath, shot.FirstFrameImagePath, StringComparison.OrdinalIgnoreCase);
+                shot.FirstFrameAssets.Add(item);
+                break;
+            case Storyboard.Domain.Entities.ShotAssetType.LastFrameImage:
+                item.IsSelected = string.Equals(item.FilePath, shot.LastFrameImagePath, StringComparison.OrdinalIgnoreCase);
+                shot.LastFrameAssets.Add(item);
+                break;
+            case Storyboard.Domain.Entities.ShotAssetType.GeneratedVideo:
+                item.IsSelected = string.Equals(item.FilePath, shot.GeneratedVideoPath, StringComparison.OrdinalIgnoreCase);
+                shot.VideoAssets.Add(item);
+                break;
+        }
     }
 
     private void MarkUndoableChange()
@@ -711,8 +837,7 @@ public partial class MainViewModel : ObservableObject
 
         var totalShots = Shots.Count;
         var completedShots = Shots.Count(s => !string.IsNullOrWhiteSpace(s.GeneratedVideoPath) && File.Exists(s.GeneratedVideoPath));
-        var hasImages = Shots.Count(s => (!string.IsNullOrWhiteSpace(s.FirstFrameImagePath) && File.Exists(s.FirstFrameImagePath))
-                                       || (!string.IsNullOrWhiteSpace(s.LastFrameImagePath) && File.Exists(s.LastFrameImagePath)));
+        var hasImages = Shots.Sum(s => s.FirstFrameAssets.Count + s.LastFrameAssets.Count);
         var updatedAt = DateTimeOffset.Now;
         var dto = new ProjectSummary(
             CurrentProjectId!,
@@ -755,6 +880,8 @@ public partial class MainViewModel : ObservableObject
             .Select(s => new ShotState(
                 s.ShotNumber,
                 s.Duration,
+                s.StartTime,
+                s.EndTime,
                 s.FirstFramePrompt,
                 s.LastFramePrompt,
                 s.ShotType,
@@ -766,7 +893,8 @@ public partial class MainViewModel : ObservableObject
                 s.LastFrameImagePath,
                 s.GeneratedVideoPath,
                 s.MaterialThumbnailPath,
-                s.MaterialFilePath))
+                s.MaterialFilePath,
+                BuildAssetStates(s)))
             .ToList();
 
         return new ProjectState(
@@ -782,6 +910,32 @@ public partial class MainViewModel : ObservableObject
             TimeInterval,
             DetectionSensitivity,
             shots);
+    }
+
+    private static IReadOnlyList<ShotAssetState> BuildAssetStates(ShotItem shot)
+    {
+        var list = new List<ShotAssetState>();
+        AddAssetStates(list, shot.FirstFrameAssets);
+        AddAssetStates(list, shot.LastFrameAssets);
+        AddAssetStates(list, shot.VideoAssets);
+        return list;
+    }
+
+    private static void AddAssetStates(List<ShotAssetState> list, IEnumerable<ShotAssetItem> assets)
+    {
+        foreach (var asset in assets)
+        {
+            if (string.IsNullOrWhiteSpace(asset.FilePath))
+                continue;
+
+            list.Add(new ShotAssetState(
+                asset.Type,
+                asset.FilePath,
+                asset.ThumbnailPath,
+                asset.Prompt,
+                asset.Model,
+                asset.CreatedAt));
+        }
     }
 
     private void PersistCurrentProjectFireAndForget()
@@ -805,18 +959,32 @@ public partial class MainViewModel : ObservableObject
         });
     }
 
+    private string GetProjectOutputDirectory(string category)
+    {
+        var projectId = string.IsNullOrWhiteSpace(CurrentProjectId) ? "temp" : CurrentProjectId;
+        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output", "projects", projectId, category);
+    }
+
     public ObservableCollection<GenerationJob> JobHistory => _jobQueue.Jobs;
 
     private void AttachShotEventHandlers(ShotItem shot)
     {
         shot.DuplicateRequested += OnShotDuplicateRequested;
         shot.DeleteRequested += OnShotDeleteRequested;
+        shot.AiParseRequested += OnShotAiParseRequested;
+        shot.GenerateFirstFrameRequested += OnShotGenerateFirstFrameRequested;
+        shot.GenerateLastFrameRequested += OnShotGenerateLastFrameRequested;
+        shot.GenerateVideoRequested += OnShotGenerateVideoRequested;
     }
 
     private void DetachShotEventHandlers(ShotItem shot)
     {
         shot.DuplicateRequested -= OnShotDuplicateRequested;
         shot.DeleteRequested -= OnShotDeleteRequested;
+        shot.AiParseRequested -= OnShotAiParseRequested;
+        shot.GenerateFirstFrameRequested -= OnShotGenerateFirstFrameRequested;
+        shot.GenerateLastFrameRequested -= OnShotGenerateLastFrameRequested;
+        shot.GenerateVideoRequested -= OnShotGenerateVideoRequested;
     }
 
     private void OnShotDuplicateRequested(object? sender, EventArgs e)
@@ -829,6 +997,8 @@ public partial class MainViewModel : ObservableObject
                 var duplicate = new ShotItem(shot.ShotNumber + 1)
                 {
                     Duration = shot.Duration,
+                    StartTime = shot.StartTime,
+                    EndTime = shot.EndTime,
                     FirstFramePrompt = shot.FirstFramePrompt,
                     LastFramePrompt = shot.LastFramePrompt,
                     ShotType = shot.ShotType,
@@ -850,6 +1020,30 @@ public partial class MainViewModel : ObservableObject
             Shots.Remove(shot);
             RenumberShots();
         }
+    }
+
+    private void OnShotAiParseRequested(object? sender, EventArgs e)
+    {
+        if (sender is ShotItem shot)
+            EnqueueAiParseJob(shot);
+    }
+
+    private void OnShotGenerateFirstFrameRequested(object? sender, EventArgs e)
+    {
+        if (sender is ShotItem shot)
+            EnqueueFirstFrameJob(shot);
+    }
+
+    private void OnShotGenerateLastFrameRequested(object? sender, EventArgs e)
+    {
+        if (sender is ShotItem shot)
+            EnqueueLastFrameJob(shot);
+    }
+
+    private void OnShotGenerateVideoRequested(object? sender, EventArgs e)
+    {
+        if (sender is ShotItem shot)
+            EnqueueVideoJob(shot);
     }
 
     // UI Toggle Commands (for toolbar buttons)
@@ -875,7 +1069,6 @@ public partial class MainViewModel : ObservableObject
             HasCurrentProject = true;
             Shots.Clear();
             SelectedShot = null;
-            LoadTestData();
             IsNewProjectDialogOpen = false;
 
             // update history after creating
@@ -931,6 +1124,8 @@ public partial class MainViewModel : ObservableObject
                             var shot = new ShotItem(s.ShotNumber)
                             {
                                 Duration = s.Duration,
+                                StartTime = s.StartTime,
+                                EndTime = s.EndTime,
                                 FirstFramePrompt = s.FirstFramePrompt,
                                 LastFramePrompt = s.LastFramePrompt,
                                 ShotType = s.ShotType,
@@ -944,6 +1139,7 @@ public partial class MainViewModel : ObservableObject
                                 MaterialThumbnailPath = s.MaterialThumbnailPath,
                                 MaterialFilePath = s.MaterialFilePath
                             };
+                            LoadAssetsIntoShot(shot, s.Assets);
                             AttachShotEventHandlers(shot);
                             Shots.Add(shot);
                         }
@@ -985,19 +1181,26 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ToggleViewMode()
     {
-        // TODO: Switch between Grid and Timeline view
+        if (IsTimelineView)
+        {
+            SetGridView();
+        }
+        else
+        {
+            SetTimelineView();
+        }
     }
 
     [RelayCommand]
     private void ToggleTaskManager()
     {
-        // TODO: Show/hide task manager panel
+        IsTaskManagerDialogOpen = !IsTaskManagerDialogOpen;
     }
 
     [RelayCommand]
     private void ToggleProviderSettings()
     {
-        // TODO: Show/hide provider settings dialog
+        IsProviderSettingsDialogOpen = !IsProviderSettingsDialogOpen;
     }
 
     [RelayCommand]
@@ -1114,43 +1317,62 @@ public partial class MainViewModel : ObservableObject
         IsTextToShotDialogOpen = true;
     }
 
-    public void GenerateShotsFromTextPrompt()
+    public async Task GenerateShotsFromTextPromptAsync()
     {
-        // Keep behavior aligned with React demo: generate a couple of example shots.
-        // This is a placeholder until real AI text->shot parsing is integrated.
-        var baseIndex = Shots.Count;
+        if (string.IsNullOrWhiteSpace(TextToShotPrompt))
+            return;
 
-        var shot1 = new ShotItem(baseIndex + 1)
+        try
         {
-            Duration = 5,
-            ShotType = "远景",
-            CoreContent = "城市天际线",
-            ActionCommand = "缓慢推进",
-            SceneSettings = "清晨，阳光照射在高楼大厦上",
-            FirstFramePrompt = "城市远景，清晨金色阳光",
-            LastFramePrompt = "城市近景，建筑细节清晰",
-            SelectedModel = "RunwayGen3"
-        };
-        AttachShotEventHandlers(shot1);
+            StatusMessage = "正在生成分镜...";
+            var items = await _aiShotService.GenerateShotsFromTextAsync(TextToShotPrompt).ConfigureAwait(false);
 
-        var shot2 = new ShotItem(baseIndex + 2)
+            if (items.Count == 0)
+            {
+                StatusMessage = "未生成任何分镜，请调整描述后重试。";
+                return;
+            }
+
+            var baseIndex = Shots.Count;
+            var startTime = Shots.Count == 0 ? 0 : Shots.Max(s => s.EndTime);
+
+            OnUi(() =>
+            {
+                for (var i = 0; i < items.Count; i++)
+                {
+                    var desc = items[i];
+                    var duration = desc.DurationSeconds.GetValueOrDefault(3.5);
+                    if (duration <= 0)
+                        duration = 3.5;
+
+                    var shot = new ShotItem(baseIndex + i + 1)
+                    {
+                        Duration = duration,
+                        StartTime = startTime,
+                        EndTime = startTime + duration,
+                        ShotType = desc.ShotType,
+                        CoreContent = desc.CoreContent,
+                        ActionCommand = desc.ActionCommand,
+                        SceneSettings = desc.SceneSettings,
+                        FirstFramePrompt = desc.FirstFramePrompt,
+                        LastFramePrompt = desc.LastFramePrompt,
+                        SelectedModel = "RunwayGen3"
+                    };
+
+                    startTime += duration;
+                    AttachShotEventHandlers(shot);
+                    Shots.Add(shot);
+                }
+
+                RenumberShots();
+                TextToShotPrompt = string.Empty;
+                StatusMessage = $"已生成 {items.Count} 个分镜。";
+            });
+        }
+        catch (Exception ex)
         {
-            Duration = 4,
-            ShotType = "中景",
-            CoreContent = "街道人群",
-            ActionCommand = "跟随主角行走",
-            SceneSettings = "繁忙的街道，人来人往",
-            FirstFramePrompt = "主角从远处走来",
-            LastFramePrompt = "主角面部特写",
-            SelectedModel = "Pika"
-        };
-        AttachShotEventHandlers(shot2);
-
-        Shots.Add(shot1);
-        Shots.Add(shot2);
-        RenumberShots();
-
-        TextToShotPrompt = string.Empty;
+            StatusMessage = $"生成分镜失败: {ex.Message}";
+        }
     }
 
     public void MoveShot(ShotItem source, ShotItem target)
@@ -1179,29 +1401,188 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AIAnalyzeAll()
+    private async Task AIAnalyzeAll()
     {
-        // TODO: Implement AI analyze all shots
+        if (Shots.Count == 0)
+            return;
+
+        var needMode = Shots.Any(NeedsAiWriteMode);
+        AiWriteMode? mode = null;
+        if (needMode)
+        {
+            mode = await RequestAiWriteModeAsync();
+            if (mode == null)
+                return;
+        }
+
+        var skipped = 0;
+        foreach (var shot in Shots)
+        {
+            if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) || !File.Exists(shot.FirstFrameImagePath))
+            {
+                skipped++;
+                continue;
+            }
+            EnqueueAiParseJob(shot, mode);
+        }
+
+        if (skipped > 0)
+            StatusMessage = $"已跳过 {skipped} 个缺少首帧图片的分镜。";
     }
 
     [RelayCommand]
     private async Task ImportVideo()
     {
-        // TODO: Implement Avalonia file picker
-        // For now, load test data and provide demo video metadata to match sidebar UX.
-        LoadTestData();
+        var videoPath = await PickVideoPathAsync();
+        if (string.IsNullOrWhiteSpace(videoPath))
+            return;
 
-        HasVideoFile = true;
-        VideoFileDuration = "120";
-        VideoFileResolution = "1920x1080";
-        VideoFileFps = "30";
+        try
+        {
+            StatusMessage = "正在解析视频...";
+            var metadata = await _videoMetadataService.GetMetadataAsync(videoPath);
+
+            SelectedVideoPath = metadata.VideoPath;
+            HasVideoFile = true;
+            VideoFileDuration = FormatDuration(metadata.DurationSeconds);
+            VideoFileResolution = $"{metadata.Width}x{metadata.Height}";
+            VideoFileFps = metadata.Fps <= 0 ? "--" : metadata.Fps.ToString("0.##");
+
+            StatusMessage = "视频导入完成";
+            UpsertFromCurrentProject();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"视频导入失败: {ex.Message}";
+        }
+    }
+
+    private async Task<string?> PickVideoPathAsync()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.MainWindow;
+        var storageProvider = window?.StorageProvider;
+        if (storageProvider == null)
+            return null;
+
+        var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择视频文件",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("视频文件")
+                {
+                    Patterns = new[] { "*.mp4", "*.mov", "*.mkv", "*.avi", "*.webm" }
+                }
+            }
+        });
+
+        return files?.FirstOrDefault()?.Path.LocalPath;
+    }
+
+    private static string FormatDuration(double seconds)
+    {
+        if (seconds <= 0)
+            return "--:--";
+
+        var ts = TimeSpan.FromSeconds(seconds);
+        return ts.TotalHours >= 1
+            ? ts.ToString(@"hh\:mm\:ss")
+            : ts.ToString(@"mm\:ss");
+    }
+
+    private void BuildShotsFromFrames(IReadOnlyList<ExtractedFrame> frames, double totalDuration)
+    {
+        if (frames.Count == 0)
+            return;
+
+        var ordered = frames.OrderBy(f => f.TimestampSeconds).ToList();
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            var current = ordered[i];
+            var prevTime = i == 0 ? 0 : ordered[i - 1].TimestampSeconds;
+            var nextTime = i == ordered.Count - 1 ? totalDuration : ordered[i + 1].TimestampSeconds;
+            var start = i == 0 ? 0 : (prevTime + current.TimestampSeconds) / 2.0;
+            var end = i == ordered.Count - 1 ? totalDuration : (current.TimestampSeconds + nextTime) / 2.0;
+            if (end < start)
+                end = start + 0.5;
+
+            var duration = Math.Max(0.5, end - start);
+
+            var shot = new ShotItem(i + 1)
+            {
+                Duration = duration,
+                StartTime = start,
+                EndTime = end,
+                ShotType = duration > 4 ? "远景" : "中景",
+                CoreContent = "抽帧生成镜头",
+                ActionCommand = "待补充",
+                SceneSettings = "待补充",
+                FirstFramePrompt = string.Empty,
+                LastFramePrompt = string.Empty,
+                SelectedModel = "RunwayGen3",
+                MaterialFilePath = current.FilePath,
+                MaterialThumbnailPath = current.FilePath
+            };
+
+            AttachShotEventHandlers(shot);
+            Shots.Add(shot);
+        }
     }
 
     [RelayCommand]
     private async Task ExtractFrames()
     {
-        // TODO: Implement frame extraction
-        await Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(SelectedVideoPath) || !File.Exists(SelectedVideoPath))
+        {
+            StatusMessage = "请先导入视频文件。";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(CurrentProjectId))
+            CurrentProjectId = Guid.NewGuid().ToString("N");
+
+        try
+        {
+            IsAnalyzing = true;
+            StatusMessage = "正在抽帧...";
+
+            var mode = (FrameExtractionMode)ExtractModeIndex;
+            var request = new FrameExtractionRequest(
+                SelectedVideoPath,
+                CurrentProjectId!,
+                mode,
+                FrameCount,
+                TimeInterval,
+                DetectionSensitivity);
+
+            var progress = new Progress<double>(p =>
+            {
+                StatusMessage = $"抽帧进度: {Math.Round(p * 100)}%";
+            });
+
+            var result = await _frameExtractionService.ExtractAsync(request, progress).ConfigureAwait(false);
+            var metadata = await _videoMetadataService.GetMetadataAsync(SelectedVideoPath).ConfigureAwait(false);
+
+            OnUi(() =>
+            {
+                Shots.Clear();
+                BuildShotsFromFrames(result.Frames, metadata.DurationSeconds);
+                RenumberShots();
+                UpdateSummaryCounts();
+                RecalculateTimelineLayout();
+                StatusMessage = $"抽帧完成，生成 {Shots.Count} 个分镜。";
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"抽帧失败: {ex.Message}";
+        }
+        finally
+        {
+            IsAnalyzing = false;
+        }
     }
 
     [RelayCommand]
@@ -1212,68 +1593,31 @@ public partial class MainViewModel : ObservableObject
 
         _jobQueue.Cancel(job);
     }
-    
-    private void LoadTestData()
-    {
-        var shot1 = new ShotItem(1)
-        {
-            Duration = 3.5,
-            FirstFramePrompt = "清晨的城市街道，阳光透过高楼洒下",
-            LastFramePrompt = "镜头缓缓推进到咖啡店门口",
-            ShotType = "推镜",
-            CoreContent = "城市街景",
-            ActionCommand = "缓慢推进",
-            SceneSettings = "早晨，暖色调，自然光",
-            SelectedModel = "RunwayGen3"
-        };
-        AttachShotEventHandlers(shot1);
-        Shots.Add(shot1);
-        
-        var shot2 = new ShotItem(2)
-        {
-            Duration = 2,
-            FirstFramePrompt = "咖啡师正在制作拿铁，特写镜头",
-            LastFramePrompt = "拉花完成，呈现美图案",
-            ShotType = "特写",
-            CoreContent = "咖啡制作",
-            ActionCommand = "稳定拍摄",
-            SceneSettings = "室内，暖光，浅景深",
-            SelectedModel = "Pika"
-        };
-        AttachShotEventHandlers(shot2);
-        Shots.Add(shot2);
-        
-        var shot3 = new ShotItem(3)
-        {
-            Duration = 4,
-            FirstFramePrompt = "顾客坐在窗边，手握咖啡杯",
-            LastFramePrompt = "望向窗外，露出微笑",
-            ShotType = "中景",
-            CoreContent = "人物场景",
-            ActionCommand = "自然转头",
-            SceneSettings = "窗边，逆光，柔和",
-            SelectedModel = "RunwayGen3"
-        };
-        AttachShotEventHandlers(shot3);
-        Shots.Add(shot3);
-    }
 
+    [RelayCommand]
+    private void RetryJob(GenerationJob? job)
+    {
+        if (job == null)
+            return;
+
+        _jobQueue.Retry(job);
+    }
+    
     [RelayCommand]
     private async Task UploadVideoAsync()
     {
-        // TODO: Implement Avalonia file picker
-        // For now, use a test video path or skip
-        // var storageProvider = TopLevel.GetTopLevel(mainWindow)?.StorageProvider;
-        // if (storageProvider != null) { ... }
-        
-        // Temporary: allow manual path input or skip
-        return;
+        await ImportVideo();
     }
 
     [RelayCommand]
     private void AddShot()
     {
-        var newShot = new ShotItem(Shots.Count + 1);
+        var startTime = Shots.Count == 0 ? 0 : Shots.Max(s => s.EndTime);
+        var newShot = new ShotItem(Shots.Count + 1)
+        {
+            StartTime = startTime,
+            EndTime = startTime + 3.5
+        };
         AttachShotEventHandlers(newShot);
         Shots.Add(newShot);
         RenumberShots();
@@ -1317,8 +1661,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            // TODO: Implement Avalonia message dialog
-            System.Diagnostics.Debug.WriteLine($"视频分析失败: {ex.Message}");
+            StatusMessage = $"视频分析失败: {ex.Message}";
         }
         finally
         {
@@ -1438,6 +1781,45 @@ public partial class MainViewModel : ObservableObject
             maxAttempts: 1);
     }
 
+    public async Task ExportVideoAsync(string targetPath)
+    {
+        if (!CanExportVideo)
+        {
+            StatusMessage = "当前分镜未全部生成成片。";
+            return;
+        }
+
+        var clipPaths = Shots
+            .OrderBy(s => s.ShotNumber)
+            .Select(s => s.GeneratedVideoPath)
+            .ToList();
+
+        var missing = clipPaths.Where(p => string.IsNullOrWhiteSpace(p) || !File.Exists(p)).ToList();
+        if (missing.Count > 0)
+        {
+            StatusMessage = "存在缺失的视频片段，无法导出。";
+            return;
+        }
+
+        try
+        {
+            StatusMessage = "正在合成导出视频...";
+            var ordered = clipPaths.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!).ToList();
+            var output = await _finalRenderService.RenderAsync(ordered, CancellationToken.None).ConfigureAwait(false);
+
+            var dir = Path.GetDirectoryName(targetPath);
+            if (!string.IsNullOrWhiteSpace(dir))
+                Directory.CreateDirectory(dir);
+
+            File.Copy(output, targetPath, overwrite: true);
+            StatusMessage = $"视频导出完成: {targetPath}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"视频导出失败: {ex.Message}";
+        }
+    }
+
     private sealed record ShotVideoSnapshot(int ShotNumber, string? VideoPath);
 
     private List<ShotVideoSnapshot> GetShotVideoSnapshot()
@@ -1451,9 +1833,9 @@ public partial class MainViewModel : ObservableObject
         return list;
     }
 
-    private void EnqueueFirstFrameJob(ShotItem shot)
+    private GenerationJob EnqueueFirstFrameJob(ShotItem shot)
     {
-        _jobQueue.Enqueue(
+        return _jobQueue.Enqueue(
             GenerationJobType.ImageFirst,
             shot.ShotNumber,
             async (ct, progress) =>
@@ -1467,13 +1849,19 @@ public partial class MainViewModel : ObservableObject
                 OnUi(() => shot.IsFirstFrameGenerating = true);
                 try
                 {
-                    var imagePath = await _imageGenerationService.GenerateImageAsync(shot.FirstFramePrompt, shot.SelectedModel);
+                    var outputDir = GetProjectOutputDirectory("images");
+                    var prefix = $"shot_{shot.ShotNumber:000}_first";
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(
+                        shot.FirstFramePrompt,
+                        shot.SelectedModel,
+                        outputDir,
+                        prefix,
+                        ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
                     OnUi(() =>
                     {
-                        shot.FirstFrameImagePath = imagePath;
-                        GeneratedImagesCount++;
+                        AddAssetToShot(shot, ShotAssetType.FirstFrameImage, imagePath, shot.FirstFramePrompt, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -1486,9 +1874,9 @@ public partial class MainViewModel : ObservableObject
             maxAttempts: 2);
     }
 
-    private void EnqueueLastFrameJob(ShotItem shot)
+    private GenerationJob EnqueueLastFrameJob(ShotItem shot)
     {
-        _jobQueue.Enqueue(
+        return _jobQueue.Enqueue(
             GenerationJobType.ImageLast,
             shot.ShotNumber,
             async (ct, progress) =>
@@ -1502,13 +1890,19 @@ public partial class MainViewModel : ObservableObject
                 OnUi(() => shot.IsLastFrameGenerating = true);
                 try
                 {
-                    var imagePath = await _imageGenerationService.GenerateImageAsync(shot.LastFramePrompt, shot.SelectedModel);
+                    var outputDir = GetProjectOutputDirectory("images");
+                    var prefix = $"shot_{shot.ShotNumber:000}_last";
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(
+                        shot.LastFramePrompt,
+                        shot.SelectedModel,
+                        outputDir,
+                        prefix,
+                        ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
                     OnUi(() =>
                     {
-                        shot.LastFrameImagePath = imagePath;
-                        GeneratedImagesCount++;
+                        AddAssetToShot(shot, ShotAssetType.LastFrameImage, imagePath, shot.LastFramePrompt, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -1521,9 +1915,59 @@ public partial class MainViewModel : ObservableObject
             maxAttempts: 2);
     }
 
-    private void EnqueueVideoJob(ShotItem shot)
+    private GenerationJob EnqueueAiParseJob(ShotItem shot, AiWriteMode? mode = null)
     {
-        _jobQueue.Enqueue(
+        return _jobQueue.Enqueue(
+            GenerationJobType.AiParse,
+            shot.ShotNumber,
+            async (ct, progress) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                progress.Report(0);
+
+                var request = await CaptureAiRequestAsync(shot).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(request.FirstFramePath) || !File.Exists(request.FirstFramePath))
+                    throw new InvalidOperationException("缺少首帧图片，请先生成并选择首帧图片。");
+
+                var description = await _aiShotService.AnalyzeShotAsync(request, ct).ConfigureAwait(false);
+                progress.Report(0.7);
+
+                AiWriteMode? writeMode = mode;
+                if (writeMode == null && NeedsAiWriteMode(shot))
+                {
+                    writeMode = await RequestAiWriteModeAsync().ConfigureAwait(false);
+                }
+
+                if (writeMode == null)
+                    return;
+
+                OnUi(() => ApplyAiShotDescription(shot, description, writeMode.Value));
+                progress.Report(1);
+            },
+            maxAttempts: 2);
+    }
+
+    public GenerationJob QueueAiParse(ShotItem shot, AiWriteMode? mode = null)
+        => EnqueueAiParseJob(shot, mode);
+
+    public GenerationJob QueueFirstFrame(ShotItem shot)
+        => EnqueueFirstFrameJob(shot);
+
+    public GenerationJob QueueLastFrame(ShotItem shot)
+        => EnqueueLastFrameJob(shot);
+
+    public GenerationJob QueueVideo(ShotItem shot)
+        => EnqueueVideoJob(shot);
+
+    public bool NeedsAiWriteModeForBatch(ShotItem shot)
+        => NeedsAiWriteMode(shot);
+
+    public Task<AiWriteMode?> PromptAiWriteModeAsync()
+        => RequestAiWriteModeAsync();
+
+    private GenerationJob EnqueueVideoJob(ShotItem shot)
+    {
+        return _jobQueue.Enqueue(
             GenerationJobType.Video,
             shot.ShotNumber,
             async (ct, progress) =>
@@ -1537,13 +1981,18 @@ public partial class MainViewModel : ObservableObject
                 OnUi(() => shot.IsVideoGenerating = true);
                 try
                 {
-                    var videoPath = await _videoGenerationService.GenerateVideoAsync(shot);
+                    var outputDir = GetProjectOutputDirectory("videos");
+                    var prefix = $"shot_{shot.ShotNumber:000}_video";
+                    var videoPath = await _videoGenerationService.GenerateVideoAsync(
+                        shot,
+                        outputDir,
+                        prefix,
+                        ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
                     OnUi(() =>
                     {
-                        shot.GeneratedVideoPath = videoPath;
-                        GeneratedVideosCount++;
+                        AddAssetToShot(shot, ShotAssetType.GeneratedVideo, videoPath, null, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -1554,6 +2003,118 @@ public partial class MainViewModel : ObservableObject
                 }
             },
             maxAttempts: 2);
+    }
+
+    private static bool NeedsAiWriteMode(ShotItem shot)
+    {
+        return !string.IsNullOrWhiteSpace(shot.ShotType)
+            || !string.IsNullOrWhiteSpace(shot.CoreContent)
+            || !string.IsNullOrWhiteSpace(shot.ActionCommand)
+            || !string.IsNullOrWhiteSpace(shot.SceneSettings)
+            || !string.IsNullOrWhiteSpace(shot.FirstFramePrompt)
+            || !string.IsNullOrWhiteSpace(shot.LastFramePrompt);
+    }
+
+    private Task<AiShotAnalysisRequest> CaptureAiRequestAsync(ShotItem shot)
+    {
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            return Task.FromResult(new AiShotAnalysisRequest(
+                shot.FirstFrameImagePath,
+                shot.LastFrameImagePath,
+                shot.ShotType,
+                shot.CoreContent,
+                shot.ActionCommand,
+                shot.SceneSettings,
+                shot.FirstFramePrompt,
+                shot.LastFramePrompt));
+        }
+
+        return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => new AiShotAnalysisRequest(
+            shot.FirstFrameImagePath,
+            shot.LastFrameImagePath,
+            shot.ShotType,
+            shot.CoreContent,
+            shot.ActionCommand,
+            shot.SceneSettings,
+            shot.FirstFramePrompt,
+            shot.LastFramePrompt)).GetTask();
+    }
+
+    private async Task<AiWriteMode?> RequestAiWriteModeAsync()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var owner = lifetime?.MainWindow;
+        var dialog = new AiWriteModeDialog();
+
+        if (owner == null)
+            return AiWriteMode.Overwrite;
+
+        return await dialog.ShowDialog<AiWriteMode?>(owner);
+    }
+
+    private static void ApplyAiShotDescription(ShotItem shot, AiShotDescription description, AiWriteMode mode)
+    {
+        shot.ShotType = MergeField(shot.ShotType, description.ShotType, mode);
+        shot.CoreContent = MergeField(shot.CoreContent, description.CoreContent, mode);
+        shot.ActionCommand = MergeField(shot.ActionCommand, description.ActionCommand, mode);
+        shot.SceneSettings = MergeField(shot.SceneSettings, description.SceneSettings, mode);
+        shot.FirstFramePrompt = MergeField(shot.FirstFramePrompt, description.FirstFramePrompt, mode);
+        shot.LastFramePrompt = MergeField(shot.LastFramePrompt, description.LastFramePrompt, mode);
+    }
+
+    private static string MergeField(string current, string incoming, AiWriteMode mode)
+    {
+        if (string.IsNullOrWhiteSpace(incoming))
+            return current;
+
+        if (string.IsNullOrWhiteSpace(current))
+            return incoming;
+
+        return mode switch
+        {
+            AiWriteMode.Overwrite => incoming,
+            AiWriteMode.Append => $"{current}\n{incoming}",
+            AiWriteMode.Skip => current,
+            _ => current
+        };
+    }
+
+    private void AddAssetToShot(ShotItem shot, ShotAssetType type, string filePath, string? prompt, string? model)
+    {
+        var list = type switch
+        {
+            ShotAssetType.FirstFrameImage => shot.FirstFrameAssets,
+            ShotAssetType.LastFrameImage => shot.LastFrameAssets,
+            ShotAssetType.GeneratedVideo => shot.VideoAssets,
+            _ => null
+        };
+
+        if (list == null)
+            return;
+
+        if (list.Any(a => string.Equals(a.FilePath, filePath, StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        list.Insert(0, new ShotAssetItem
+        {
+            Type = type,
+            FilePath = filePath,
+            ThumbnailPath = filePath,
+            Prompt = prompt,
+            Model = model,
+            CreatedAt = DateTimeOffset.Now
+        });
+
+        if (type == ShotAssetType.FirstFrameImage && string.IsNullOrWhiteSpace(shot.FirstFrameImagePath))
+            shot.FirstFrameImagePath = filePath;
+        if (type == ShotAssetType.LastFrameImage && string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
+            shot.LastFrameImagePath = filePath;
+        if (type == ShotAssetType.GeneratedVideo && string.IsNullOrWhiteSpace(shot.GeneratedVideoPath))
+            shot.GeneratedVideoPath = filePath;
+
+        MarkUndoableChange();
+        UpdateSummaryCounts();
     }
 
     private static void OnUi(Action action)
@@ -1671,6 +2232,8 @@ public partial class MainViewModel : ObservableObject
 
         // Snapshot-based undo/redo for user-editable shot properties.
         if (e.PropertyName is nameof(ShotItem.Duration)
+            or nameof(ShotItem.StartTime)
+            or nameof(ShotItem.EndTime)
             or nameof(ShotItem.FirstFramePrompt)
             or nameof(ShotItem.LastFramePrompt)
             or nameof(ShotItem.ShotType)
@@ -1699,6 +2262,9 @@ public partial class MainViewModel : ObservableObject
         CompletedShotsCount = Shots.Count(shot => !string.IsNullOrWhiteSpace(shot.FirstFrameImagePath));
         CompletedVideoShotsCount = Shots.Count(shot => !string.IsNullOrWhiteSpace(shot.GeneratedVideoPath));
         ShotsRenderingCount = Shots.Count(shot => shot.IsFirstFrameGenerating || shot.IsLastFrameGenerating || shot.IsVideoGenerating);
+        GeneratedImagesCount = Shots.Sum(shot => shot.FirstFrameAssets.Count + shot.LastFrameAssets.Count);
+        GeneratedVideosCount = Shots.Sum(shot => shot.VideoAssets.Count);
+        GeneratingCount = ShotsRenderingCount;
 
         OnPropertyChanged(nameof(HasShots));
         OnPropertyChanged(nameof(CanExportVideo));

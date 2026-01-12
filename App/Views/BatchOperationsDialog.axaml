@@ -107,7 +107,7 @@
                         IsEnabled="{Binding CanStart}">
                     <Grid>
                         <TextBlock Text="执行中..." IsVisible="{Binding IsRunning}" />
-                        <TextBlock Text="开始批量操作" IsVisible="{Binding !IsRunning}" />
+                        <TextBlock Text="开始批量操作" IsVisible="{Binding IsRunning, Converter={StaticResource BoolNot}}" />
                     </Grid>
                 </Button>
 
@@ -148,7 +148,7 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        TextAlignment="Center"
-                                       IsVisible="{Binding !HasTasks}" />
+                                       IsVisible="{Binding HasTasks, Converter={StaticResource BoolNot}}" />
 
                             <ItemsControl ItemsSource="{Binding Tasks}" IsVisible="{Binding HasTasks}">
                                 <ItemsControl.ItemTemplate>

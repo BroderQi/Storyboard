@@ -41,7 +41,7 @@ public partial class MainWindow : Window
             case nameof(MainViewModel.IsBatchOperationsDialogOpen):
                 if (viewModel.IsBatchOperationsDialogOpen)
                 {
-                    var dialog = new BatchOperationsDialog { DataContext = new BatchOperationsViewModel(viewModel.Shots) };
+                    var dialog = new BatchOperationsDialog { DataContext = new BatchOperationsViewModel(viewModel) };
                     await dialog.ShowDialog(this);
                     viewModel.IsBatchOperationsDialogOpen = false;
                 }

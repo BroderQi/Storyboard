@@ -19,7 +19,7 @@
                        FontWeight="SemiBold"
                        Foreground="#f5f5f5"
                        Margin="0,0,0,8" />
-            <TextBlock Text="描述您的故事，生成分镜（当前为演示占位实现）"
+            <TextBlock Text="描述您的故事，生成分镜脚本"
                        FontSize="14"
                        Foreground="#71717a" />
         </StackPanel>

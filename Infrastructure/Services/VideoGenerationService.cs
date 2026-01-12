@@ -10,21 +10,37 @@ namespace Storyboard.Infrastructure.Services;
 
 public sealed class VideoGenerationService : IVideoGenerationService
 {
-    public async Task<string> GenerateVideoAsync(ShotItem shot)
+    public async Task<string> GenerateVideoAsync(
+        ShotItem shot,
+        string? outputDirectory = null,
+        string? filePrefix = null,
+        CancellationToken cancellationToken = default)
     {
         if (shot == null)
             throw new ArgumentNullException(nameof(shot));
 
         await Task.Yield();
 
-        var outDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output", "shots");
+        var outDir = string.IsNullOrWhiteSpace(outputDirectory)
+            ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output", "shots")
+            : outputDirectory;
         Directory.CreateDirectory(outDir);
 
         var duration = Math.Max(0.2, shot.Duration);
-        var outputPath = Path.Combine(outDir, $"shot_{shot.ShotNumber:000}_{DateTime.Now:yyyyMMdd_HHmmss_fff}.mp4");
+        var safePrefix = string.IsNullOrWhiteSpace(filePrefix) ? $"shot_{shot.ShotNumber:000}" : filePrefix;
+        var outputPath = Path.Combine(outDir, $"{safePrefix}_{DateTime.Now:yyyyMMdd_HHmmss_fff}.mp4");
 
         string args;
-        if (!string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && File.Exists(shot.FirstFrameImagePath))
+        var hasFirst = !string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && File.Exists(shot.FirstFrameImagePath);
+        var hasLast = !string.IsNullOrWhiteSpace(shot.LastFrameImagePath) && File.Exists(shot.LastFrameImagePath);
+
+        if (hasFirst && hasLast && duration >= 0.6)
+        {
+            var dur = duration.ToString("0.###", CultureInfo.InvariantCulture);
+            var fadeOffset = Math.Max(0.1, duration - 0.5).ToString("0.###", CultureInfo.InvariantCulture);
+            args = $"-y -hide_banner -loglevel error -loop 1 -i \"{shot.FirstFrameImagePath}\" -loop 1 -i \"{shot.LastFrameImagePath}\" -t {dur} -r 30 -filter_complex \"[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p[first];[1:v]scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p[last];[first][last]xfade=transition=fade:duration=0.5:offset={fadeOffset}\" -an \"{outputPath}\"";
+        }
+        else if (hasFirst)
         {
             var dur = duration.ToString("0.###", CultureInfo.InvariantCulture);
             args = $"-y -hide_banner -loglevel error -loop 1 -i \"{shot.FirstFrameImagePath}\" -t {dur} -r 30 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p\" -an \"{outputPath}\"";
@@ -35,7 +51,7 @@ public sealed class VideoGenerationService : IVideoGenerationService
             args = $"-y -hide_banner -loglevel error -f lavfi -i color=c=black:s=1280x720:r=30 -t {dur} -vf format=yuv420p -an \"{outputPath}\"";
         }
 
-        var (exitCode, _stdout, stderr) = await RunProcessCaptureAsync(FfmpegLocator.GetFfmpegPath(), args, CancellationToken.None).ConfigureAwait(false);
+        var (exitCode, _stdout, stderr) = await RunProcessCaptureAsync(FfmpegLocator.GetFfmpegPath(), args, cancellationToken).ConfigureAwait(false);
         if (exitCode != 0)
             throw new InvalidOperationException($"ffmpeg 生成分镜视频失败（请确保已安装 ffmpeg 并加入 PATH）。\n{stderr}");
 

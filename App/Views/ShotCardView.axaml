@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:Storyboard.Models"
+             xmlns:conv="using:Storyboard.Converters"
              x:Class="Storyboard.Views.ShotCardView"
              x:DataType="m:ShotItem">
 
@@ -104,7 +105,7 @@
                     <Border Background="#27272a" 
                             CornerRadius="4" 
                             Padding="8,2" 
-                            IsVisible="{Binding ShotType, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            IsVisible="{Binding ShotType, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock Text="{Binding ShotType}" 
                                    FontSize="12" 
                                    Foreground="#f5f5f5" />
@@ -153,7 +154,7 @@
                        MaxLines="2"
                        TextTrimming="CharacterEllipsis"
                        Margin="0,0,0,12"
-                       IsVisible="{Binding CoreContent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                       IsVisible="{Binding CoreContent, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
 
             <!-- Row 2: Thumbnails Grid -->
             <Grid Grid.Row="2" ColumnDefinitions="*,8,*" Margin="0,0,0,12">
@@ -174,12 +175,12 @@
                         <!-- Image -->
                         <Image Source="{Binding FirstFrameImagePath}" 
                                Stretch="UniformToFill"
-                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                         
                         <!-- Placeholder -->
                         <StackPanel HorizontalAlignment="Center" 
                                     VerticalAlignment="Center"
-                                    IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                                    IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                             <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                       Width="32" 
                                       Height="32" 
@@ -248,12 +249,12 @@
                         <!-- Image -->
                         <Image Source="{Binding LastFrameImagePath}" 
                                Stretch="UniformToFill"
-                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                         
                         <!-- Placeholder -->
                         <StackPanel HorizontalAlignment="Center" 
                                     VerticalAlignment="Center"
-                                    IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                                    IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                             <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                       Width="32" 
                                       Height="32" 
@@ -315,7 +316,7 @@
                         Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal" 
                             Spacing="4"
-                            IsVisible="{Binding FirstFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                     <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                               Width="14" 
                               Height="14" 
@@ -326,7 +327,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" 
                             Spacing="4"
-                            IsVisible="{Binding LastFrameImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                     <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                               Width="14" 
                               Height="14" 
@@ -337,7 +338,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" 
                             Spacing="4"
-                            IsVisible="{Binding VideoOutputPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            IsVisible="{Binding VideoOutputPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                     <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" 
                                       Width="14" 
                                       Height="14" 

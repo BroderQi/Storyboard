@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
+using System.Collections.ObjectModel;
+using Storyboard.Domain.Entities;
 
 namespace Storyboard.Models;
 
@@ -11,6 +13,12 @@ public partial class ShotItem : ObservableObject
 
     [ObservableProperty]
     private double _duration;
+
+    [ObservableProperty]
+    private double _startTime;
+
+    [ObservableProperty]
+    private double _endTime;
 
     [ObservableProperty]
     private string _firstFramePrompt = string.Empty;
@@ -58,6 +66,15 @@ public partial class ShotItem : ObservableObject
     private string? _materialFilePath;
 
     [ObservableProperty]
+    private ObservableCollection<ShotAssetItem> _firstFrameAssets = new();
+
+    [ObservableProperty]
+    private ObservableCollection<ShotAssetItem> _lastFrameAssets = new();
+
+    [ObservableProperty]
+    private ObservableCollection<ShotAssetItem> _videoAssets = new();
+
+    [ObservableProperty]
     private bool _isChecked;
 
     [ObservableProperty]
@@ -81,6 +98,10 @@ public partial class ShotItem : ObservableObject
     // Events for communicating with parent ViewModel
     public event EventHandler? DuplicateRequested;
     public event EventHandler? DeleteRequested;
+    public event EventHandler? AiParseRequested;
+    public event EventHandler? GenerateFirstFrameRequested;
+    public event EventHandler? GenerateLastFrameRequested;
+    public event EventHandler? GenerateVideoRequested;
 
     public ShotItem(int shotNumber)
     {
@@ -104,36 +125,92 @@ public partial class ShotItem : ObservableObject
     [RelayCommand]
     private void AIParse()
     {
-        // TODO: Implement AI parse
+        AiParseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void GenerateFirstFrame()
     {
-        // TODO: Implement generate first frame
+        GenerateFirstFrameRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void RegenerateFirstFrame()
     {
-        // TODO: Implement regenerate first frame
+        GenerateFirstFrameRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void GenerateLastFrame()
     {
-        // TODO: Implement generate last frame
+        GenerateLastFrameRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void RegenerateLastFrame()
     {
-        // TODO: Implement regenerate last frame
+        GenerateLastFrameRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]
     private void GenerateVideo()
     {
-        // TODO: Implement generate video
+        GenerateVideoRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void SelectAsset(ShotAssetItem? asset)
+    {
+        if (asset == null || string.IsNullOrWhiteSpace(asset.FilePath))
+            return;
+
+        switch (asset.Type)
+        {
+            case ShotAssetType.FirstFrameImage:
+                FirstFrameImagePath = asset.FilePath;
+                break;
+            case ShotAssetType.LastFrameImage:
+                LastFrameImagePath = asset.FilePath;
+                break;
+            case ShotAssetType.GeneratedVideo:
+                GeneratedVideoPath = asset.FilePath;
+                break;
+        }
+
+        UpdateAssetSelections(asset.Type);
+    }
+
+    partial void OnFirstFrameImagePathChanged(string? value)
+        => UpdateAssetSelections(ShotAssetType.FirstFrameImage);
+
+    partial void OnLastFrameImagePathChanged(string? value)
+        => UpdateAssetSelections(ShotAssetType.LastFrameImage);
+
+    partial void OnGeneratedVideoPathChanged(string? value)
+        => UpdateAssetSelections(ShotAssetType.GeneratedVideo);
+
+    private void UpdateAssetSelections(ShotAssetType type)
+    {
+        ObservableCollection<ShotAssetItem>? list = type switch
+        {
+            ShotAssetType.FirstFrameImage => FirstFrameAssets,
+            ShotAssetType.LastFrameImage => LastFrameAssets,
+            ShotAssetType.GeneratedVideo => VideoAssets,
+            _ => null
+        };
+
+        if (list == null)
+            return;
+
+        var selectedPath = type switch
+        {
+            ShotAssetType.FirstFrameImage => FirstFrameImagePath,
+            ShotAssetType.LastFrameImage => LastFrameImagePath,
+            ShotAssetType.GeneratedVideo => GeneratedVideoPath,
+            _ => null
+        };
+
+        foreach (var item in list)
+            item.IsSelected = !string.IsNullOrWhiteSpace(selectedPath) && string.Equals(item.FilePath, selectedPath, StringComparison.OrdinalIgnoreCase);
     }
 }

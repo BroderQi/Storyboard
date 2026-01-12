@@ -89,9 +89,21 @@ public partial class ExportDialog : Window
         if (!viewModel.CanExportVideo)
             return;
 
-        // TODO: 接入 FinalRenderService/ffmpeg 进行真正的合成导出。
-        viewModel.StatusMessage = "视频导出暂未接入（仅 UI 对齐 React）";
-        await Task.Yield();
+        var storageProvider = StorageProvider;
+        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "导出视频",
+            SuggestedFileName = $"{viewModel.ProjectName}_成片.mp4",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("MP4 文件") { Patterns = new[] { "*.mp4" } }
+            }
+        });
+
+        if (file == null)
+            return;
+
+        await viewModel.ExportVideoAsync(file.Path.LocalPath);
         Close();
     }
 }

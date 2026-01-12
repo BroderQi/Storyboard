@@ -76,7 +76,11 @@ public partial class App : Avalonia.Application
         services.AddTransient<ApiKeyViewModel>();
 
         // Services - 保持现有业务逻辑
-        services.AddSingleton<IVideoAnalysisService, VideoAnalysisService>();
+        services.AddSingleton<VideoAnalysisService>();
+        services.AddSingleton<IVideoAnalysisService>(sp => sp.GetRequiredService<VideoAnalysisService>());
+        services.AddSingleton<IVideoMetadataService>(sp => sp.GetRequiredService<VideoAnalysisService>());
+        services.AddSingleton<IFrameExtractionService, FrameExtractionService>();
+        services.AddSingleton<IAiShotService, AiShotService>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
         services.AddSingleton<IFinalRenderService, FinalRenderService>();

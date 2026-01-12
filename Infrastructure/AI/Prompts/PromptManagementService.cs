@@ -51,11 +51,7 @@ public class PromptManagementService
             }
         }
 
-        // 如果没有模板，加载默认模板
-        if (_templates.Count == 0)
-        {
-            await LoadDefaultTemplatesAsync();
-        }
+        await EnsureDefaultTemplatesAsync();
     }
 
     /// <summary>
@@ -136,22 +132,24 @@ public class PromptManagementService
     /// <summary>
     /// 加载默认提示词模板
     /// </summary>
-    private async Task LoadDefaultTemplatesAsync()
+    private async Task EnsureDefaultTemplatesAsync()
     {
         // 视频分析提示词
-        var videoAnalysisTemplate = new PromptTemplate
+        if (!_templates.ContainsKey("video_analysis"))
         {
-            Id = "video_analysis",
-            Name = "视频分析",
-            Description = "分析视频内容并生成分镜脚本",
-            SystemPrompt = @"你是一个专业的视频分析和分镜师。你的任务是：
+            var videoAnalysisTemplate = new PromptTemplate
+            {
+                Id = "video_analysis",
+                Name = "视频分析",
+                Description = "分析视频内容并生成分镜脚本",
+                SystemPrompt = @"你是一个专业的视频分析和分镜师。你的任务是：
 1. 分析视频的视觉内容和叙事结构
 2. 识别关键场景和转换点
 3. 为每个镜头提供详细的描述
 4. 给出专业的拍摄建议
 
 请以专业、准确、富有创意的方式完成任务。",
-            UserPromptTemplate = @"请分析以下视频信息：
+                UserPromptTemplate = @"请分析以下视频信息：
 
 视频时长: {{duration}}
 视频帧数: {{frames}}
@@ -165,86 +163,154 @@ public class PromptManagementService
 - 音效建议
 
 返回JSON格式的结果。",
-            Parameters = new Dictionary<string, PromptParameter>
-            {
-                ["duration"] = new() { Name = "duration", Type = "string", Description = "视频时长", Required = true },
-                ["frames"] = new() { Name = "frames", Type = "number", Description = "视频帧数", Required = true },
-                ["resolution"] = new() { Name = "resolution", Type = "string", Description = "视频分辨率", Required = true }
-            },
-            ExecutionSettings = new PromptExecutionSettings
-            {
-                Temperature = 0.7,
-                TopP = 0.9,
-                MaxTokens = 3000
-            }
-        };
-        await SaveTemplateAsync(videoAnalysisTemplate);
+                Parameters = new Dictionary<string, PromptParameter>
+                {
+                    ["duration"] = new() { Name = "duration", Type = "string", Description = "视频时长", Required = true },
+                    ["frames"] = new() { Name = "frames", Type = "number", Description = "视频帧数", Required = true },
+                    ["resolution"] = new() { Name = "resolution", Type = "string", Description = "视频分辨率", Required = true }
+                },
+                ExecutionSettings = new PromptExecutionSettings
+                {
+                    Temperature = 0.7,
+                    TopP = 0.9,
+                    MaxTokens = 3000
+                }
+            };
+            await SaveTemplateAsync(videoAnalysisTemplate);
+        }
 
         // 图像生成提示词
-        var imageGenerationTemplate = new PromptTemplate
+        if (!_templates.ContainsKey("image_generation"))
         {
-            Id = "image_generation",
-            Name = "图像生成",
-            Description = "根据场景描述生成图像提示词",
-            SystemPrompt = @"你是一个专业的AI图像生成提示词工程师。你的任务是：
+            var imageGenerationTemplate = new PromptTemplate
+            {
+                Id = "image_generation",
+                Name = "图像生成",
+                Description = "根据场景描述生成图像提示词",
+                SystemPrompt = @"你是一个专业的AI图像生成提示词工程师。你的任务是：
 1. 将场景描述转换为详细的图像生成提示词
 2. 包含风格、构图、光照、色彩等细节
 3. 使用专业的摄影和艺术术语
 4. 确保提示词清晰、具体、易于理解
 
 请生成高质量的图像提示词。",
-            UserPromptTemplate = @"场景描述: {{scene_description}}
+                UserPromptTemplate = @"场景描述: {{scene_description}}
 镜头类型: {{shot_type}}
 风格要求: {{style}}
 
 请生成详细的图像生成提示词（中英文双语）。",
-            Parameters = new Dictionary<string, PromptParameter>
-            {
-                ["scene_description"] = new() { Name = "scene_description", Type = "string", Description = "场景描述", Required = true },
-                ["shot_type"] = new() { Name = "shot_type", Type = "string", Description = "镜头类型", DefaultValue = "中景" },
-                ["style"] = new() { Name = "style", Type = "string", Description = "风格要求", DefaultValue = "写实" }
-            },
-            ExecutionSettings = new PromptExecutionSettings
-            {
-                Temperature = 0.8,
-                TopP = 0.95,
-                MaxTokens = 1000
-            }
-        };
-        await SaveTemplateAsync(imageGenerationTemplate);
+                Parameters = new Dictionary<string, PromptParameter>
+                {
+                    ["scene_description"] = new() { Name = "scene_description", Type = "string", Description = "场景描述", Required = true },
+                    ["shot_type"] = new() { Name = "shot_type", Type = "string", Description = "镜头类型", DefaultValue = "中景" },
+                    ["style"] = new() { Name = "style", Type = "string", Description = "风格要求", DefaultValue = "写实" }
+                },
+                ExecutionSettings = new PromptExecutionSettings
+                {
+                    Temperature = 0.8,
+                    TopP = 0.95,
+                    MaxTokens = 1000
+                }
+            };
+            await SaveTemplateAsync(imageGenerationTemplate);
+        }
 
         // 文案优化提示词
-        var copywritingTemplate = new PromptTemplate
+        if (!_templates.ContainsKey("copywriting_optimization"))
         {
-            Id = "copywriting_optimization",
-            Name = "文案优化",
-            Description = "优化和润色文案内容",
-            SystemPrompt = @"你是一个专业的文案策划和内容优化师。你的任务是：
+            var copywritingTemplate = new PromptTemplate
+            {
+                Id = "copywriting_optimization",
+                Name = "文案优化",
+                Description = "优化和润色文案内容",
+                SystemPrompt = @"你是一个专业的文案策划和内容优化师。你的任务是：
 1. 优化文案的表达和结构
 2. 提升文案的吸引力和感染力
 3. 保持原意的同时增强表现力
 4. 确保语言流畅、准确、生动
 
 请提供优质的文案优化服务。",
-            UserPromptTemplate = @"原始文案: {{original_text}}
+                UserPromptTemplate = @"原始文案: {{original_text}}
 优化方向: {{optimization_goal}}
 目标受众: {{target_audience}}
 
 请优化这段文案，使其更加{{optimization_goal}}。",
-            Parameters = new Dictionary<string, PromptParameter>
+                Parameters = new Dictionary<string, PromptParameter>
+                {
+                    ["original_text"] = new() { Name = "original_text", Type = "string", Description = "原始文案", Required = true },
+                    ["optimization_goal"] = new() { Name = "optimization_goal", Type = "string", Description = "优化方向", DefaultValue = "专业且吸引人" },
+                    ["target_audience"] = new() { Name = "target_audience", Type = "string", Description = "目标受众", DefaultValue = "普通观众" }
+                },
+                ExecutionSettings = new PromptExecutionSettings
+                {
+                    Temperature = 0.75,
+                    TopP = 0.9,
+                    MaxTokens = 1500
+                }
+            };
+            await SaveTemplateAsync(copywritingTemplate);
+        }
+
+        // 镜头解析提示词（图 -> 文本）
+        if (!_templates.ContainsKey("shot_analysis"))
+        {
+            var shotAnalysisTemplate = new PromptTemplate
             {
-                ["original_text"] = new() { Name = "original_text", Type = "string", Description = "原始文案", Required = true },
-                ["optimization_goal"] = new() { Name = "optimization_goal", Type = "string", Description = "优化方向", DefaultValue = "专业且吸引人" },
-                ["target_audience"] = new() { Name = "target_audience", Type = "string", Description = "目标受众", DefaultValue = "普通观众" }
-            },
-            ExecutionSettings = new PromptExecutionSettings
+                Id = "shot_analysis",
+                Name = "镜头解析",
+                Description = "根据首尾帧特征生成结构化分镜描述",
+                SystemPrompt = @"你是专业分镜师。请根据提供的图像特征与已有上下文，生成结构化分镜字段。
+输出必须是严格 JSON 对象，仅包含以下字段：
+shotType, coreContent, actionCommand, sceneSettings, firstFramePrompt, lastFramePrompt。",
+                UserPromptTemplate = @"首帧特征：{{first_frame_features}}
+尾帧特征：{{last_frame_features}}
+已有信息：{{existing_context}}
+
+请输出 JSON 对象：",
+                Parameters = new Dictionary<string, PromptParameter>
+                {
+                    ["first_frame_features"] = new() { Name = "first_frame_features", Type = "string", Description = "首帧图片特征", Required = true },
+                    ["last_frame_features"] = new() { Name = "last_frame_features", Type = "string", Description = "尾帧图片特征", Required = true },
+                    ["existing_context"] = new() { Name = "existing_context", Type = "string", Description = "已有分镜上下文", Required = true }
+                },
+                ExecutionSettings = new PromptExecutionSettings
+                {
+                    Temperature = 0.6,
+                    TopP = 0.9,
+                    MaxTokens = 1200
+                }
+            };
+            await SaveTemplateAsync(shotAnalysisTemplate);
+        }
+
+        // 文本生成分镜提示词
+        if (!_templates.ContainsKey("text_to_shots"))
+        {
+            var textToShotsTemplate = new PromptTemplate
             {
-                Temperature = 0.75,
-                TopP = 0.9,
-                MaxTokens = 1500
-            }
-        };
-        await SaveTemplateAsync(copywritingTemplate);
+                Id = "text_to_shots",
+                Name = "文本生成分镜",
+                Description = "根据故事描述生成分镜列表",
+                SystemPrompt = @"你是专业编导与分镜师。请根据用户描述生成分镜列表。
+输出必须是严格 JSON 数组，每个元素包含：
+shotType, coreContent, actionCommand, sceneSettings, firstFramePrompt, lastFramePrompt, duration（秒）。
+请确保分镜数量在 3-12 之间，内容具体可执行。",
+                UserPromptTemplate = @"用户描述：{{story_text}}
+
+请输出 JSON 数组：",
+                Parameters = new Dictionary<string, PromptParameter>
+                {
+                    ["story_text"] = new() { Name = "story_text", Type = "string", Description = "用户故事描述", Required = true }
+                },
+                ExecutionSettings = new PromptExecutionSettings
+                {
+                    Temperature = 0.7,
+                    TopP = 0.9,
+                    MaxTokens = 2200
+                }
+            };
+            await SaveTemplateAsync(textToShotsTemplate);
+        }
 
         _logger.LogInformation("已加载默认提示词模板");
     }

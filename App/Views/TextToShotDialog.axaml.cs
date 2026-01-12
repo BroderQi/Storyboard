@@ -16,12 +16,12 @@ public partial class TextToShotDialog : Window
         Close();
     }
 
-    private void OnGenerateClick(object? sender, RoutedEventArgs e)
+    private async void OnGenerateClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
             return;
 
-        viewModel.GenerateShotsFromTextPrompt();
+        await viewModel.GenerateShotsFromTextPromptAsync();
         Close();
     }
 }
