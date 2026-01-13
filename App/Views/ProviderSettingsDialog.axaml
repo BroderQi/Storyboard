@@ -24,7 +24,8 @@
         </StackPanel>
         
         <!-- Content -->
-        <TabControl Grid.Row="1" Background="Transparent">
+        <Grid Grid.Row="1" RowDefinitions="*,Auto">
+            <TabControl Grid.Row="0" Background="Transparent">
 
             <!-- Text Providers (AIServices) -->
             <TabItem Header="文本理解">
@@ -223,6 +224,48 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- DeepSeek -->
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="DeepSeek"
+                                PointerPressed="OnProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="DeepSeek" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding DeepSeekDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding DeepSeekEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding DeepSeekEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsDeepSeekSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding DeepSeekApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding DeepSeekDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding DeepSeekEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
                         <!-- OpenAI -->
                         <Border Background="#18181b"
                                 BorderBrush="#27272a"
@@ -259,6 +302,48 @@
                                         <StackPanel Spacing="6">
                                             <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
                                             <TextBox Text="{Binding OpenAIEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Gemini -->
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="Gemini"
+                                PointerPressed="OnProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Gemini" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding GeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding GeminiEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding GeminiEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsGeminiSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding GeminiApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding GeminiDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding GeminiEndpoint}" Classes="Modern" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -424,6 +509,96 @@
                                 </Border>
                             </StackPanel>
                         </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="Gemini"
+                                PointerPressed="OnImageProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Gemini" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding ImageGeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageGeminiEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding ImageGeminiEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsImageGeminiSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageGeminiApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageGeminiDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageGeminiEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="响应格式" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageGeminiResponseMimeType}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="StableDiffusionApi"
+                                PointerPressed="OnImageProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Stable Diffusion API" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding ImageStableDiffusionApiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageStableDiffusionApiEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding ImageStableDiffusionApiEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsImageStableDiffusionApiSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageStableDiffusionApiApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageStableDiffusionApiDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageStableDiffusionApiEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="负面提示词" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding ImageStableDiffusionApiNegativePrompt}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -500,24 +675,216 @@
                                 </Border>
                             </StackPanel>
                         </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="OpenAI"
+                                PointerPressed="OnVideoProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="OpenAI (Sora)" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding VideoOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoOpenAIEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding VideoOpenAIEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsVideoOpenAISelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoOpenAIApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoOpenAIDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoOpenAIEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="Gemini"
+                                PointerPressed="OnVideoProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Gemini (Veo)" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding VideoGeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoGeminiEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding VideoGeminiEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsVideoGeminiSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoGeminiApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoGeminiDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoGeminiEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16"
+                                Tag="StableDiffusionApi"
+                                PointerPressed="OnVideoProviderCardPressed">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Stable Diffusion API" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="{Binding VideoStableDiffusionApiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoStableDiffusionApiEnabled}">
+                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
+                                        </Border>
+                                        <ToggleSwitch IsChecked="{Binding VideoStableDiffusionApiEnabled}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                        IsVisible="{Binding IsVideoStableDiffusionApiSelected}">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoStableDiffusionApiApiKey}" PasswordChar="*" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoStableDiffusionApiDefaultModel}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoStableDiffusionApiEndpoint}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="负面提示词" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoStableDiffusionApiNegativePrompt}" Classes="Modern" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="Scheduler" Foreground="#a1a1aa" FontSize="12" />
+                                            <TextBox Text="{Binding VideoStableDiffusionApiScheduler}" Classes="Modern" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-        </TabControl>
+            </TabControl>
+
+            <Border Grid.Row="1"
+                    Background="#18181b"
+                    BorderBrush="#27272a"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Margin="0,16,0,0"
+                    Padding="16">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="验证结果" FontSize="13" Foreground="#a1a1aa" />
+                        <TextBlock Text="点击“验证配置”刷新（仅文本理解）" FontSize="12" Foreground="#71717a" />
+                    </StackPanel>
+
+                    <TextBlock Text="暂无验证结果" Foreground="#71717a" IsVisible="{Binding HasNoValidationResults}" />
+
+                    <ScrollViewer MaxHeight="160" IsVisible="{Binding HasValidationResults}">
+                        <ItemsControl ItemsSource="{Binding ValidationResults}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,Auto,*">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Provider}"
+                                                   FontSize="12"
+                                                   Foreground="#e2e8f0" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding ResultText}"
+                                                   FontSize="12"
+                                                   Foreground="#a1a1aa"
+                                                   Margin="12,0,0,0" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Message}"
+                                                   FontSize="12"
+                                                   Foreground="#71717a"
+                                                   Margin="12,0,0,0"
+                                                   TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </Grid>
         
         <!-- Footer -->
         <Grid Grid.Row="2" 
-              ColumnDefinitions="*,Auto,Auto" 
+              ColumnDefinitions="*,Auto,Auto,Auto,Auto" 
               Margin="0,24,0,0">
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#71717a" VerticalAlignment="Center" />
             <Button Grid.Column="1" 
+                    Classes="Secondary"
+                    Content="重新加载"
+                    Width="110"
+                    Margin="0,0,12,0"
+                    Command="{Binding ReloadCommand}" />
+            <Button Grid.Column="2" 
+                    Classes="Secondary"
+                    Content="验证配置"
+                    Width="110"
+                    Margin="0,0,12,0"
+                    Command="{Binding ValidateCommand}" />
+            <Button Grid.Column="3" 
                     Classes="Secondary" 
                     Content="取消" 
                     Width="100" 
                     Margin="0,0,12,0"
                     Click="OnCancelClick" />
-            <Button Grid.Column="2" 
+            <Button Grid.Column="4" 
                     Classes="Primary" 
                     Content="保存" 
                     Width="100"

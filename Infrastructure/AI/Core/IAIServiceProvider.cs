@@ -15,10 +15,14 @@ public enum AIProviderType
     Zhipu,
     /// <summary>火山引擎</summary>
     Volcengine,
+    /// <summary>DeepSeek</summary>
+    DeepSeek,
     /// <summary>OpenAI</summary>
     OpenAI,
     /// <summary>Azure OpenAI</summary>
-    AzureOpenAI
+    AzureOpenAI,
+    /// <summary>Gemini</summary>
+    Gemini
 }
 
 [Flags]

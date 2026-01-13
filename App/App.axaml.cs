@@ -85,8 +85,13 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IAiShotService, AiShotService>();
         services.AddSingleton<IImageGenerationProvider, LocalImageGenerationProvider>();
         services.AddSingleton<IImageGenerationProvider, OpenAIImageGenerationProvider>();
+        services.AddSingleton<IImageGenerationProvider, GeminiImageGenerationProvider>();
+        services.AddSingleton<IImageGenerationProvider, StableDiffusionApiImageGenerationProvider>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
         services.AddSingleton<IVideoGenerationProvider, LocalVideoGenerationProvider>();
+        services.AddSingleton<IVideoGenerationProvider, OpenAIVideoGenerationProvider>();
+        services.AddSingleton<IVideoGenerationProvider, GeminiVideoGenerationProvider>();
+        services.AddSingleton<IVideoGenerationProvider, StableDiffusionApiVideoGenerationProvider>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
         services.AddSingleton<IFinalRenderService, FinalRenderService>();
         services.AddSingleton<AppSettingsStore>();
@@ -104,6 +109,9 @@ public partial class App : Avalonia.Application
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.ZhipuServiceProvider>();
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.WenxinServiceProvider>();
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.VolcengineServiceProvider>();
+        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.DeepSeekServiceProvider>();
+        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.OpenAIServiceProvider>();
+        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.GeminiServiceProvider>();
         
         services.AddSingleton<AIServiceManager>();
     }

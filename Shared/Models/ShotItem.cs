@@ -98,6 +98,7 @@ public partial class ShotItem : ObservableObject
         && File.Exists(FirstFrameImagePath)
         && !string.IsNullOrEmpty(LastFrameImagePath)
         && File.Exists(LastFrameImagePath);
+    public bool CanGenerateVideoNow => CanGenerateVideo && !IsVideoGenerating;
 
     // Events for communicating with parent ViewModel
     public event EventHandler? DuplicateRequested;
@@ -111,7 +112,7 @@ public partial class ShotItem : ObservableObject
     {
         ShotNumber = shotNumber;
         Duration = 3.5;
-        SelectedModel = "RunwayGen3";
+        SelectedModel = string.Empty;
     }
 
     [RelayCommand]
@@ -130,6 +131,12 @@ public partial class ShotItem : ObservableObject
     private void AIParse()
     {
         AiParseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void ClearModel()
+    {
+        SelectedModel = string.Empty;
     }
 
     [RelayCommand]
@@ -188,18 +195,25 @@ public partial class ShotItem : ObservableObject
     {
         UpdateAssetSelections(ShotAssetType.FirstFrameImage);
         OnPropertyChanged(nameof(CanGenerateVideo));
+        OnPropertyChanged(nameof(CanGenerateVideoNow));
     }
 
     partial void OnLastFrameImagePathChanged(string? value)
     {
         UpdateAssetSelections(ShotAssetType.LastFrameImage);
         OnPropertyChanged(nameof(CanGenerateVideo));
+        OnPropertyChanged(nameof(CanGenerateVideoNow));
     }
 
     partial void OnGeneratedVideoPathChanged(string? value)
     {
         UpdateAssetSelections(ShotAssetType.GeneratedVideo);
         OnPropertyChanged(nameof(VideoOutputPath));
+    }
+
+    partial void OnIsVideoGeneratingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanGenerateVideoNow));
     }
 
     private void UpdateAssetSelections(ShotAssetType type)

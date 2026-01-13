@@ -252,7 +252,7 @@ public sealed class VideoAnalysisService : IVideoAnalysisService, IVideoMetadata
                 SceneSettings = "自然光/室内外（待补充）",
                 FirstFramePrompt = "首帧提示词（待生成）",
                 LastFramePrompt = "尾帧提示词（待生成）",
-                SelectedModel = "RunwayGen3"
+                SelectedModel = string.Empty
             });
         }
         return list;

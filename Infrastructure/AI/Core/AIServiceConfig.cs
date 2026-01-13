@@ -61,6 +61,14 @@ public class VolcengineConfig : AIServiceConfig
 }
 
 /// <summary>
+/// DeepSeek 配置
+/// </summary>
+public class DeepSeekConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://api.deepseek.com";
+}
+
+/// <summary>
 /// OpenAI配置
 /// </summary>
 public class OpenAIConfig : AIServiceConfig
@@ -79,6 +87,14 @@ public class AzureOpenAIConfig : AIServiceConfig
     public string ApiVersion { get; set; } = "2024-02-15-preview";
 }
 
+/// <summary>
+/// Gemini 配置
+/// </summary>
+public class GeminiConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
+}
+
 public class LocalImageConfig
 {
     public bool Enabled { get; set; } = true;
@@ -94,11 +110,25 @@ public class OpenAIImageConfig : AIServiceConfig
     public string Quality { get; set; } = "standard";
 }
 
+public class GeminiImageConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
+    public string ResponseMimeType { get; set; } = "image/png";
+}
+
+public class StableDiffusionApiImageConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v3";
+    public string NegativePrompt { get; set; } = "low quality";
+}
+
 public class ImageServicesConfiguration
 {
     public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Local;
     public LocalImageConfig Local { get; set; } = new();
     public OpenAIImageConfig OpenAI { get; set; } = new();
+    public GeminiImageConfig Gemini { get; set; } = new();
+    public StableDiffusionApiImageConfig StableDiffusionApi { get; set; } = new();
 }
 
 public class LocalVideoConfig
@@ -116,6 +146,26 @@ public class VideoServicesConfiguration
 {
     public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Local;
     public LocalVideoConfig Local { get; set; } = new();
+    public OpenAIVideoConfig OpenAI { get; set; } = new();
+    public GeminiVideoConfig Gemini { get; set; } = new();
+    public StableDiffusionApiVideoConfig StableDiffusionApi { get; set; } = new();
+}
+
+public class OpenAIVideoConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://api.openai.com/v1";
+}
+
+public class GeminiVideoConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
+}
+
+public class StableDiffusionApiVideoConfig : AIServiceConfig
+{
+    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v5";
+    public string NegativePrompt { get; set; } = "low quality";
+    public string Scheduler { get; set; } = "UniPCMultistepScheduler";
 }
 
 /// <summary>
@@ -127,8 +177,10 @@ public class AIServicesConfiguration
     public QwenConfig Qwen { get; set; } = new();
     public ZhipuConfig Zhipu { get; set; } = new();
     public VolcengineConfig Volcengine { get; set; } = new();
+    public DeepSeekConfig DeepSeek { get; set; } = new();
     public OpenAIConfig OpenAI { get; set; } = new();
     public AzureOpenAIConfig AzureOpenAI { get; set; } = new();
+    public GeminiConfig Gemini { get; set; } = new();
     public ImageServicesConfiguration Image { get; set; } = new();
     public VideoServicesConfiguration Video { get; set; } = new();
 

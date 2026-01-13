@@ -46,7 +46,7 @@ public sealed class VideoGenerationService : IVideoGenerationService
         var config = _configMonitor.CurrentValue.Video;
         var provider = ResolveProvider(config);
         var settings = config.Local;
-        var model = ResolveModel(provider, shot.SelectedModel);
+        var model = ResolveModel(provider, shot.SelectedModel, config);
 
         var request = new VideoGenerationRequest(
             shot,
@@ -81,12 +81,18 @@ public sealed class VideoGenerationService : IVideoGenerationService
         return fallback;
     }
 
-    private static string ResolveModel(IVideoGenerationProvider provider, string model)
+    private static string ResolveModel(IVideoGenerationProvider provider, string model, VideoServicesConfiguration config)
     {
         if (!string.IsNullOrWhiteSpace(model) &&
             provider.SupportedModels.Any(m => string.Equals(m, model, StringComparison.OrdinalIgnoreCase)))
             return model;
 
-        return provider.ProviderType == VideoProviderType.Local ? "local" : model;
+        return provider.ProviderType switch
+        {
+            VideoProviderType.OpenAI => config.OpenAI.DefaultModel,
+            VideoProviderType.Gemini => config.Gemini.DefaultModel,
+            VideoProviderType.StableDiffusionApi => config.StableDiffusionApi.DefaultModel,
+            _ => "local"
+        };
     }
 }

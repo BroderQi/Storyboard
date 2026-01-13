@@ -1358,7 +1358,7 @@ public partial class MainViewModel : ObservableObject
                         SceneSettings = desc.SceneSettings,
                         FirstFramePrompt = desc.FirstFramePrompt,
                         LastFramePrompt = desc.LastFramePrompt,
-                        SelectedModel = "RunwayGen3"
+                        SelectedModel = string.Empty
                     };
 
                     startTime += duration;
@@ -1523,7 +1523,7 @@ public partial class MainViewModel : ObservableObject
                 SceneSettings = "待补充",
                 FirstFramePrompt = string.Empty,
                 LastFramePrompt = string.Empty,
-                SelectedModel = "RunwayGen3",
+                SelectedModel = string.Empty,
                 MaterialFilePath = current.FilePath,
                 MaterialThumbnailPath = current.FilePath
             };

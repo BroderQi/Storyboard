@@ -29,6 +29,9 @@ public static class AIServiceExtensions
         services.AddSingleton<IAIServiceProvider, ZhipuServiceProvider>();
         services.AddSingleton<IAIServiceProvider, WenxinServiceProvider>();
         services.AddSingleton<IAIServiceProvider, VolcengineServiceProvider>();
+        services.AddSingleton<IAIServiceProvider, DeepSeekServiceProvider>();
+        services.AddSingleton<IAIServiceProvider, OpenAIServiceProvider>();
+        services.AddSingleton<IAIServiceProvider, GeminiServiceProvider>();
 
         // 注册提示词管理服务
         services.AddSingleton<PromptManagementService>();

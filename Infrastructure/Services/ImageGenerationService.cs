@@ -78,6 +78,8 @@ public sealed class ImageGenerationService : IImageGenerationService
         return provider.ProviderType switch
         {
             ImageProviderType.OpenAI => ParseSize(config.OpenAI.Size, 1024, 1024),
+            ImageProviderType.Gemini => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height)),
+            ImageProviderType.StableDiffusionApi => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height)),
             _ => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height))
         };
     }
@@ -93,6 +95,8 @@ public sealed class ImageGenerationService : IImageGenerationService
         return provider.ProviderType switch
         {
             ImageProviderType.OpenAI => config.OpenAI.DefaultModel,
+            ImageProviderType.Gemini => config.Gemini.DefaultModel,
+            ImageProviderType.StableDiffusionApi => config.StableDiffusionApi.DefaultModel,
             _ => "local"
         };
     }
