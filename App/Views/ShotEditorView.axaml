@@ -94,23 +94,23 @@
 
                         <!-- Model Override -->
                         <StackPanel Spacing="8">
-                            <TextBlock Text="妯″瀷锛堝彲閫夛級" 
+                            <TextBlock Text="模型（可选）" 
                                        FontSize="13" 
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBox Text="{Binding SelectedModel}" 
-                                         Watermark="鐣欑┖浣跨敤榛樿妯″瀷"
-                                         Background="#1a1a1a"
-                                         BorderBrush="#3f3f46"
-                                         Margin="0,0,8,0" />
-                                <Button Classes="Ghost"
-                                        Padding="12,4"
-                                        Command="{Binding ClearModelCommand}">
-                                    <TextBlock Text="娓呯┖" FontSize="12" />
-                                </Button>
-                            </Grid>
-                            <TextBlock Text="渚嬪: sora-2 / veo-2.0-generate-001 / text2video-v5"
+                            <TextBox Text="{Binding SelectedModel}" 
+                                     Watermark="留空使用默认模型"
+                                     Background="#1a1a1a"
+                                     BorderBrush="#3f3f46">
+                                <TextBox.InnerRightContent>
+                                    <Button Classes="Ghost"
+                                            Padding="8,4"
+                                            Command="{Binding ClearModelCommand}">
+                                        <TextBlock Text="清空" FontSize="12" />
+                                    </Button>
+                                </TextBox.InnerRightContent>
+                            </TextBox>
+                            <TextBlock Text="例如: sora-2 / veo-2.0-generate-001 / text2video-v5"
                                        FontSize="11"
                                        Foreground="#71717a" />
                         </StackPanel>

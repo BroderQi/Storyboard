@@ -2,894 +2,231 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Storyboard.ViewModels"
         x:Class="Storyboard.Views.ProviderSettingsDialog"
-    x:DataType="vm:ApiKeyViewModel"
-        Title="提供商设置"
+        x:DataType="vm:ApiKeyViewModel"
+        Title="模型提供商设置"
         Width="700"
-        Height="600"
+        Height="700"
         WindowStartupLocation="CenterOwner"
         Background="#0a0a0a">
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="24">
-        
-        <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="提供商设置" 
-                       FontSize="24" 
-                       FontWeight="SemiBold" 
-                       Foreground="#f5f5f5" 
+            <TextBlock Text="提供商设置"
+                       FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="#f5f5f5"
                        Margin="0,0,0,8" />
-            <TextBlock Text="配置 AI 服务提供商的 API 密钥和参数" 
-                       FontSize="14" 
+            <TextBlock Text="配置文本、图像和视频的默认设置和提供商凭据。"
+                       FontSize="14"
                        Foreground="#71717a" />
         </StackPanel>
-        
-        <!-- Content -->
-        <Grid Grid.Row="1" RowDefinitions="*,Auto">
-            <TabControl Grid.Row="0" Background="Transparent">
 
-            <!-- Text Providers (AIServices) -->
-            <TabItem Header="文本理解">
-                <ScrollViewer Margin="0,16">
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="16">
+                <Border Background="#18181b"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
                     <StackPanel Spacing="12">
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="默认提供商"
-                                           FontSize="13"
-                                           Foreground="#a1a1aa" />
-                                <ComboBox ItemsSource="{Binding AvailableProviderTypes}"
-                                          SelectedItem="{Binding DefaultProvider}"
-                                          HorizontalAlignment="Stretch"
-                                          Background="#0a0a0a"
-                                          BorderBrush="#27272a" />
-                            </StackPanel>
-                        </Border>
+                        <TextBlock Text="默认设置" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
 
-                        <!-- Qwen -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Qwen"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="通义千问" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding QwenDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding QwenEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding QwenEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                        <Grid ColumnDefinitions="140,*,140,*" RowDefinitions="Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="文本提供商" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                            <ComboBox Grid.Row="0" Grid.Column="1"
+                                      ItemsSource="{Binding AvailableProviderTypes}"
+                                      SelectedItem="{Binding DefaultTextProvider}"
+                                      Background="#0a0a0a"
+                                      BorderBrush="#27272a" Margin="0,0,10,10" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="文本模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding DefaultTextModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsQwenSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding QwenApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding QwenDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding QwenEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="图像提供商" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      ItemsSource="{Binding AvailableProviderTypes}"
+                                      SelectedItem="{Binding DefaultImageProvider}"
+                                      Background="#0a0a0a"
+                                      BorderBrush="#27272a" Margin="0,0,10,10" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="图像模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding DefaultImageModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                        <!-- Wenxin -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Wenxin"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="文心一言" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding WenxinDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding WenxinEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding WenxinEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsWenxinSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding WenxinApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Secret" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding WenxinApiSecret}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding WenxinDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding WenxinEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Zhipu -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Zhipu"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="智谱 AI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding ZhipuDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ZhipuEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding ZhipuEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsZhipuSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ZhipuApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ZhipuDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ZhipuEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Volcengine -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Volcengine"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="火山引擎" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding VolcengineDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VolcengineEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding VolcengineEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsVolcengineSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VolcengineApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint ID" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VolcengineEndpointId}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VolcengineDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VolcengineEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- DeepSeek -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="DeepSeek"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="DeepSeek" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding DeepSeekDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding DeepSeekEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding DeepSeekEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsDeepSeekSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding DeepSeekApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding DeepSeekDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding DeepSeekEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- OpenAI -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="OpenAI"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="OpenAI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding OpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding OpenAIEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding OpenAIEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsOpenAISelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding OpenAIApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding OpenAIDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding OpenAIEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Gemini -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Gemini"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Gemini" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding GeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding GeminiEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding GeminiEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsGeminiSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding GeminiApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding GeminiDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding GeminiEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Azure OpenAI -->
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="AzureOpenAI"
-                                PointerPressed="OnProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Azure OpenAI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding AzureOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding AzureOpenAIEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding AzureOpenAIEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsAzureOpenAISelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding AzureOpenAIApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding AzureOpenAIEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Deployment" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding AzureOpenAIDeploymentName}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="视频提供商" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,0" />
+                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                      ItemsSource="{Binding AvailableProviderTypes}"
+                                      SelectedItem="{Binding DefaultVideoProvider}"
+                                      Background="#0a0a0a"
+                                      BorderBrush="#27272a" Margin="0,0,10,0" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="视频模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,0" />
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding DefaultVideoModel}" Classes="Modern" />
+                        </Grid>
                     </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+                </Border>
 
-            <TabItem Header="图片生成">
-                <ScrollViewer Margin="0,16">
+                <Border Background="#18181b"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Tag="Qwen"
+                        PointerPressed="OnProviderCardPressed">
                     <StackPanel Spacing="12">
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="默认提供商"
-                                           FontSize="13"
-                                           Foreground="#a1a1aa" />
-                                <ComboBox ItemsSource="{Binding AvailableImageProviderTypes}"
-                                          SelectedItem="{Binding DefaultImageProvider}"
-                                          HorizontalAlignment="Stretch"
-                                          Background="#0a0a0a"
-                                          BorderBrush="#27272a" />
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Qwen" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                <TextBlock Text="{Binding QwenDefaultTextModel}" FontSize="12" Foreground="#a1a1aa" />
                             </StackPanel>
-                        </Border>
-
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Local"
-                                PointerPressed="OnImageProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="本地渲染" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding ImageLocalStyle}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageLocalEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding ImageLocalEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsImageLocalSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="宽度" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageLocalWidth}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="高度" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageLocalHeight}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="样式" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageLocalStyle}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding QwenEnabled}">
+                                    <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
                                 </Border>
+                                <ToggleSwitch IsChecked="{Binding QwenEnabled}" />
                             </StackPanel>
-                        </Border>
+                        </Grid>
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="OpenAI"
-                                PointerPressed="OnImageProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="OpenAI" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding ImageOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageOpenAIEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding ImageOpenAIEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                        <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                IsVisible="{Binding IsQwenSelected}">
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="API 密钥" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding QwenApiKey}" PasswordChar="*" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsImageOpenAISelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAIApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAIDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAIEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="尺寸" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAISize}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="质量" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAIQuality}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="超时（秒）" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageOpenAITimeoutSeconds}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="端点" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding QwenEndpoint}" Classes="Modern" Margin="0,0,0,10" />
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Gemini"
-                                PointerPressed="OnImageProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Gemini" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding ImageGeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageGeminiEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding ImageGeminiEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="超时时间(秒)" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding QwenTimeoutSeconds}" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsImageGeminiSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageGeminiApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageGeminiDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageGeminiEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="响应格式" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageGeminiResponseMimeType}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="默认文本模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding QwenDefaultTextModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="StableDiffusionApi"
-                                PointerPressed="OnImageProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Stable Diffusion API" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding ImageStableDiffusionApiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding ImageStableDiffusionApiEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding ImageStableDiffusionApiEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="默认图像模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding QwenDefaultImageModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsImageStableDiffusionApiSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageStableDiffusionApiApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageStableDiffusionApiDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageStableDiffusionApiEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="负面提示词" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding ImageStableDiffusionApiNegativePrompt}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="默认视频模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,0" />
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding QwenDefaultVideoModel}" Classes="Modern" />
+                            </Grid>
                         </Border>
                     </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+                </Border>
 
-            <TabItem Header="视频生成">
-                <ScrollViewer Margin="0,16">
+                <Border Background="#18181b"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Tag="Volcengine"
+                        PointerPressed="OnProviderCardPressed">
                     <StackPanel Spacing="12">
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="默认提供商"
-                                           FontSize="13"
-                                           Foreground="#a1a1aa" />
-                                <ComboBox ItemsSource="{Binding AvailableVideoProviderTypes}"
-                                          SelectedItem="{Binding DefaultVideoProvider}"
-                                          HorizontalAlignment="Stretch"
-                                          Background="#0a0a0a"
-                                          BorderBrush="#27272a" />
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Volcengine" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                <TextBlock Text="{Binding VolcengineDefaultTextModel}" FontSize="12" Foreground="#a1a1aa" />
                             </StackPanel>
-                        </Border>
-
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Local"
-                                PointerPressed="OnVideoProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="本地合成（FFmpeg）" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="适用于本地拼接/转场" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoLocalEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding VideoLocalEnabled}" />
-                                    </StackPanel>
-                                </Grid>
-
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsVideoLocalSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="宽度" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoLocalWidth}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="高度" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoLocalHeight}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="帧率" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoLocalFps}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="码率（Kbps）" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoLocalBitrateKbps}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="转场时长（秒）" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoLocalTransitionSeconds}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <ToggleSwitch IsChecked="{Binding VideoLocalUseKenBurns}" />
-                                            <TextBlock Text="启用轻微推拉效果" Foreground="#a1a1aa" FontSize="12" />
-                                        </StackPanel>
-                                    </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VolcengineEnabled}">
+                                    <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
                                 </Border>
+                                <ToggleSwitch IsChecked="{Binding VolcengineEnabled}" />
                             </StackPanel>
-                        </Border>
+                        </Grid>
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="OpenAI"
-                                PointerPressed="OnVideoProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="OpenAI (Sora)" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding VideoOpenAIDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoOpenAIEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding VideoOpenAIEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                        <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
+                                IsVisible="{Binding IsVolcengineSelected}">
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="API 密钥" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VolcengineApiKey}" PasswordChar="*" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsVideoOpenAISelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoOpenAIApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoOpenAIDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoOpenAIEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="地址" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding VolcengineEndpoint}" Classes="Modern" Margin="0,0,0,10" />
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="Gemini"
-                                PointerPressed="OnVideoProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Gemini (Veo)" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding VideoGeminiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoGeminiEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding VideoGeminiEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="超时时间(秒)" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding VolcengineTimeoutSeconds}" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsVideoGeminiSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoGeminiApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoGeminiDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoGeminiEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="默认文本模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding VolcengineDefaultTextModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                        <Border Background="#18181b"
-                                BorderBrush="#27272a"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="16"
-                                Tag="StableDiffusionApi"
-                                PointerPressed="OnVideoProviderCardPressed">
-                            <StackPanel Spacing="12">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
-                                        <TextBlock Text="Stable Diffusion API" FontSize="14" FontWeight="SemiBold" Foreground="#f5f5f5" />
-                                        <TextBlock Text="{Binding VideoStableDiffusionApiDefaultModel}" FontSize="12" Foreground="#a1a1aa" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border Background="#14532d" CornerRadius="10" Padding="10,3" IsVisible="{Binding VideoStableDiffusionApiEnabled}">
-                                            <TextBlock Text="已启用" FontSize="12" Foreground="#bbf7d0" />
-                                        </Border>
-                                        <ToggleSwitch IsChecked="{Binding VideoStableDiffusionApiEnabled}" />
-                                    </StackPanel>
-                                </Grid>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="默认图像模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,10" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding VolcengineDefaultImageModel}" Classes="Modern" Margin="0,0,0,10" />
 
-                                <Border Background="#0a0a0a" BorderBrush="#27272a" BorderThickness="1" CornerRadius="8" Padding="12"
-                                        IsVisible="{Binding IsVideoStableDiffusionApiSelected}">
-                                    <StackPanel Spacing="10">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="API Key" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoStableDiffusionApiApiKey}" PasswordChar="*" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="模型" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoStableDiffusionApiDefaultModel}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Endpoint" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoStableDiffusionApiEndpoint}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="负面提示词" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoStableDiffusionApiNegativePrompt}" Classes="Modern" />
-                                        </StackPanel>
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="Scheduler" Foreground="#a1a1aa" FontSize="12" />
-                                            <TextBox Text="{Binding VideoStableDiffusionApiScheduler}" Classes="Modern" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="默认视频模型" Foreground="#a1a1aa" FontSize="12" Margin="0,0,10,0" />
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding VolcengineDefaultVideoModel}" Classes="Modern" />
+                            </Grid>
                         </Border>
                     </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+                </Border>
 
-            </TabControl>
+                <Border Background="#18181b"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="验证结果" FontSize="13" Foreground="#a1a1aa" />
+                            <TextBlock Text="点击验证以刷新。" FontSize="12" Foreground="#71717a" />
+                        </StackPanel>
 
-            <Border Grid.Row="1"
-                    Background="#18181b"
-                    BorderBrush="#27272a"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Margin="0,16,0,0"
-                    Padding="16">
-                <StackPanel Spacing="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="验证结果" FontSize="13" Foreground="#a1a1aa" />
-                        <TextBlock Text="点击“验证配置”刷新（仅文本理解）" FontSize="12" Foreground="#71717a" />
+                        <TextBlock Text="暂无验证结果。" Foreground="#71717a" IsVisible="{Binding HasNoValidationResults}" />
+
+                        <ScrollViewer MaxHeight="160" IsVisible="{Binding HasValidationResults}">
+                            <ItemsControl ItemsSource="{Binding ValidationResults}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="8" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto,Auto,*">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Provider}"
+                                                       FontSize="12"
+                                                       Foreground="#e2e8f0" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding ResultText}"
+                                                       FontSize="12"
+                                                       Foreground="#a1a1aa"
+                                                       Margin="12,0,0,0" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Message}"
+                                                       FontSize="12"
+                                                       Foreground="#71717a"
+                                                       Margin="12,0,0,0"
+                                                       TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
 
-                    <TextBlock Text="暂无验证结果" Foreground="#71717a" IsVisible="{Binding HasNoValidationResults}" />
-
-                    <ScrollViewer MaxHeight="160" IsVisible="{Binding HasValidationResults}">
-                        <ItemsControl ItemsSource="{Binding ValidationResults}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="8" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid ColumnDefinitions="Auto,Auto,*">
-                                        <TextBlock Grid.Column="0"
-                                                   Text="{Binding Provider}"
-                                                   FontSize="12"
-                                                   Foreground="#e2e8f0" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding ResultText}"
-                                                   FontSize="12"
-                                                   Foreground="#a1a1aa"
-                                                   Margin="12,0,0,0" />
-                                        <TextBlock Grid.Column="2"
-                                                   Text="{Binding Message}"
-                                                   FontSize="12"
-                                                   Foreground="#71717a"
-                                                   Margin="12,0,0,0"
-                                                   TextWrapping="Wrap" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </StackPanel>
-            </Border>
-        </Grid>
-        
-        <!-- Footer -->
-        <Grid Grid.Row="2" 
-              ColumnDefinitions="*,Auto,Auto,Auto,Auto" 
-              Margin="0,24,0,0">
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,24,0,0">
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#71717a" VerticalAlignment="Center" />
-            <Button Grid.Column="1" 
+            <Button Grid.Column="1"
                     Classes="Secondary"
                     Content="重新加载"
-                    Width="110"
+                    Width="100"
                     Margin="0,0,12,0"
                     Command="{Binding ReloadCommand}" />
-            <Button Grid.Column="2" 
+            <Button Grid.Column="2"
                     Classes="Secondary"
-                    Content="验证配置"
-                    Width="110"
+                    Content="验证"
+                    Width="100"
                     Margin="0,0,12,0"
                     Command="{Binding ValidateCommand}" />
-            <Button Grid.Column="3" 
-                    Classes="Secondary" 
-                    Content="取消" 
-                    Width="100" 
+            <Button Grid.Column="3"
+                    Classes="Secondary"
+                    Content="取消"
+                    Width="100"
                     Margin="0,0,12,0"
                     Click="OnCancelClick" />
-            <Button Grid.Column="4" 
-                    Classes="Primary" 
-                    Content="保存" 
+            <Button Grid.Column="4"
+                    Classes="Primary"
+                    Content="保存"
                     Width="100"
-                Command="{Binding SaveCommand}" />
+                    Command="{Binding SaveCommand}" />
         </Grid>
-        
     </Grid>
 </Window>

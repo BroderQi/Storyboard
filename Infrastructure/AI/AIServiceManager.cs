@@ -1,17 +1,13 @@
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 using Storyboard.AI.Core;
 using Storyboard.AI.Prompts;
-using Storyboard.AI.Functions;
+using System.Linq;
 
 namespace Storyboard.AI;
 
 /// <summary>
-/// AI服务管理器 - 统一管理所有AI服务
+/// Central AI service manager for text generation.
 /// </summary>
 public class AIServiceManager
 {
@@ -19,67 +15,54 @@ public class AIServiceManager
     private readonly IEnumerable<IAIServiceProvider> _providers;
     private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
     private readonly PromptManagementService _promptService;
-    private readonly FunctionManagementService _functionService;
     private IAIServiceProvider? _currentProvider;
+    private AIProviderType? _overrideProvider;
 
     public AIServiceManager(
         ILogger<AIServiceManager> logger,
         IEnumerable<IAIServiceProvider> providers,
         IOptionsMonitor<AIServicesConfiguration> configMonitor,
-        PromptManagementService promptService,
-        FunctionManagementService functionService)
+        PromptManagementService promptService)
     {
         _logger = logger;
         _providers = providers;
         _configMonitor = configMonitor;
         _promptService = promptService;
-        _functionService = functionService;
     }
 
     /// <summary>
-    /// 初始化服务
+    /// Initialize prompt templates.
     /// </summary>
     public async Task InitializeAsync()
     {
         await _promptService.LoadAllTemplatesAsync();
-        _logger.LogInformation("AI服务管理器初始化完成");
+        _logger.LogInformation("AI service manager initialized.");
     }
 
-    /// <summary>
-    /// 获取所有可用的提供商
-    /// </summary>
     public IEnumerable<IAIServiceProvider> GetAvailableProviders()
     {
         return _providers.Where(p => p.IsConfigured);
     }
 
-    /// <summary>
-    /// 获取指定能力的可用提供商
-    /// </summary>
     public IEnumerable<IAIServiceProvider> GetAvailableProviders(AIProviderCapability capability)
     {
         return _providers.Where(p => p.IsConfigured && p.Capabilities.HasFlag(capability));
     }
 
-    /// <summary>
-    /// 设置当前提供商
-    /// </summary>
     public void SetProvider(AIProviderType providerType)
     {
+        _overrideProvider = providerType;
         _currentProvider = _providers.FirstOrDefault(p => p.ProviderType == providerType);
         if (_currentProvider == null)
         {
-            throw new InvalidOperationException($"未找到提供商: {providerType}");
+            throw new InvalidOperationException($"Provider not found: {providerType}");
         }
-        _logger.LogInformation("切换到提供商: {Provider}", _currentProvider.DisplayName);
+        _logger.LogInformation("Switched to provider: {Provider}", _currentProvider.DisplayName);
     }
 
-    /// <summary>
-    /// 获取当前提供商
-    /// </summary>
     public IAIServiceProvider GetCurrentProvider()
     {
-        var configuredDefault = _configMonitor.CurrentValue.DefaultProvider;
+        var configuredDefault = _overrideProvider ?? _configMonitor.CurrentValue.Defaults.Text.Provider;
         if (_currentProvider == null || _currentProvider.ProviderType != configuredDefault || !_currentProvider.IsConfigured)
         {
             _currentProvider = _providers.FirstOrDefault(p => p.ProviderType == configuredDefault && p.IsConfigured);
@@ -89,18 +72,15 @@ public class AIServiceManager
                 var firstAvailable = GetAvailableProviders().FirstOrDefault();
                 if (firstAvailable == null)
                 {
-                    throw new InvalidOperationException("没有可用的AI服务提供商");
+                    throw new InvalidOperationException("No available AI providers.");
                 }
                 _currentProvider = firstAvailable;
-                _logger.LogWarning("默认提供商不可用，已切换到 {Provider}", _currentProvider.DisplayName);
+                _logger.LogWarning("Default provider unavailable. Switched to {Provider}", _currentProvider.DisplayName);
             }
         }
         return _currentProvider;
     }
 
-    /// <summary>
-    /// 执行聊天 - 使用提示词模板
-    /// </summary>
     public async Task<string> ChatAsync(
         string promptTemplateId,
         Dictionary<string, object> parameters,
@@ -109,104 +89,50 @@ public class AIServiceManager
     {
         var provider = GetCurrentProvider();
         var template = _promptService.GetTemplate(promptTemplateId);
-        
+
         if (template == null)
         {
-            throw new ArgumentException($"未找到提示词模板: {promptTemplateId}");
-        }
-
-        var kernel = await provider.GetKernelAsync(modelId);
-        _functionService.AddPluginsToKernel(kernel);
-
-        var chatService = kernel.GetRequiredService<IChatCompletionService>();
-        var chatHistory = new ChatHistory();
-
-        if (!string.IsNullOrEmpty(template.SystemPrompt))
-        {
-            chatHistory.AddSystemMessage(template.SystemPrompt);
+            throw new ArgumentException($"Prompt template not found: {promptTemplateId}");
         }
 
         var userPrompt = _promptService.RenderPrompt(template, parameters);
-        chatHistory.AddUserMessage(userPrompt);
+        var request = BuildChatRequest(provider.ProviderType, template, userPrompt, modelId);
 
-        var executionSettings = new OpenAIPromptExecutionSettings
-        {
-            Temperature = template.ExecutionSettings.Temperature,
-            TopP = template.ExecutionSettings.TopP,
-            MaxTokens = template.ExecutionSettings.MaxTokens,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-        };
-
-        _logger.LogInformation("发送聊天请求 - 提供商: {Provider}, 模板: {Template}", 
+        _logger.LogInformation("Sending chat request: {Provider}, template: {Template}",
             provider.DisplayName, template.Name);
 
-        var response = await chatService.GetChatMessageContentsAsync(
-            chatHistory,
-            executionSettings,
-            kernel,
-            cancellationToken);
-
-        return response[0].Content ?? string.Empty;
+        return await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// 执行流式聊天 - 使用提示词模板
-    /// </summary>
     public async IAsyncEnumerable<string> ChatStreamAsync(
         string promptTemplateId,
         Dictionary<string, object> parameters,
         string? modelId = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var provider = GetCurrentProvider();
         var template = _promptService.GetTemplate(promptTemplateId);
-        
+
         if (template == null)
         {
-            throw new ArgumentException($"未找到提示词模板: {promptTemplateId}");
-        }
-
-        var kernel = await provider.GetKernelAsync(modelId);
-        _functionService.AddPluginsToKernel(kernel);
-
-        var chatService = kernel.GetRequiredService<IChatCompletionService>();
-        var chatHistory = new ChatHistory();
-
-        if (!string.IsNullOrEmpty(template.SystemPrompt))
-        {
-            chatHistory.AddSystemMessage(template.SystemPrompt);
+            throw new ArgumentException($"Prompt template not found: {promptTemplateId}");
         }
 
         var userPrompt = _promptService.RenderPrompt(template, parameters);
-        chatHistory.AddUserMessage(userPrompt);
+        var request = BuildChatRequest(provider.ProviderType, template, userPrompt, modelId);
 
-        var executionSettings = new OpenAIPromptExecutionSettings
-        {
-            Temperature = template.ExecutionSettings.Temperature,
-            TopP = template.ExecutionSettings.TopP,
-            MaxTokens = template.ExecutionSettings.MaxTokens,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-        };
-
-        _logger.LogInformation("发送流式聊天请求 - 提供商: {Provider}, 模板: {Template}", 
+        _logger.LogInformation("Sending streaming chat request: {Provider}, template: {Template}",
             provider.DisplayName, template.Name);
 
-        await foreach (var chunk in chatService.GetStreamingChatMessageContentsAsync(
-            chatHistory,
-            executionSettings,
-            kernel,
-            cancellationToken))
+        await foreach (var chunk in provider.ChatStreamAsync(request, cancellationToken))
         {
-            if (!string.IsNullOrEmpty(chunk.Content))
+            if (!string.IsNullOrEmpty(chunk))
             {
-                yield return chunk.Content;
+                yield return chunk;
             }
         }
     }
 
-    /// <summary>
-    /// 直接执行聊天 - 不使用模板
-    /// </summary>
     public async Task<string> ChatDirectAsync(
         string userMessage,
         string? systemMessage = null,
@@ -215,57 +141,90 @@ public class AIServiceManager
         CancellationToken cancellationToken = default)
     {
         var provider = GetCurrentProvider();
-        var kernel = await provider.GetKernelAsync(modelId);
-        _functionService.AddPluginsToKernel(kernel);
-
-        var chatService = kernel.GetRequiredService<IChatCompletionService>();
-        var chatHistory = new ChatHistory();
+        var messages = new List<AIChatMessage>();
 
         if (!string.IsNullOrEmpty(systemMessage))
         {
-            chatHistory.AddSystemMessage(systemMessage);
+            messages.Add(new AIChatMessage(AIChatRole.System, systemMessage));
         }
 
-        chatHistory.AddUserMessage(userMessage);
+        messages.Add(new AIChatMessage(AIChatRole.User, userMessage));
 
-        var executionSettings = new OpenAIPromptExecutionSettings
+        var request = new AIChatRequest
         {
-            Temperature = temperature,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            Model = ResolveTextModel(provider.ProviderType, modelId),
+            Messages = messages,
+            Temperature = temperature
         };
 
-        var response = await chatService.GetChatMessageContentsAsync(
-            chatHistory,
-            executionSettings,
-            kernel,
-            cancellationToken);
-
-        return response[0].Content ?? string.Empty;
+        return await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// 验证所有提供商配置
-    /// </summary>
     public async Task<Dictionary<AIProviderType, bool>> ValidateAllProvidersAsync()
     {
         var results = new Dictionary<AIProviderType, bool>();
 
         foreach (var provider in _providers)
         {
-            var isValid = await provider.ValidateConfigurationAsync();
+            var isValid = await provider.ValidateConfigurationAsync().ConfigureAwait(false);
             results[provider.ProviderType] = isValid;
         }
 
         return results;
     }
 
-    /// <summary>
-    /// 获取提示词管理服务
-    /// </summary>
     public PromptManagementService GetPromptService() => _promptService;
 
-    /// <summary>
-    /// 获取函数管理服务
-    /// </summary>
-    public FunctionManagementService GetFunctionService() => _functionService;
+    private AIChatRequest BuildChatRequest(
+        AIProviderType providerType,
+        PromptTemplate template,
+        string userPrompt,
+        string? modelId)
+    {
+        var messages = new List<AIChatMessage>();
+
+        if (!string.IsNullOrEmpty(template.SystemPrompt))
+        {
+            messages.Add(new AIChatMessage(AIChatRole.System, template.SystemPrompt));
+        }
+
+        messages.Add(new AIChatMessage(AIChatRole.User, userPrompt));
+
+        return new AIChatRequest
+        {
+            Model = ResolveTextModel(providerType, modelId),
+            Messages = messages,
+            Temperature = template.ExecutionSettings.Temperature,
+            TopP = template.ExecutionSettings.TopP,
+            MaxTokens = template.ExecutionSettings.MaxTokens
+        };
+    }
+
+    private string ResolveTextModel(AIProviderType providerType, string? overrideModel)
+    {
+        if (!string.IsNullOrWhiteSpace(overrideModel))
+        {
+            return overrideModel;
+        }
+
+        var config = _configMonitor.CurrentValue;
+        if (config.Defaults.Text.Provider == providerType && !string.IsNullOrWhiteSpace(config.Defaults.Text.Model))
+        {
+            return config.Defaults.Text.Model;
+        }
+
+        var providerConfig = providerType switch
+        {
+            AIProviderType.Qwen => config.Providers.Qwen,
+            AIProviderType.Volcengine => config.Providers.Volcengine,
+            _ => null
+        };
+
+        if (providerConfig == null || string.IsNullOrWhiteSpace(providerConfig.DefaultModels.Text))
+        {
+            throw new InvalidOperationException($"No default text model configured for {providerType}.");
+        }
+
+        return providerConfig.DefaultModels.Text;
+    }
 }

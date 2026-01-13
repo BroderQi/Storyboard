@@ -1,6 +1,3 @@
-using System.Text.Json;
-using Microsoft.SemanticKernel;
-
 namespace Storyboard.AI.Prompts;
 
 /// <summary>

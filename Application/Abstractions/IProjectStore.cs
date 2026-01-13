@@ -1,4 +1,7 @@
-namespace Storyboard.Application.Services;
+using Storyboard.Application.Services;
+using Storyboard.Models;
+
+namespace Storyboard.Application.Abstractions;
 
 public interface IProjectStore
 {

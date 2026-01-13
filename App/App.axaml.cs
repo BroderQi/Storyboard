@@ -100,18 +100,10 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IJobQueueService>(sp =>
             new JobQueueService(sp.GetRequiredService<IUiDispatcher>(), maxConcurrency: 2));
 
-        // AI Services - 保持现有 AI 架构
+        // AI Services
         services.AddSingleton<AI.Prompts.PromptManagementService>();
-        services.AddSingleton<AI.Functions.FunctionManagementService>();
-        
-        // AI Providers
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.QwenServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.ZhipuServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.WenxinServiceProvider>();
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.VolcengineServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.DeepSeekServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.OpenAIServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.GeminiServiceProvider>();
         
         services.AddSingleton<AIServiceManager>();
     }
