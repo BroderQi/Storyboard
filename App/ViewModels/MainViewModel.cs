@@ -21,7 +21,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Diagnostics;
+using System.Text;
 using Storyboard.Application.Services;
+using Storyboard.Infrastructure.Media;
+using Avalonia.Threading;
 
 
 namespace Storyboard.ViewModels;
@@ -654,6 +658,12 @@ public partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(HasShots));
             OnPropertyChanged(nameof(HasSelectedShots));
             OnPropertyChanged(nameof(SelectedShotsCountText));
+
+            foreach (var shot in Shots)
+            {
+                foreach (var asset in shot.VideoAssets)
+                    _ = EnsureVideoAssetThumbnailAsync(asset);
+            }
         });
 
         _pendingUndoSnapshot = null;
@@ -1150,6 +1160,12 @@ public partial class MainViewModel : ObservableObject
                             Shots.Add(shot);
                         }
                         RenumberShots();
+
+                        foreach (var shot in Shots)
+                        {
+                            foreach (var asset in shot.VideoAssets)
+                                _ = EnsureVideoAssetThumbnailAsync(asset);
+                        }
                     });
 
                     InitializeHistory();
@@ -1876,7 +1892,7 @@ public partial class MainViewModel : ObservableObject
 
                     OnUi(() =>
                     {
-                        AddAssetToShot(shot, ShotAssetType.FirstFrameImage, imagePath, shot.FirstFramePrompt, shot.SelectedModel);
+                        AddAssetToShot(shot, ShotAssetType.FirstFrameImage, imagePath, imagePath, shot.FirstFramePrompt, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -1917,7 +1933,7 @@ public partial class MainViewModel : ObservableObject
 
                     OnUi(() =>
                     {
-                        AddAssetToShot(shot, ShotAssetType.LastFrameImage, imagePath, shot.LastFramePrompt, shot.SelectedModel);
+                        AddAssetToShot(shot, ShotAssetType.LastFrameImage, imagePath, imagePath, shot.LastFramePrompt, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -1990,9 +2006,7 @@ public partial class MainViewModel : ObservableObject
                 ct.ThrowIfCancellationRequested();
                 progress.Report(0);
 
-                if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) || string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
-                    throw new InvalidOperationException("缺少首帧/尾帧图片，请先生成图片");
-
+                // Allow video generation even when reference images are missing (0/1/2 allowed).
                 OnUi(() => shot.IsVideoGenerating = true);
                 try
                 {
@@ -2005,9 +2019,11 @@ public partial class MainViewModel : ObservableObject
                         ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
+                    var thumbnailPath = await TryCreateVideoThumbnailAsync(videoPath, ct).ConfigureAwait(false);
+
                     OnUi(() =>
                     {
-                        AddAssetToShot(shot, ShotAssetType.GeneratedVideo, videoPath, null, shot.SelectedModel);
+                        AddAssetToShot(shot, ShotAssetType.GeneratedVideo, videoPath, thumbnailPath, null, shot.SelectedModel);
                     });
 
                     progress.Report(1);
@@ -2095,7 +2111,7 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    private void AddAssetToShot(ShotItem shot, ShotAssetType type, string filePath, string? prompt, string? model)
+    private void AddAssetToShot(ShotItem shot, ShotAssetType type, string filePath, string? thumbnailPath, string? prompt, string? model)
     {
         var list = type switch
         {
@@ -2111,11 +2127,15 @@ public partial class MainViewModel : ObservableObject
         if (list.Any(a => string.Equals(a.FilePath, filePath, StringComparison.OrdinalIgnoreCase)))
             return;
 
+        // If we're adding a generated video, make it the shot's current generated video
+        if (type == ShotAssetType.GeneratedVideo)
+            shot.GeneratedVideoPath = filePath;
+
         list.Insert(0, new ShotAssetItem
         {
             Type = type,
             FilePath = filePath,
-            ThumbnailPath = filePath,
+            ThumbnailPath = thumbnailPath,
             Prompt = prompt,
             Model = model,
             CreatedAt = DateTimeOffset.Now,
@@ -2132,6 +2152,91 @@ public partial class MainViewModel : ObservableObject
         UpdateSummaryCounts();
     }
 
+    private async Task<string?> TryCreateVideoThumbnailAsync(string videoPath, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
+            return null;
+
+        var outputDir = GetProjectOutputDirectory("video-thumbnails");
+        Directory.CreateDirectory(outputDir);
+
+        var baseName = Path.GetFileNameWithoutExtension(videoPath);
+        var thumbPath = Path.Combine(outputDir, $"{baseName}_thumb.jpg");
+
+        var args = $"-y -hide_banner -loglevel error -ss 0.2 -i \"{videoPath}\" -frames:v 1 -q:v 2 \"{thumbPath}\"";
+        var (exitCode, _stdout, stderr) = await RunProcessCaptureAsync(
+            FfmpegLocator.GetFfmpegPath(),
+            args,
+            cancellationToken).ConfigureAwait(false);
+
+        if (exitCode != 0 || !File.Exists(thumbPath))
+        {
+            _logger.LogWarning("视频缩略图生成失败: {Error}", stderr);
+            return null;
+        }
+
+        return thumbPath;
+    }
+
+    private async Task EnsureVideoAssetThumbnailAsync(ShotAssetItem asset)
+    {
+        var (filePath, existingThumb) = await OnUiAsync(() => (asset.FilePath, asset.ThumbnailPath)).ConfigureAwait(false);
+
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        if (!string.IsNullOrWhiteSpace(existingThumb) && File.Exists(existingThumb))
+            return;
+
+        var thumbnailPath = await TryCreateVideoThumbnailAsync(filePath, CancellationToken.None).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(thumbnailPath))
+            return;
+
+        OnUi(() => asset.ThumbnailPath = thumbnailPath);
+    }
+
+    private static async Task<(int ExitCode, string Stdout, string Stderr)> RunProcessCaptureAsync(
+        string fileName,
+        string arguments,
+        CancellationToken cancellationToken)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = arguments,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+
+        using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+
+        proc.OutputDataReceived += (_, e) =>
+        {
+            if (e.Data == null) return;
+            stdout.AppendLine(e.Data);
+        };
+        proc.ErrorDataReceived += (_, e) =>
+        {
+            if (e.Data == null) return;
+            stderr.AppendLine(e.Data);
+        };
+
+        if (!proc.Start())
+            throw new InvalidOperationException($"无法启动进程: {fileName}");
+
+        proc.BeginOutputReadLine();
+        proc.BeginErrorReadLine();
+
+        await proc.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+        return (proc.ExitCode, stdout.ToString(), stderr.ToString());
+    }
+
     private static void OnUi(Action action)
     {
         if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
@@ -2142,6 +2247,14 @@ public partial class MainViewModel : ObservableObject
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(action);
         }
+    }
+
+    private static Task<T> OnUiAsync<T>(Func<T> func)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return Task.FromResult(func());
+
+        return Dispatcher.UIThread.InvokeAsync(func).GetTask();
     }
 
     public void MoveShot(int oldIndex, int newIndex)

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:Storyboard.Models"
              xmlns:conv="using:Storyboard.Converters"
+             xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
              x:Class="Storyboard.Views.ShotEditorView"
              x:DataType="m:ShotItem">
 
@@ -72,7 +73,7 @@
             <!-- Tab 1: Basic Info -->
             <TabItem Header="基本信息">
                 <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
-                    <StackPanel Spacing="16">
+                    <StackPanel Spacing="16" Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                         
                         <!-- Shot Type -->
                         <StackPanel Spacing="8">
@@ -99,6 +100,7 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding SelectedModel}" 
+                                     HorizontalAlignment="Stretch"
                                      Watermark="留空使用默认模型"
                                      Background="#1a1a1a"
                                      BorderBrush="#3f3f46">
@@ -137,8 +139,9 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding CoreContent}" 
+                                     HorizontalAlignment="Stretch"
                                      AcceptsReturn="True" 
-                                     TextWrapping="Wrap" 
+                                     TextWrapping="WrapWithOverflow" 
                                      MinHeight="96"
                                      Watermark="描述镜头的核心画面内容"
                                      Background="#1a1a1a"
@@ -152,8 +155,9 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding ActionCommand}" 
+                                     HorizontalAlignment="Stretch"
                                      AcceptsReturn="True" 
-                                     TextWrapping="Wrap" 
+                                     TextWrapping="WrapWithOverflow" 
                                      MinHeight="96"
                                      Watermark="描述镜头中的动作和运动"
                                      Background="#1a1a1a"
@@ -167,8 +171,9 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding SceneSettings}" 
+                                     HorizontalAlignment="Stretch"
                                      AcceptsReturn="True" 
-                                     TextWrapping="Wrap" 
+                                     TextWrapping="WrapWithOverflow" 
                                      MinHeight="96"
                                      Watermark="时间、地点、光线、环境等"
                                      Background="#1a1a1a"
@@ -182,8 +187,9 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding FirstFramePrompt}" 
+                                     HorizontalAlignment="Stretch"
                                      AcceptsReturn="True" 
-                                     TextWrapping="Wrap" 
+                                     TextWrapping="WrapWithOverflow" 
                                      MinHeight="120"
                                      Watermark="首帧图片生成提示词"
                                      Background="#1a1a1a"
@@ -197,8 +203,9 @@
                                        Foreground="#f5f5f5" 
                                        FontWeight="Medium" />
                             <TextBox Text="{Binding LastFramePrompt}" 
+                                     HorizontalAlignment="Stretch"
                                      AcceptsReturn="True" 
-                                     TextWrapping="Wrap" 
+                                     TextWrapping="WrapWithOverflow" 
                                      MinHeight="120"
                                      Watermark="尾帧图片生成提示词"
                                      Background="#1a1a1a"
@@ -213,7 +220,7 @@
             <!-- Tab 2: Image Generation -->
             <TabItem Header="图片生成">
                 <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
-                    <StackPanel Spacing="16">
+                    <StackPanel Spacing="16" Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                         
                         <!-- First Frame Section -->
                         <Border Background="#18181b" 
@@ -495,7 +502,7 @@
             <!-- Tab 3: Video Generation -->
             <TabItem Header="视频生成">
                 <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
-                    <StackPanel Spacing="16">
+                    <StackPanel Spacing="16" Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                         
                         <!-- Video Preview -->
                         <Border Background="#18181b" 
@@ -516,7 +523,9 @@
                                         Height="240"
                                         ClipToBounds="True">
                                     <Panel>
-                                        <!-- Video player would go here -->
+                                        <vlc:VideoView x:Name="VideoView"
+                                                      AttachedToVisualTree="OnVideoViewAttached"
+                                                      DetachedFromVisualTree="OnVideoViewDetached" />
                                         <TextBlock Text="视频播放器" 
                                                    Foreground="#52525b" 
                                                    HorizontalAlignment="Center" 
@@ -543,8 +552,7 @@
                                             HorizontalAlignment="Stretch"
                                             Margin="0,0,4,0"
                                             x:CompileBindings="False"
-                                            Command="{Binding DataContext.PlayVideoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}">
+                                            Click="OnTogglePlayClicked">
                                         <TextBlock Text="播放" FontSize="11" />
                                     </Button>
                                     <Button Grid.Column="1" 
@@ -572,10 +580,9 @@
                                            FontWeight="SemiBold" 
                                            Foreground="#f5f5f5" />
                                 
-                                <TextBlock Text="需要首帧和尾帧图片才能生成视频" 
+                                <TextBlock Text="首尾参考图为可选（0/1/2 张），提供参考可提升生成效果" 
                                            FontSize="12" 
-                                           Foreground="#71717a" 
-                                           IsVisible="{Binding CanGenerateVideo, Converter={StaticResource BoolNot}}" />
+                                           Foreground="#71717a" />
                                 
                                 <Button Classes="Primary" 
                                         HorizontalAlignment="Stretch"
@@ -619,6 +626,26 @@
                                                         Padding="8"
                                                         Margin="0,0,8,8">
                                                     <StackPanel Spacing="6" Width="140">
+                                                        <Border Height="80" CornerRadius="4" ClipToBounds="True" Background="#0f0f0f" BorderBrush="#27272a" BorderThickness="1">
+                                                            <Panel>
+                                                                <Image Source="{Binding DisplayPath, Converter={StaticResource PathToBitmapConverter}}"
+                                                                       Stretch="UniformToFill"
+                                                                       IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                                                                <StackPanel HorizontalAlignment="Center"
+                                                                            VerticalAlignment="Center"
+                                                                            IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
+                                                                    <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"
+                                                                              Width="24"
+                                                                              Height="24"
+                                                                              Foreground="#3f3f46" />
+                                                                    <TextBlock Text="暂无缩略图"
+                                                                               FontSize="10"
+                                                                               Foreground="#52525b"
+                                                                               Margin="0,6,0,0"
+                                                                               HorizontalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Panel>
+                                                        </Border>
                                                         <TextBlock Text="{Binding DisplayName}"
                                                                    FontSize="12"
                                                                    Foreground="#f5f5f5" />

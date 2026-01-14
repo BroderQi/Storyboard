@@ -34,5 +34,9 @@ public partial class ShotAssetItem : ObservableObject
         _ => "资源"
     };
 
-    public string DisplayPath => !string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : FilePath;
+    public string? DisplayPath => Type switch
+    {
+        ShotAssetType.GeneratedVideo => !string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : null,
+        _ => !string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : FilePath
+    };
 }

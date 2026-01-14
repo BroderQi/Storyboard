@@ -116,9 +116,29 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         double shotDuration)
     {
         var config = VideoConfig;
+        // Decide task_type based on model name or presence of image items.
+        var hasImageItems = contentItems.Any(ci => ci.TryGetValue("type", out var t) && string.Equals(t as string, "image_url", StringComparison.OrdinalIgnoreCase));
+        var modelLower = (model ?? string.Empty).ToLowerInvariant();
+        string taskType;
+        if (modelLower.Contains("i2v"))
+            taskType = "i2v";
+        else if (modelLower.Contains("t2v") || modelLower.Contains("text2video") || modelLower.Contains("t2v"))
+            taskType = "t2v";
+        else
+            taskType = hasImageItems ? "i2v" : "t2v";
+
+        // If model expects text-to-video but caller supplied images, drop image items to avoid provider errors.
+        if (taskType == "t2v" && hasImageItems)
+        {
+            _logger.LogWarning("Model {Model} appears to be text-to-video but content contains image items; image items will be ignored.", model);
+            contentItems = contentItems.Where(ci => !(ci.TryGetValue("type", out var t) && string.Equals(t as string, "image_url", StringComparison.OrdinalIgnoreCase))).ToList();
+            hasImageItems = false;
+        }
+
         var payload = new Dictionary<string, object?>
         {
             ["model"] = model,
+            ["task_type"] = taskType,
             ["content"] = contentItems
         };
 
@@ -147,7 +167,8 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         if (!string.IsNullOrWhiteSpace(config.ServiceTier))
             payload["service_tier"] = config.ServiceTier.Trim();
 
-        payload["generate_audio"] = config.GenerateAudio;
+        if (config.GenerateAudio && ModelSupportsGenerateAudio(model))
+            payload["generate_audio"] = true;
         payload["draft"] = config.Draft;
 
         return payload;
@@ -316,5 +337,13 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             return new Uri($"{normalized}/");
 
         return new Uri($"{normalized}/api/v3/");
+    }
+
+    private static bool ModelSupportsGenerateAudio(string model)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            return false;
+
+        return model.Contains("seedance-1-5-pro", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -94,11 +94,10 @@ public partial class ShotItem : ObservableObject
     private double _timelineWidth;
 
     public string? VideoOutputPath => GeneratedVideoPath;
-    public bool CanGenerateVideo => !string.IsNullOrEmpty(FirstFrameImagePath)
-        && File.Exists(FirstFrameImagePath)
-        && !string.IsNullOrEmpty(LastFrameImagePath)
-        && File.Exists(LastFrameImagePath);
-    public bool CanGenerateVideoNow => CanGenerateVideo && !IsVideoGenerating;
+    // Video generation no longer requires both first and last frame references.
+    // Users may provide 0, 1 or 2 reference images. Provider will handle accordingly.
+    public bool CanGenerateVideo => true;
+    public bool CanGenerateVideoNow => !IsVideoGenerating;
 
     // Events for communicating with parent ViewModel
     public event EventHandler? DuplicateRequested;
