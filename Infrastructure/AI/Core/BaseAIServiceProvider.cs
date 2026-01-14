@@ -1,12 +1,8 @@
-using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 
 namespace Storyboard.AI.Core;
 
-/// <summary>
-/// AI服务提供商基类
-/// </summary>
 public abstract class BaseAIServiceProvider : IAIServiceProvider
 {
     protected readonly ILogger Logger;
@@ -26,25 +22,24 @@ public abstract class BaseAIServiceProvider : IAIServiceProvider
         new ProviderCapabilityDeclaration(AIProviderCapability.TextUnderstanding, "MaxTokens: 2000", "text/plain")
     };
 
-    public virtual async Task<Kernel> GetKernelAsync(string? modelId = null)
-    {
-        // Always create a fresh kernel so runtime config edits (appsettings.json reload)
-        // take effect immediately.
-        return await CreateKernelAsync(modelId);
-    }
+    public abstract Task<string> ChatAsync(AIChatRequest request, CancellationToken cancellationToken = default);
+    public abstract IAsyncEnumerable<string> ChatStreamAsync(AIChatRequest request, CancellationToken cancellationToken = default);
+    public abstract Task<bool> ValidateConfigurationAsync(CancellationToken cancellationToken = default);
 
-    public abstract Task<bool> ValidateConfigurationAsync();
-
-    protected abstract Task<Kernel> CreateKernelAsync(string? modelId = null);
-
-    /// <summary>
-    /// 创建HttpClient
-    /// </summary>
     protected virtual HttpClient CreateHttpClient(string endpoint, int timeoutSeconds = 120)
     {
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            throw new InvalidOperationException("Endpoint is required.");
+        }
+
+        var normalizedEndpoint = endpoint.EndsWith("/", StringComparison.Ordinal)
+            ? endpoint
+            : $"{endpoint}/";
+
         var httpClient = new HttpClient
         {
-            BaseAddress = new Uri(endpoint),
+            BaseAddress = new Uri(normalizedEndpoint),
             Timeout = TimeSpan.FromSeconds(timeoutSeconds)
         };
         return httpClient;

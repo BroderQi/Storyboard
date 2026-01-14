@@ -83,15 +83,9 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IVideoMetadataService>(sp => sp.GetRequiredService<VideoAnalysisService>());
         services.AddSingleton<IFrameExtractionService, FrameExtractionService>();
         services.AddSingleton<IAiShotService, AiShotService>();
-        services.AddSingleton<IImageGenerationProvider, LocalImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, OpenAIImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, GeminiImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, StableDiffusionApiImageGenerationProvider>();
+        services.AddSingleton<IImageGenerationProvider, VolcengineImageGenerationProvider>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
-        services.AddSingleton<IVideoGenerationProvider, LocalVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, OpenAIVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, GeminiVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, StableDiffusionApiVideoGenerationProvider>();
+        services.AddSingleton<IVideoGenerationProvider, VolcengineVideoGenerationProvider>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
         services.AddSingleton<IFinalRenderService, FinalRenderService>();
         services.AddSingleton<AppSettingsStore>();
@@ -100,18 +94,10 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IJobQueueService>(sp =>
             new JobQueueService(sp.GetRequiredService<IUiDispatcher>(), maxConcurrency: 2));
 
-        // AI Services - 保持现有 AI 架构
+        // AI Services
         services.AddSingleton<AI.Prompts.PromptManagementService>();
-        services.AddSingleton<AI.Functions.FunctionManagementService>();
-        
-        // AI Providers
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.QwenServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.ZhipuServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.WenxinServiceProvider>();
         services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.VolcengineServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.DeepSeekServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.OpenAIServiceProvider>();
-        services.AddSingleton<AI.Core.IAIServiceProvider, AI.Providers.GeminiServiceProvider>();
         
         services.AddSingleton<AIServiceManager>();
     }

@@ -1,28 +1,14 @@
-using Microsoft.SemanticKernel;
-
 namespace Storyboard.AI.Core;
 
 /// <summary>
-/// AI服务提供商类型
+/// AI provider types.
 /// </summary>
 public enum AIProviderType
 {
-    /// <summary>文心一言</summary>
-    Wenxin,
-    /// <summary>通义千问</summary>
+    /// <summary>Qwen</summary>
     Qwen,
-    /// <summary>智谱AI</summary>
-    Zhipu,
-    /// <summary>火山引擎</summary>
-    Volcengine,
-    /// <summary>DeepSeek</summary>
-    DeepSeek,
-    /// <summary>OpenAI</summary>
-    OpenAI,
-    /// <summary>Azure OpenAI</summary>
-    AzureOpenAI,
-    /// <summary>Gemini</summary>
-    Gemini
+    /// <summary>Volcengine</summary>
+    Volcengine
 }
 
 [Flags]
@@ -38,48 +24,71 @@ public sealed record ProviderCapabilityDeclaration(
     string InputLimit,
     string OutputFormat);
 
+public enum AIChatRole
+{
+    System,
+    User,
+    Assistant
+}
+
+public sealed record AIChatMessage(AIChatRole Role, string Content);
+
+public sealed class AIChatRequest
+{
+    public string Model { get; init; } = string.Empty;
+    public IReadOnlyList<AIChatMessage> Messages { get; init; } = Array.Empty<AIChatMessage>();
+    public double Temperature { get; init; } = 0.7;
+    public double TopP { get; init; } = 0.95;
+    public int MaxTokens { get; init; } = 2000;
+}
+
 /// <summary>
-/// AI服务提供商接口
+/// AI provider interface.
 /// </summary>
 public interface IAIServiceProvider
 {
     /// <summary>
-    /// 提供商类型
+    /// Provider type.
     /// </summary>
     AIProviderType ProviderType { get; }
 
     /// <summary>
-    /// 提供商显示名称
+    /// Provider display name.
     /// </summary>
     string DisplayName { get; }
 
     /// <summary>
-    /// 是否已配置
+    /// Whether the provider is configured.
     /// </summary>
     bool IsConfigured { get; }
 
     /// <summary>
-    /// 支持的模型列表
+    /// Supported models.
     /// </summary>
     IReadOnlyList<string> SupportedModels { get; }
 
     /// <summary>
-    /// 提供商支持的能力类型
+    /// Supported capabilities.
     /// </summary>
     AIProviderCapability Capabilities { get; }
 
     /// <summary>
-    /// 提供商能力声明
+    /// Capability declarations.
     /// </summary>
     IReadOnlyList<ProviderCapabilityDeclaration> CapabilityDeclarations { get; }
 
     /// <summary>
-    /// 获取Kernel实例
+    /// Send a chat request.
     /// </summary>
-    Task<Kernel> GetKernelAsync(string? modelId = null);
+    Task<string> ChatAsync(AIChatRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 验证配置
+    /// Stream a chat request.
     /// </summary>
-    Task<bool> ValidateConfigurationAsync();
+    IAsyncEnumerable<string> ChatStreamAsync(AIChatRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validate configuration.
+    /// </summary>
+    Task<bool> ValidateConfigurationAsync(CancellationToken cancellationToken = default);
 }

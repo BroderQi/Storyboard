@@ -60,7 +60,13 @@ public sealed class AppSettingsStore
             root = new JsonObject();
         }
 
-        root["AIServices"] = JsonSerializer.SerializeToNode(config, JsonOptions);
+        var aiNode = new JsonObject
+        {
+            ["Providers"] = JsonSerializer.SerializeToNode(config.Providers, JsonOptions),
+            ["Defaults"] = JsonSerializer.SerializeToNode(config.Defaults, JsonOptions)
+        };
+
+        root["AIServices"] = aiNode;
 
         File.WriteAllText(SettingsFilePath, root.ToJsonString(JsonOptions));
 

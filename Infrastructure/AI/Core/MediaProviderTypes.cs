@@ -2,16 +2,10 @@ namespace Storyboard.AI.Core;
 
 public enum ImageProviderType
 {
-    Local,
-    OpenAI,
-    Gemini,
-    StableDiffusionApi
+    Volcengine
 }
 
 public enum VideoProviderType
 {
-    Local,
-    OpenAI,
-    Gemini,
-    StableDiffusionApi
+    Volcengine
 }

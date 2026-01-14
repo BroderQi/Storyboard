@@ -1,191 +1,94 @@
 namespace Storyboard.AI.Core;
 
 /// <summary>
-/// AI服务配置基类
+/// Shared config base for image/video providers.
 /// </summary>
 public abstract class AIServiceConfig
 {
-    /// <summary>
-    /// API密钥
-    /// </summary>
     public string ApiKey { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 默认模型ID
-    /// </summary>
     public string DefaultModel { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 是否启用
-    /// </summary>
     public bool Enabled { get; set; } = true;
-
-    /// <summary>
-    /// 超时时间（秒）
-    /// </summary>
     public int TimeoutSeconds { get; set; } = 120;
 }
 
-/// <summary>
-/// 文心一言配置
-/// </summary>
-public class WenxinConfig : AIServiceConfig
+public sealed class AIProviderModelDefaults
 {
-    public string ApiSecret { get; set; } = string.Empty;
-    public string Endpoint { get; set; } = "https://aip.baidubce.com";
+    public string Text { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public string Video { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// 通义千问配置
-/// </summary>
-public class QwenConfig : AIServiceConfig
+public sealed class AIProviderConfiguration
 {
-    public string Endpoint { get; set; } = "https://dashscope.aliyuncs.com/api/v1";
-}
-
-/// <summary>
-/// 智谱AI配置
-/// </summary>
-public class ZhipuConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://open.bigmodel.cn/api/paas/v4";
-}
-
-/// <summary>
-/// 火山引擎配置
-/// </summary>
-public class VolcengineConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://ark.cn-beijing.volces.com/api/v3";
-    public string EndpointId { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// DeepSeek 配置
-/// </summary>
-public class DeepSeekConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://api.deepseek.com";
-}
-
-/// <summary>
-/// OpenAI配置
-/// </summary>
-public class OpenAIConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://api.openai.com/v1";
-    public string Organization { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Azure OpenAI配置
-/// </summary>
-public class AzureOpenAIConfig : AIServiceConfig
-{
+    public string ApiKey { get; set; } = string.Empty;
     public string Endpoint { get; set; } = string.Empty;
-    public string DeploymentName { get; set; } = string.Empty;
-    public string ApiVersion { get; set; } = "2024-02-15-preview";
-}
-
-/// <summary>
-/// Gemini 配置
-/// </summary>
-public class GeminiConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
-}
-
-public class LocalImageConfig
-{
     public bool Enabled { get; set; } = true;
-    public int Width { get; set; } = 1024;
-    public int Height { get; set; } = 576;
-    public string Style { get; set; } = "Poster";
+    public int TimeoutSeconds { get; set; } = 120;
+    public AIProviderModelDefaults DefaultModels { get; set; } = new();
 }
 
-public class OpenAIImageConfig : AIServiceConfig
+public sealed class AIProvidersConfiguration
 {
-    public string Endpoint { get; set; } = "https://api.openai.com/v1";
-    public string Size { get; set; } = "1024x1024";
-    public string Quality { get; set; } = "standard";
+    public AIProviderConfiguration Qwen { get; set; } = new();
+    public AIProviderConfiguration Volcengine { get; set; } = new();
 }
 
-public class GeminiImageConfig : AIServiceConfig
+public sealed class AIServiceDefaultSelection
 {
-    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
-    public string ResponseMimeType { get; set; } = "image/png";
+    public AIProviderType Provider { get; set; } = AIProviderType.Qwen;
+    public string Model { get; set; } = string.Empty;
 }
 
-public class StableDiffusionApiImageConfig : AIServiceConfig
+public sealed class AIServiceDefaults
 {
-    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v3";
-    public string NegativePrompt { get; set; } = "low quality";
+    public AIServiceDefaultSelection Text { get; set; } = new();
+    public AIServiceDefaultSelection Image { get; set; } = new();
+    public AIServiceDefaultSelection Video { get; set; } = new();
+}
+
+public sealed class AIServicesConfiguration
+{
+    public AIProvidersConfiguration Providers { get; set; } = new();
+    public AIServiceDefaults Defaults { get; set; } = new();
+
+    public ImageServicesConfiguration Image { get; set; } = new();
+    public VideoServicesConfiguration Video { get; set; } = new();
+}
+
+public sealed class VolcengineImageConfig
+{
+    public string Size { get; set; } = "2K";
+    public string ResponseFormat { get; set; } = "b64_json";
+    public bool Watermark { get; set; } = false;
+    public bool Stream { get; set; } = false;
+    public string SequentialImageGeneration { get; set; } = string.Empty;
+    public int? SequentialMaxImages { get; set; }
+    public string OptimizePromptMode { get; set; } = string.Empty;
 }
 
 public class ImageServicesConfiguration
 {
-    public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Local;
-    public LocalImageConfig Local { get; set; } = new();
-    public OpenAIImageConfig OpenAI { get; set; } = new();
-    public GeminiImageConfig Gemini { get; set; } = new();
-    public StableDiffusionApiImageConfig StableDiffusionApi { get; set; } = new();
+    public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Volcengine;
+    public VolcengineImageConfig Volcengine { get; set; } = new();
 }
 
-public class LocalVideoConfig
+public sealed class VolcengineVideoConfig
 {
-    public bool Enabled { get; set; } = true;
-    public int Width { get; set; } = 1280;
-    public int Height { get; set; } = 720;
-    public int Fps { get; set; } = 30;
-    public int BitrateKbps { get; set; } = 4000;
-    public double TransitionSeconds { get; set; } = 0.5;
-    public bool UseKenBurns { get; set; } = true;
+    public string Resolution { get; set; } = "1080p";
+    public string Ratio { get; set; } = string.Empty;
+    public double DurationSeconds { get; set; } = 0;
+    public int? Frames { get; set; }
+    public int? Seed { get; set; }
+    public bool? CameraFixed { get; set; }
+    public bool Watermark { get; set; } = false;
+    public bool ReturnLastFrame { get; set; } = false;
+    public string ServiceTier { get; set; } = "default";
+    public bool GenerateAudio { get; set; } = false;
+    public bool Draft { get; set; } = false;
 }
 
 public class VideoServicesConfiguration
 {
-    public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Local;
-    public LocalVideoConfig Local { get; set; } = new();
-    public OpenAIVideoConfig OpenAI { get; set; } = new();
-    public GeminiVideoConfig Gemini { get; set; } = new();
-    public StableDiffusionApiVideoConfig StableDiffusionApi { get; set; } = new();
-}
-
-public class OpenAIVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://api.openai.com/v1";
-}
-
-public class GeminiVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
-}
-
-public class StableDiffusionApiVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v5";
-    public string NegativePrompt { get; set; } = "low quality";
-    public string Scheduler { get; set; } = "UniPCMultistepScheduler";
-}
-
-/// <summary>
-/// AI服务总配置
-/// </summary>
-public class AIServicesConfiguration
-{
-    public WenxinConfig Wenxin { get; set; } = new();
-    public QwenConfig Qwen { get; set; } = new();
-    public ZhipuConfig Zhipu { get; set; } = new();
-    public VolcengineConfig Volcengine { get; set; } = new();
-    public DeepSeekConfig DeepSeek { get; set; } = new();
-    public OpenAIConfig OpenAI { get; set; } = new();
-    public AzureOpenAIConfig AzureOpenAI { get; set; } = new();
-    public GeminiConfig Gemini { get; set; } = new();
-    public ImageServicesConfiguration Image { get; set; } = new();
-    public VideoServicesConfiguration Video { get; set; } = new();
-
-    /// <summary>
-    /// 默认提供商
-    /// </summary>
-    public AIProviderType DefaultProvider { get; set; } = AIProviderType.Qwen;
+    public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Volcengine;
+    public VolcengineVideoConfig Volcengine { get; set; } = new();
 }
