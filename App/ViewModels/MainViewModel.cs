@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 // using Microsoft.Win32; // WPF specific - remove for Avalonia
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,6 +37,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IFinalRenderService _finalRenderService;
     private readonly IJobQueueService _jobQueue;
     private readonly IProjectStore _projectStore;
+    private readonly ILogger<MainViewModel> _logger;
 
     [ObservableProperty]
     private string? _selectedVideoPath;
@@ -418,7 +420,8 @@ public partial class MainViewModel : ObservableObject
         IVideoGenerationService videoGenerationService,
         IFinalRenderService finalRenderService,
         IJobQueueService jobQueue,
-        IProjectStore projectStore)
+        IProjectStore projectStore,
+        ILogger<MainViewModel> logger)
     {
         _videoAnalysisService = videoAnalysisService;
         _videoMetadataService = videoMetadataService;
@@ -429,6 +432,7 @@ public partial class MainViewModel : ObservableObject
         _finalRenderService = finalRenderService;
         _jobQueue = jobQueue;
         _projectStore = projectStore;
+        _logger = logger;
 
         Shots.CollectionChanged += Shots_CollectionChanged;
         Projects.CollectionChanged += (_, __) => OnPropertyChanged(nameof(HasProjects));
@@ -1373,6 +1377,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Generate shots failed. Prompt: {Prompt}", TextToShotPrompt);
             StatusMessage = $"生成分镜失败: {ex.Message}";
         }
     }

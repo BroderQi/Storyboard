@@ -13,6 +13,10 @@ namespace Storyboard.AI.Providers;
 public class QwenServiceProvider : BaseAIServiceProvider
 {
     private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public QwenServiceProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<QwenServiceProvider> logger)
         : base(logger)
@@ -56,7 +60,7 @@ public class QwenServiceProvider : BaseAIServiceProvider
             throw new InvalidOperationException($"Qwen request failed: {responseBody}");
         }
 
-        var result = JsonSerializer.Deserialize<QwenResponse>(responseBody);
+        var result = JsonSerializer.Deserialize<QwenResponse>(responseBody, JsonOptions);
         return result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
     }
 
@@ -94,7 +98,7 @@ public class QwenServiceProvider : BaseAIServiceProvider
             if (data == "[DONE]")
                 break;
 
-            var chunk = JsonSerializer.Deserialize<QwenResponse>(data);
+            var chunk = JsonSerializer.Deserialize<QwenResponse>(data, JsonOptions);
             var contentDelta = chunk?.Choices?.FirstOrDefault()?.Delta?.Content;
             if (!string.IsNullOrEmpty(contentDelta))
             {

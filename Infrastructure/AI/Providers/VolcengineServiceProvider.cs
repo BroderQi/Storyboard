@@ -13,6 +13,10 @@ namespace Storyboard.AI.Providers;
 public class VolcengineServiceProvider : BaseAIServiceProvider
 {
     private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public VolcengineServiceProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<VolcengineServiceProvider> logger)
         : base(logger)
@@ -46,16 +50,40 @@ public class VolcengineServiceProvider : BaseAIServiceProvider
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Config.ApiKey);
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        // Log request payload (avoid logging headers / API key)
+        try
+        {
+            var payloadJson = JsonSerializer.Serialize(payload);
+            Logger.LogDebug("Volcengine request payload: {Payload}", payloadJson);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to serialize Volcengine payload for logging.");
+        }
+
         var response = await httpClient.PostAsync("chat/completions", content, cancellationToken).ConfigureAwait(false);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
+        // Log response body for debugging empty/invalid responses
+        Logger.LogDebug("Volcengine response body: {ResponseBody}", responseBody);
+
         if (!response.IsSuccessStatusCode)
         {
+            Logger.LogError("Volcengine request failed (status {Status}): {ResponseBody}", response.StatusCode, responseBody);
             throw new InvalidOperationException($"Volcengine request failed: {responseBody}");
         }
 
-        var result = JsonSerializer.Deserialize<VolcengineResponse>(responseBody);
-        return result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
+        var result = JsonSerializer.Deserialize<VolcengineResponse>(responseBody, JsonOptions);
+        var contentText = result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(contentText))
+        {
+            Logger.LogWarning(
+                "Volcengine response content empty. Body: {Body}",
+                Truncate(responseBody, 800));
+        }
+
+        return contentText;
     }
 
     public override async IAsyncEnumerable<string> ChatStreamAsync(
@@ -88,10 +116,14 @@ public class VolcengineServiceProvider : BaseAIServiceProvider
                 continue;
 
             var data = line.Substring(5).Trim();
+
+            // Log raw stream data for debugging
+            Logger.LogDebug("Volcengine stream raw: {Data}", data);
+
             if (data == "[DONE]")
                 break;
 
-            var chunk = JsonSerializer.Deserialize<VolcengineStreamResponse>(data);
+            var chunk = JsonSerializer.Deserialize<VolcengineStreamResponse>(data, JsonOptions);
             var contentDelta = chunk?.Choices?.FirstOrDefault()?.Delta?.Content;
             if (!string.IsNullOrEmpty(contentDelta))
             {
@@ -171,6 +203,16 @@ public class VolcengineServiceProvider : BaseAIServiceProvider
             AIChatRole.Assistant => "assistant",
             _ => "user"
         };
+    }
+
+    private static string Truncate(string value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
+        {
+            return value;
+        }
+
+        return value.Substring(0, maxLength) + "...(truncated)";
     }
 
     private class VolcengineResponse

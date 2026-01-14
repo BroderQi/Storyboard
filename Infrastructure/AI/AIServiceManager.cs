@@ -101,7 +101,17 @@ public class AIServiceManager
         _logger.LogInformation("Sending chat request: {Provider}, template: {Template}",
             provider.DisplayName, template.Name);
 
-        return await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
+        var response = await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            _logger.LogWarning(
+                "Chat response empty. Provider: {Provider}, template: {Template}, model: {Model}",
+                provider.DisplayName,
+                template.Name,
+                request.Model);
+        }
+
+        return response;
     }
 
     public async IAsyncEnumerable<string> ChatStreamAsync(

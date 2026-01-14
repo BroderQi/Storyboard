@@ -2,9 +2,9 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Serilog;
 using Storyboard.ViewModels;
 using Storyboard.Views;
 using Storyboard.AI;
@@ -40,6 +40,7 @@ public partial class App : Avalonia.Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            desktop.Exit += (_, __) => Log.CloseAndFlush();
             desktop.MainWindow = new MainWindow
             {
                 DataContext = Services.GetRequiredService<MainViewModel>()
@@ -67,10 +68,17 @@ public partial class App : Avalonia.Application
         services.AddStoryboardPersistence(dbPath);
 
         // Logging
+        var logPath = Path.Combine(AppContext.BaseDirectory, "logs", "app-.log");
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.Debug()
+            .WriteTo.File(logPath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+            .CreateLogger();
         services.AddLogging(builder =>
         {
-            builder.AddConsole();
-            builder.AddDebug();
+            builder.AddSerilog(Log.Logger, dispose: true);
         });
 
         // ViewModels
