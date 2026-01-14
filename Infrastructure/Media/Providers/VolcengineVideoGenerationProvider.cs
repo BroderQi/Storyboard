@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Storyboard.AI.Core;
 using Storyboard.Infrastructure.Media;
@@ -16,10 +17,12 @@ namespace Storyboard.Infrastructure.Media.Providers;
 public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
 {
     private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
+    private readonly ILogger<VolcengineVideoGenerationProvider> _logger;
 
-    public VolcengineVideoGenerationProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor)
+    public VolcengineVideoGenerationProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<VolcengineVideoGenerationProvider> logger)
     {
         _configMonitor = configMonitor;
+        _logger = logger;
     }
 
     private AIProviderConfiguration ProviderConfig => _configMonitor.CurrentValue.Providers.Volcengine;
@@ -46,6 +49,8 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
 
     public async Task GenerateAsync(VideoGenerationRequest request, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Starting video generation. Request: {Request}", JsonSerializer.Serialize(request));
+
         var providerConfig = ProviderConfig;
         if (!IsConfigured)
             throw new InvalidOperationException("Volcengine video generation is not configured.");
@@ -62,7 +67,7 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
 
         using var httpClient = new HttpClient
         {
-            BaseAddress = new Uri(providerConfig.Endpoint),
+            BaseAddress = BuildBaseAddress(providerConfig.Endpoint),
             Timeout = TimeSpan.FromSeconds(providerConfig.TimeoutSeconds)
         };
 
@@ -72,6 +77,8 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         var response = await httpClient.PostAsync("contents/generations/tasks", content, cancellationToken).ConfigureAwait(false);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("Video generation task creation response. Status: {Status}, Body: {Body}", response.StatusCode, responseBody);
 
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"Volcengine video generation failed: {responseBody}");
@@ -95,8 +102,12 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         if (string.IsNullOrWhiteSpace(videoUrl))
             throw new InvalidOperationException("Volcengine video generation result did not include a video url.");
 
+        _logger.LogInformation("Video generation final result. TaskId: {TaskId}, VideoUrl: {VideoUrl}", taskId, videoUrl);
+
         var videoBytes = await DownloadBytesAsync(videoUrl, cancellationToken).ConfigureAwait(false);
         await File.WriteAllBytesAsync(request.OutputPath, videoBytes, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("Video generation completed. OutputPath: {OutputPath}, BytesLength: {Length}", request.OutputPath, videoBytes.Length);
     }
 
     private Dictionary<string, object?> BuildPayload(
@@ -293,5 +304,17 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             ".tiff" => "image/tiff",
             _ => "application/octet-stream"
         };
+    }
+
+    private static Uri BuildBaseAddress(string endpoint)
+    {
+        if (string.IsNullOrWhiteSpace(endpoint))
+            throw new InvalidOperationException("Endpoint is required.");
+
+        var normalized = endpoint.TrimEnd('/');
+        if (normalized.EndsWith("/api/v3", StringComparison.OrdinalIgnoreCase))
+            return new Uri($"{normalized}/");
+
+        return new Uri($"{normalized}/api/v3/");
     }
 }

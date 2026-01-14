@@ -140,4 +140,55 @@ public partial class ShotCardView : UserControl
         // Do not cancel here; ShotListView will cancel/end reliably.
         _isPointerDownOnHandle = false;
     }
+
+    private void OnMaterialImagePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is ShotItem shot && !string.IsNullOrEmpty(shot.MaterialFilePath))
+        {
+            ShowImageDialog(shot.MaterialFilePath, "素材图片");
+        }
+    }
+
+    private void OnFirstFrameImagePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is ShotItem shot && !string.IsNullOrEmpty(shot.FirstFrameImagePath))
+        {
+            ShowImageDialog(shot.FirstFrameImagePath, "首帧图片");
+        }
+    }
+
+    private void ShowImageDialog(string imagePath, string title)
+    {
+        try
+        {
+            var bitmap = new Avalonia.Media.Imaging.Bitmap(imagePath);
+            var window = new Window
+            {
+                Title = title,
+                Width = 800,
+                Height = 600,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Content = new Image
+                {
+                    Source = bitmap,
+                    Stretch = Avalonia.Media.Stretch.Uniform
+                }
+            };
+
+            var mainWindow = this.FindAncestorOfType<Window>();
+            if (mainWindow != null)
+            {
+                window.ShowDialog(mainWindow);
+            }
+            else
+            {
+                window.Show();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error, perhaps show a message
+            Console.WriteLine($"Error loading image: {ex.Message}");
+        }
+    }
 }

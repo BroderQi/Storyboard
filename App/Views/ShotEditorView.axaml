@@ -235,7 +235,7 @@
                                         Height="200"
                                         ClipToBounds="True">
                                     <Panel>
-                                        <Image Source="{Binding FirstFrameImagePath}" 
+                                        <Image Source="{Binding FirstFrameImagePath, Converter={StaticResource PathToBitmapConverter}}" 
                                                Stretch="UniformToFill"
                                                IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <TextBlock Text="暂无图片" 
@@ -330,7 +330,7 @@
                                                         Margin="0,0,8,8">
                                                     <StackPanel Spacing="6" Width="120">
                                                         <Border Height="70" CornerRadius="4" ClipToBounds="True">
-                                                            <Image Source="{Binding DisplayPath}" Stretch="UniformToFill" />
+                                                            <Image Source="{Binding DisplayPath, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" />
                                                         </Border>
                                                         <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm:ss}'}"
                                                                    FontSize="10"
@@ -371,7 +371,7 @@
                                         Height="200"
                                         ClipToBounds="True">
                                     <Panel>
-                                        <Image Source="{Binding LastFrameImagePath}" 
+                                        <Image Source="{Binding LastFrameImagePath, Converter={StaticResource PathToBitmapConverter}}" 
                                                Stretch="UniformToFill"
                                                IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                         <TextBlock Text="暂无图片" 
@@ -466,7 +466,7 @@
                                                         Margin="0,0,8,8">
                                                     <StackPanel Spacing="6" Width="120">
                                                         <Border Height="70" CornerRadius="4" ClipToBounds="True">
-                                                            <Image Source="{Binding DisplayPath}" Stretch="UniformToFill" />
+                                                            <Image Source="{Binding DisplayPath, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" />
                                                         </Border>
                                                         <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm:ss}'}"
                                                                    FontSize="10"

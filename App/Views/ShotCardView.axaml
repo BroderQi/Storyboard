@@ -173,19 +173,20 @@
                     </Border.Styles>
                     <Panel>
                         <!-- Image -->
-                        <Image Source="{Binding FirstFrameImagePath}" 
+                        <Image Source="{Binding MaterialFilePath, Converter={StaticResource PathToBitmapConverter}}" 
                                Stretch="UniformToFill"
-                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                               IsVisible="{Binding MaterialFilePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                               PointerPressed="OnMaterialImagePressed" />
                         
                         <!-- Placeholder -->
                         <StackPanel HorizontalAlignment="Center" 
                                     VerticalAlignment="Center"
-                                    IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
+                                    IsVisible="{Binding MaterialFilePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                             <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                       Width="32" 
                                       Height="32" 
                                       Foreground="#3f3f46" />
-                            <TextBlock Text="首帧" 
+                            <TextBlock Text="素材" 
                                        FontSize="11" 
                                        Foreground="#52525b" 
                                        Margin="0,8,0,0"
@@ -247,19 +248,20 @@
                     </Border.Styles>
                     <Panel>
                         <!-- Image -->
-                        <Image Source="{Binding LastFrameImagePath}" 
+                        <Image Source="{Binding FirstFrameImagePath, Converter={StaticResource PathToBitmapConverter}}" 
                                Stretch="UniformToFill"
-                               IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                               IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                               PointerPressed="OnFirstFrameImagePressed" />
                         
                         <!-- Placeholder -->
                         <StackPanel HorizontalAlignment="Center" 
                                     VerticalAlignment="Center"
-                                    IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
+                                    IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                             <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                                       Width="32" 
                                       Height="32" 
                                       Foreground="#3f3f46" />
-                            <TextBlock Text="尾帧" 
+                            <TextBlock Text="首帧" 
                                        FontSize="11" 
                                        Foreground="#52525b" 
                                        Margin="0,8,0,0"
@@ -316,23 +318,12 @@
                         Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal" 
                             Spacing="4"
-                            IsVisible="{Binding FirstFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
+                            IsVisible="{Binding MaterialFilePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
                     <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
                               Width="14" 
                               Height="14" 
                               Foreground="#22c55e" />
-                    <TextBlock Text="首帧" 
-                               FontSize="12" 
-                               Foreground="#22c55e" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" 
-                            Spacing="4"
-                            IsVisible="{Binding LastFrameImagePath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
-                    <PathIcon Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" 
-                              Width="14" 
-                              Height="14" 
-                              Foreground="#22c55e" />
-                    <TextBlock Text="尾帧" 
+                    <TextBlock Text="素材" 
                                FontSize="12" 
                                Foreground="#22c55e" />
                 </StackPanel>

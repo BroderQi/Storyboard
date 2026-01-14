@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Storyboard.AI.Core;
 using Storyboard.Infrastructure.Media;
@@ -14,10 +15,12 @@ namespace Storyboard.Infrastructure.Media.Providers;
 public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
 {
     private readonly IOptionsMonitor<AIServicesConfiguration> _configMonitor;
+    private readonly ILogger<VolcengineImageGenerationProvider> _logger;
 
-    public VolcengineImageGenerationProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor)
+    public VolcengineImageGenerationProvider(IOptionsMonitor<AIServicesConfiguration> configMonitor, ILogger<VolcengineImageGenerationProvider> logger)
     {
         _configMonitor = configMonitor;
+        _logger = logger;
     }
 
     private AIProviderConfiguration ProviderConfig => _configMonitor.CurrentValue.Providers.Volcengine;
@@ -44,6 +47,8 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
         ImageGenerationRequest request,
         CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Starting image generation. Request: {Request}", JsonSerializer.Serialize(request));
+
         var providerConfig = ProviderConfig;
         if (!IsConfigured)
             throw new InvalidOperationException("Volcengine image generation is not configured.");
@@ -67,7 +72,7 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
 
         using var httpClient = new HttpClient
         {
-            BaseAddress = new Uri(providerConfig.Endpoint),
+            BaseAddress = BuildBaseAddress(providerConfig.Endpoint),
             Timeout = TimeSpan.FromSeconds(providerConfig.TimeoutSeconds)
         };
 
@@ -107,10 +112,15 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
         var response = await httpClient.PostAsync("images/generations", content, cancellationToken).ConfigureAwait(false);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
+        _logger.LogInformation("Image generation API response. Status: {Status}, Body: {Body}", response.StatusCode, responseBody);
+
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"Volcengine image generation failed: {responseBody}");
 
-        return await ParseImageResultAsync(responseBody, model, cancellationToken).ConfigureAwait(false);
+        var result = await ParseImageResultAsync(responseBody, model, cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation("Image generation completed. Result: Model={Model}, Extension={Extension}, BytesLength={Length}", result.ModelUsed, result.FileExtension, result.ImageBytes.Length);
+
+        return result;
     }
 
     private static string ResolveSize(VolcengineImageConfig config, int width, int height)
@@ -185,5 +195,17 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
         }
 
         return null;
+    }
+
+    private static Uri BuildBaseAddress(string endpoint)
+    {
+        if (string.IsNullOrWhiteSpace(endpoint))
+            throw new InvalidOperationException("Endpoint is required.");
+
+        var normalized = endpoint.TrimEnd('/');
+        if (normalized.EndsWith("/api/v3", StringComparison.OrdinalIgnoreCase))
+            return new Uri($"{normalized}/");
+
+        return new Uri($"{normalized}/api/v3/");
     }
 }

@@ -67,12 +67,6 @@
                        Foreground="#71717a"
                        VerticalAlignment="Center"
                        Text="生成后会追加到当前分镜列表末尾" />
-
-            <Button Grid.Column="1"
-                    Classes="Secondary"
-                    Width="120"
-                    Click="OnCancelClick"
-                    Content="关闭" />
         </Grid>
 
     </Grid>
