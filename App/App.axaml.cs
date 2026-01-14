@@ -83,15 +83,9 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IVideoMetadataService>(sp => sp.GetRequiredService<VideoAnalysisService>());
         services.AddSingleton<IFrameExtractionService, FrameExtractionService>();
         services.AddSingleton<IAiShotService, AiShotService>();
-        services.AddSingleton<IImageGenerationProvider, LocalImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, OpenAIImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, GeminiImageGenerationProvider>();
-        services.AddSingleton<IImageGenerationProvider, StableDiffusionApiImageGenerationProvider>();
+        services.AddSingleton<IImageGenerationProvider, VolcengineImageGenerationProvider>();
         services.AddSingleton<IImageGenerationService, ImageGenerationService>();
-        services.AddSingleton<IVideoGenerationProvider, LocalVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, OpenAIVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, GeminiVideoGenerationProvider>();
-        services.AddSingleton<IVideoGenerationProvider, StableDiffusionApiVideoGenerationProvider>();
+        services.AddSingleton<IVideoGenerationProvider, VolcengineVideoGenerationProvider>();
         services.AddSingleton<IVideoGenerationService, VideoGenerationService>();
         services.AddSingleton<IFinalRenderService, FinalRenderService>();
         services.AddSingleton<AppSettingsStore>();

@@ -38,18 +38,18 @@ public sealed class ImageGenerationService : IImageGenerationService
         Directory.CreateDirectory(outDir);
 
         var safePrefix = string.IsNullOrWhiteSpace(filePrefix) ? "image" : filePrefix;
-        var config = _configMonitor.CurrentValue.Image;
-        var provider = ResolveProvider(config);
-        var (width, height) = ResolveSize(provider, config);
-        var style = provider.ProviderType == ImageProviderType.Local ? config.Local.Style : "AI";
-        var resolvedModel = ResolveModel(provider, model, config);
+        var aiConfig = _configMonitor.CurrentValue;
+        var imageConfig = aiConfig.Image;
+        var provider = ResolveProvider(imageConfig);
+        var (width, height) = ResolveSize(imageConfig.Volcengine);
+        var resolvedModel = ResolveModel(provider, model, aiConfig);
 
         var request = new ImageGenerationRequest(
             prompt,
             resolvedModel,
             width,
             height,
-            style);
+            "AI");
 
         var result = await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
         var extension = NormalizeExtension(result.FileExtension);
@@ -73,18 +73,26 @@ public sealed class ImageGenerationService : IImageGenerationService
         return fallback;
     }
 
-    private static (int Width, int Height) ResolveSize(IImageGenerationProvider provider, ImageServicesConfiguration config)
+    private static (int Width, int Height) ResolveSize(VolcengineImageConfig config)
     {
-        return provider.ProviderType switch
-        {
-            ImageProviderType.OpenAI => ParseSize(config.OpenAI.Size, 1024, 1024),
-            ImageProviderType.Gemini => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height)),
-            ImageProviderType.StableDiffusionApi => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height)),
-            _ => (Math.Max(320, config.Local.Width), Math.Max(240, config.Local.Height))
-        };
+        if (string.IsNullOrWhiteSpace(config.Size))
+            return (2048, 2048);
+
+        var size = config.Size.Trim();
+        if (TryParseSize(size, out var width, out var height))
+            return (width, height);
+
+        if (string.Equals(size, "1K", StringComparison.OrdinalIgnoreCase))
+            return (1024, 1024);
+        if (string.Equals(size, "2K", StringComparison.OrdinalIgnoreCase))
+            return (2048, 2048);
+        if (string.Equals(size, "4K", StringComparison.OrdinalIgnoreCase))
+            return (4096, 4096);
+
+        return (2048, 2048);
     }
 
-    private static string ResolveModel(IImageGenerationProvider provider, string model, ImageServicesConfiguration config)
+    private static string ResolveModel(IImageGenerationProvider provider, string model, AIServicesConfiguration config)
     {
         if (!string.IsNullOrWhiteSpace(model) &&
             provider.SupportedModels.Any(m => string.Equals(m, model, StringComparison.OrdinalIgnoreCase)))
@@ -92,28 +100,36 @@ public sealed class ImageGenerationService : IImageGenerationService
             return model;
         }
 
-        return provider.ProviderType switch
+        if (config.Defaults.Image.Provider == AIProviderType.Volcengine &&
+            !string.IsNullOrWhiteSpace(config.Defaults.Image.Model))
         {
-            ImageProviderType.OpenAI => config.OpenAI.DefaultModel,
-            ImageProviderType.Gemini => config.Gemini.DefaultModel,
-            ImageProviderType.StableDiffusionApi => config.StableDiffusionApi.DefaultModel,
-            _ => "local"
-        };
+            return config.Defaults.Image.Model;
+        }
+
+        var providerConfig = config.Providers.Volcengine;
+        if (string.IsNullOrWhiteSpace(providerConfig.DefaultModels.Image))
+            throw new InvalidOperationException("No default image model configured for Volcengine.");
+
+        return providerConfig.DefaultModels.Image;
     }
 
-    private static (int Width, int Height) ParseSize(string? size, int fallbackWidth, int fallbackHeight)
+    private static bool TryParseSize(string? size, out int width, out int height)
     {
+        width = 0;
+        height = 0;
         if (string.IsNullOrWhiteSpace(size))
-            return (fallbackWidth, fallbackHeight);
+            return false;
 
         var parts = size.Split('x', 'X');
         if (parts.Length == 2 &&
-            int.TryParse(parts[0], out var w) &&
-            int.TryParse(parts[1], out var h) &&
-            w > 0 && h > 0)
-            return (w, h);
+            int.TryParse(parts[0], out width) &&
+            int.TryParse(parts[1], out height) &&
+            width > 0 && height > 0)
+            return true;
 
-        return (fallbackWidth, fallbackHeight);
+        width = 0;
+        height = 0;
+        return false;
     }
 
     private static string NormalizeExtension(string extension)

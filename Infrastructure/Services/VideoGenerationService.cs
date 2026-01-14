@@ -43,21 +43,22 @@ public sealed class VideoGenerationService : IVideoGenerationService
         var safePrefix = string.IsNullOrWhiteSpace(filePrefix) ? $"shot_{shot.ShotNumber:000}" : filePrefix;
         var outputPath = Path.Combine(outDir, $"{safePrefix}_{DateTime.Now:yyyyMMdd_HHmmss_fff}.mp4");
 
-        var config = _configMonitor.CurrentValue.Video;
-        var provider = ResolveProvider(config);
-        var settings = config.Local;
-        var model = ResolveModel(provider, shot.SelectedModel, config);
+        var aiConfig = _configMonitor.CurrentValue;
+        var videoConfig = aiConfig.Video;
+        var provider = ResolveProvider(videoConfig);
+        var model = ResolveModel(provider, shot.SelectedModel, aiConfig);
+        var (width, height) = ResolveDimensions(videoConfig.Volcengine.Resolution);
 
         var request = new VideoGenerationRequest(
             shot,
             outputPath,
             model,
-            settings.Width,
-            settings.Height,
-            settings.Fps,
-            settings.BitrateKbps,
-            settings.TransitionSeconds,
-            settings.UseKenBurns);
+            width,
+            height,
+            0,
+            0,
+            0,
+            false);
 
         await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -81,18 +82,39 @@ public sealed class VideoGenerationService : IVideoGenerationService
         return fallback;
     }
 
-    private static string ResolveModel(IVideoGenerationProvider provider, string model, VideoServicesConfiguration config)
+    private static string ResolveModel(IVideoGenerationProvider provider, string model, AIServicesConfiguration config)
     {
         if (!string.IsNullOrWhiteSpace(model) &&
             provider.SupportedModels.Any(m => string.Equals(m, model, StringComparison.OrdinalIgnoreCase)))
             return model;
 
-        return provider.ProviderType switch
+        if (config.Defaults.Video.Provider == AIProviderType.Volcengine &&
+            !string.IsNullOrWhiteSpace(config.Defaults.Video.Model))
         {
-            VideoProviderType.OpenAI => config.OpenAI.DefaultModel,
-            VideoProviderType.Gemini => config.Gemini.DefaultModel,
-            VideoProviderType.StableDiffusionApi => config.StableDiffusionApi.DefaultModel,
-            _ => "local"
+            return config.Defaults.Video.Model;
+        }
+
+        var providerConfig = config.Providers.Volcengine;
+        if (string.IsNullOrWhiteSpace(providerConfig.DefaultModels.Video))
+            throw new InvalidOperationException("No default video model configured for Volcengine.");
+
+        return providerConfig.DefaultModels.Video;
+    }
+
+    private static (int Width, int Height) ResolveDimensions(string? resolution)
+    {
+        if (string.IsNullOrWhiteSpace(resolution))
+            return (1920, 1080);
+
+        var normalized = resolution.Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "4k" => (3840, 2160),
+            "2k" => (2560, 1440),
+            "1080p" => (1920, 1080),
+            "720p" => (1280, 720),
+            "540p" => (960, 540),
+            _ => (1920, 1080)
         };
     }
 }

@@ -47,7 +47,7 @@ public class QwenServiceProvider : BaseAIServiceProvider
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Config.ApiKey);
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        var response = await httpClient.PostAsync("services/aigc/text-generation/generation", content, cancellationToken)
+        var response = await httpClient.PostAsync("chat/completions", content, cancellationToken)
             .ConfigureAwait(false);
 
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,7 @@ public class QwenServiceProvider : BaseAIServiceProvider
         }
 
         var result = JsonSerializer.Deserialize<QwenResponse>(responseBody);
-        return result?.Output?.Text ?? string.Empty;
+        return result?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty;
     }
 
     public override async IAsyncEnumerable<string> ChatStreamAsync(
@@ -71,12 +71,11 @@ public class QwenServiceProvider : BaseAIServiceProvider
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Config.ApiKey);
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "services/aigc/text-generation/generation")
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
         {
             Content = content
         };
         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
-        requestMessage.Headers.Add("X-DashScope-SSE", "enable");
 
         var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
@@ -96,9 +95,10 @@ public class QwenServiceProvider : BaseAIServiceProvider
                 break;
 
             var chunk = JsonSerializer.Deserialize<QwenResponse>(data);
-            if (!string.IsNullOrEmpty(chunk?.Output?.Text))
+            var contentDelta = chunk?.Choices?.FirstOrDefault()?.Delta?.Content;
+            if (!string.IsNullOrEmpty(contentDelta))
             {
-                yield return chunk.Output.Text!;
+                yield return contentDelta!;
             }
         }
     }
@@ -153,22 +153,15 @@ public class QwenServiceProvider : BaseAIServiceProvider
         return new
         {
             model = request.Model,
-            input = new
+            messages = request.Messages.Select(m => new
             {
-                messages = request.Messages.Select(m => new
-                {
-                    role = MapRole(m.Role),
-                    content = m.Content
-                }).ToArray()
-            },
-            parameters = new
-            {
-                result_format = "message",
-                temperature = request.Temperature,
-                top_p = request.TopP,
-                max_tokens = request.MaxTokens,
-                incremental_output = stream
-            }
+                role = MapRole(m.Role),
+                content = m.Content
+            }).ToArray(),
+            temperature = request.Temperature,
+            top_p = request.TopP,
+            max_tokens = request.MaxTokens,
+            stream = stream
         };
     }
 
@@ -185,11 +178,22 @@ public class QwenServiceProvider : BaseAIServiceProvider
 
     private class QwenResponse
     {
-        public QwenOutput? Output { get; set; }
+        public QwenChoice[]? Choices { get; set; }
     }
 
-    private class QwenOutput
+    private class QwenChoice
     {
-        public string? Text { get; set; }
+        public QwenMessage? Message { get; set; }
+        public QwenDelta? Delta { get; set; }
+    }
+
+    private class QwenMessage
+    {
+        public string? Content { get; set; }
+    }
+
+    private class QwenDelta
+    {
+        public string? Content { get; set; }
     }
 }

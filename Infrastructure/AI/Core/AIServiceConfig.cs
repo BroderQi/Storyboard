@@ -55,75 +55,40 @@ public sealed class AIServicesConfiguration
     public VideoServicesConfiguration Video { get; set; } = new();
 }
 
-public class LocalImageConfig
+public sealed class VolcengineImageConfig
 {
-    public bool Enabled { get; set; } = true;
-    public int Width { get; set; } = 1024;
-    public int Height { get; set; } = 576;
-    public string Style { get; set; } = "Poster";
-}
-
-public class OpenAIImageConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://api.openai.com/v1";
-    public string Size { get; set; } = "1024x1024";
-    public string Quality { get; set; } = "standard";
-}
-
-public class GeminiImageConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
-    public string ResponseMimeType { get; set; } = "image/png";
-}
-
-public class StableDiffusionApiImageConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v3";
-    public string NegativePrompt { get; set; } = "low quality";
+    public string Size { get; set; } = "2K";
+    public string ResponseFormat { get; set; } = "b64_json";
+    public bool Watermark { get; set; } = false;
+    public bool Stream { get; set; } = false;
+    public string SequentialImageGeneration { get; set; } = string.Empty;
+    public int? SequentialMaxImages { get; set; }
+    public string OptimizePromptMode { get; set; } = string.Empty;
 }
 
 public class ImageServicesConfiguration
 {
-    public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Local;
-    public LocalImageConfig Local { get; set; } = new();
-    public OpenAIImageConfig OpenAI { get; set; } = new();
-    public GeminiImageConfig Gemini { get; set; } = new();
-    public StableDiffusionApiImageConfig StableDiffusionApi { get; set; } = new();
+    public ImageProviderType DefaultProvider { get; set; } = ImageProviderType.Volcengine;
+    public VolcengineImageConfig Volcengine { get; set; } = new();
 }
 
-public class LocalVideoConfig
+public sealed class VolcengineVideoConfig
 {
-    public bool Enabled { get; set; } = true;
-    public int Width { get; set; } = 1280;
-    public int Height { get; set; } = 720;
-    public int Fps { get; set; } = 30;
-    public int BitrateKbps { get; set; } = 4000;
-    public double TransitionSeconds { get; set; } = 0.5;
-    public bool UseKenBurns { get; set; } = true;
+    public string Resolution { get; set; } = "1080p";
+    public string Ratio { get; set; } = string.Empty;
+    public double DurationSeconds { get; set; } = 0;
+    public int? Frames { get; set; }
+    public int? Seed { get; set; }
+    public bool? CameraFixed { get; set; }
+    public bool Watermark { get; set; } = false;
+    public bool ReturnLastFrame { get; set; } = false;
+    public string ServiceTier { get; set; } = "default";
+    public bool GenerateAudio { get; set; } = false;
+    public bool Draft { get; set; } = false;
 }
 
 public class VideoServicesConfiguration
 {
-    public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Local;
-    public LocalVideoConfig Local { get; set; } = new();
-    public OpenAIVideoConfig OpenAI { get; set; } = new();
-    public GeminiVideoConfig Gemini { get; set; } = new();
-    public StableDiffusionApiVideoConfig StableDiffusionApi { get; set; } = new();
-}
-
-public class OpenAIVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://api.openai.com/v1";
-}
-
-public class GeminiVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
-}
-
-public class StableDiffusionApiVideoConfig : AIServiceConfig
-{
-    public string Endpoint { get; set; } = "https://stablediffusionapi.com/api/v5";
-    public string NegativePrompt { get; set; } = "low quality";
-    public string Scheduler { get; set; } = "UniPCMultistepScheduler";
+    public VideoProviderType DefaultProvider { get; set; } = VideoProviderType.Volcengine;
+    public VolcengineVideoConfig Volcengine { get; set; } = new();
 }
