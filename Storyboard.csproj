@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Storyboard</AssemblyName>
-    <Product>帧大师-Storyboard</Product>
-    <ApplicationTitle>帧大师-Storyboard</ApplicationTitle>
+    <Product>分镜板-Storyboard</Product>
+    <ApplicationTitle>分镜板-Storyboard</ApplicationTitle>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>App\app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>

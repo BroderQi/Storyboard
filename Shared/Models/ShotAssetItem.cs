@@ -15,6 +15,9 @@ public partial class ShotAssetItem : ObservableObject
     private string? _thumbnailPath;
 
     [ObservableProperty]
+    private string? _videoThumbnailPath;
+
+    [ObservableProperty]
     private string? _prompt;
 
     [ObservableProperty]
@@ -36,7 +39,7 @@ public partial class ShotAssetItem : ObservableObject
 
     public string? DisplayPath => Type switch
     {
-        ShotAssetType.GeneratedVideo => !string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : null,
+        ShotAssetType.GeneratedVideo => !string.IsNullOrWhiteSpace(VideoThumbnailPath) ? VideoThumbnailPath : (!string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : null),
         _ => !string.IsNullOrWhiteSpace(ThumbnailPath) ? ThumbnailPath : FilePath
     };
 }

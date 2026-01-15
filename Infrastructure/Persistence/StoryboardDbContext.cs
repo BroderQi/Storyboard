@@ -53,6 +53,7 @@ public sealed class StoryboardDbContext : DbContext
             b.HasKey(a => a.Id);
             b.Property(a => a.ProjectId).HasMaxLength(32);
             b.Property(a => a.FilePath).IsRequired();
+            b.Property(a => a.VideoThumbnailPath);
             b.HasIndex(a => new { a.ProjectId, a.ShotId, a.Type });
         });
     }

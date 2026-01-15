@@ -45,6 +45,7 @@ public sealed record ShotAssetState(
     Domain.Entities.ShotAssetType Type,
     string FilePath,
     string? ThumbnailPath,
+    string? VideoThumbnailPath,
     string? Prompt,
     string? Model,
     DateTimeOffset CreatedAt);

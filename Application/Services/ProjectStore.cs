@@ -99,6 +99,7 @@ public sealed class ProjectStore : IProjectStore
                 a.Type,
                 a.FilePath,
                 a.ThumbnailPath,
+                a.VideoThumbnailPath,
                 a.Prompt,
                 a.Model,
                 a.CreatedAt))
@@ -107,11 +108,11 @@ public sealed class ProjectStore : IProjectStore
         if (list.Count == 0)
         {
             if (!string.IsNullOrWhiteSpace(shot.FirstFrameImagePath))
-                list.Add(new ShotAssetState(ShotAssetType.FirstFrameImage, shot.FirstFrameImagePath, shot.FirstFrameImagePath, shot.FirstFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
+                list.Add(new ShotAssetState(ShotAssetType.FirstFrameImage, shot.FirstFrameImagePath, shot.FirstFrameImagePath, null, shot.FirstFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
             if (!string.IsNullOrWhiteSpace(shot.LastFrameImagePath))
-                list.Add(new ShotAssetState(ShotAssetType.LastFrameImage, shot.LastFrameImagePath, shot.LastFrameImagePath, shot.LastFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
+                list.Add(new ShotAssetState(ShotAssetType.LastFrameImage, shot.LastFrameImagePath, shot.LastFrameImagePath, null, shot.LastFramePrompt, shot.SelectedModel, DateTimeOffset.Now));
             if (!string.IsNullOrWhiteSpace(shot.GeneratedVideoPath))
-                list.Add(new ShotAssetState(ShotAssetType.GeneratedVideo, shot.GeneratedVideoPath, null, null, shot.SelectedModel, DateTimeOffset.Now));
+                list.Add(new ShotAssetState(ShotAssetType.GeneratedVideo, shot.GeneratedVideoPath, null, null, null, shot.SelectedModel, DateTimeOffset.Now));
         }
 
         return list;
@@ -202,6 +203,7 @@ public sealed class ProjectStore : IProjectStore
                         Type = a.Type,
                         FilePath = a.FilePath,
                         ThumbnailPath = a.ThumbnailPath,
+                        VideoThumbnailPath = a.VideoThumbnailPath,
                         Prompt = a.Prompt,
                         Model = a.Model,
                         CreatedAt = a.CreatedAt

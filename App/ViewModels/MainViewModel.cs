@@ -118,6 +118,7 @@ public partial class MainViewModel : ObservableObject
         Storyboard.Domain.Entities.ShotAssetType Type,
         string FilePath,
         string? ThumbnailPath,
+        string? VideoThumbnailPath,
         string? Prompt,
         string? Model,
         DateTimeOffset CreatedAt);
@@ -595,6 +596,7 @@ public partial class MainViewModel : ObservableObject
                 asset.Type,
                 asset.FilePath,
                 asset.ThumbnailPath,
+                asset.VideoThumbnailPath,
                 asset.Prompt,
                 asset.Model,
                 asset.CreatedAt));
@@ -685,6 +687,7 @@ public partial class MainViewModel : ObservableObject
                 Type = asset.Type,
                 FilePath = asset.FilePath,
                 ThumbnailPath = asset.ThumbnailPath,
+                VideoThumbnailPath = asset.VideoThumbnailPath,
                 Prompt = asset.Prompt,
                 Model = asset.Model,
                 CreatedAt = asset.CreatedAt
@@ -707,6 +710,7 @@ public partial class MainViewModel : ObservableObject
                 Type = asset.Type,
                 FilePath = asset.FilePath,
                 ThumbnailPath = asset.ThumbnailPath,
+                VideoThumbnailPath = asset.VideoThumbnailPath,
                 Prompt = asset.Prompt,
                 Model = asset.Model,
                 CreatedAt = asset.CreatedAt
@@ -948,6 +952,7 @@ public partial class MainViewModel : ObservableObject
                 asset.Type,
                 asset.FilePath,
                 asset.ThumbnailPath,
+                asset.VideoThumbnailPath,
                 asset.Prompt,
                 asset.Model,
                 asset.CreatedAt));
@@ -2135,7 +2140,8 @@ public partial class MainViewModel : ObservableObject
         {
             Type = type,
             FilePath = filePath,
-            ThumbnailPath = thumbnailPath,
+            ThumbnailPath = type == ShotAssetType.GeneratedVideo ? null : thumbnailPath,
+            VideoThumbnailPath = type == ShotAssetType.GeneratedVideo ? thumbnailPath : null,
             Prompt = prompt,
             Model = model,
             CreatedAt = DateTimeOffset.Now,

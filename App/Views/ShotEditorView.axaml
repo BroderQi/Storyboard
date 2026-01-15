@@ -631,12 +631,12 @@
                                                     <StackPanel Spacing="6" Width="140">
                                                         <Border Height="80" CornerRadius="4" ClipToBounds="True" Background="#0f0f0f" BorderBrush="#27272a" BorderThickness="1">
                                                             <Panel>
-                                                                <Image Source="{Binding DisplayPath, Converter={StaticResource PathToBitmapConverter}}"
+                                                                <Image Source="{Binding ThumbnailPath, Converter={StaticResource PathToBitmapConverter}}"
                                                                        Stretch="UniformToFill"
-                                                                       IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                                                                       IsVisible="{Binding ThumbnailPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                                                 <StackPanel HorizontalAlignment="Center"
                                                                             VerticalAlignment="Center"
-                                                                            IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
+                                                                            IsVisible="{Binding ThumbnailPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                                                                     <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"
                                                                               Width="24"
                                                                               Height="24"

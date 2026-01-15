@@ -39,6 +39,11 @@ public sealed class ShotAsset
     public string? ThumbnailPath { get; set; }
 
     /// <summary>
+    /// 视频缩略图路径（专门用于视频资产）
+    /// </summary>
+    public string? VideoThumbnailPath { get; set; }
+
+    /// <summary>
     /// 生成提示词
     /// </summary>
     public string? Prompt { get; set; }
