@@ -1,22 +1,21 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using LibVLCSharp.Shared;
 using Storyboard.Models;
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Storyboard.Views;
 
 public partial class ShotEditorView : UserControl
 {
-    private LibVLC? _libVlc;
-    private MediaPlayer? _mediaPlayer;
-    private Media? _currentMedia;
     private ShotItem? _shot;
-    private bool _videoViewReady;
+    private bool _viewAttached;
+    private string? _currentVideoPath;
     private string? _pendingVideoPath;
+    private bool _pendingAutoPlay;
 
     public ShotEditorView()
     {
@@ -28,8 +27,10 @@ public partial class ShotEditorView : UserControl
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        EnsurePlayer();
-        UpdateMedia(_shot?.GeneratedVideoPath);
+        _viewAttached = true;
+        EnsurePlayerLoaded();
+        ApplyPending();
+        UpdatePlayerSource(_shot?.GeneratedVideoPath, false);
     }
 
     private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -37,19 +38,13 @@ public partial class ShotEditorView : UserControl
         if (_shot != null)
             _shot.PropertyChanged -= OnShotPropertyChanged;
 
-        _mediaPlayer?.Stop();
-        _currentMedia?.Dispose();
-        _currentMedia = null;
-
-        if (VideoView != null)
-            VideoView.MediaPlayer = null;
-
-        _mediaPlayer?.Dispose();
-        _mediaPlayer = null;
-        _libVlc?.Dispose();
-        _libVlc = null;
-        _videoViewReady = false;
+        _viewAttached = false;
+        _currentVideoPath = null;
         _pendingVideoPath = null;
+        _pendingAutoPlay = false;
+
+        if (VideoWebView != null)
+            VideoWebView.Url = null;
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -58,88 +53,142 @@ public partial class ShotEditorView : UserControl
             _shot.PropertyChanged -= OnShotPropertyChanged;
 
         _shot = DataContext as ShotItem;
+
         if (_shot != null)
             _shot.PropertyChanged += OnShotPropertyChanged;
 
-        UpdateMedia(_shot?.GeneratedVideoPath);
+        UpdatePlayerSource(_shot?.GeneratedVideoPath, false);
     }
 
     private void OnShotPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ShotItem.GeneratedVideoPath))
-            UpdateMedia(_shot?.GeneratedVideoPath);
+        if (e.PropertyName == nameof(ShotItem.GeneratedVideoPath))
+            UpdatePlayerSource(_shot?.GeneratedVideoPath, false);
     }
 
-    private void EnsurePlayer()
+    private async void OnTogglePlayClicked(object? sender, RoutedEventArgs e)
     {
-        if (_mediaPlayer != null)
+        var path = NormalizeVideoPath(_shot?.GeneratedVideoPath);
+        if (path == null)
             return;
 
-        Core.Initialize();
-        _libVlc = new LibVLC();
-        _mediaPlayer = new MediaPlayer(_libVlc);
+        if (!_viewAttached || VideoWebView == null)
+        {
+            _pendingVideoPath = path;
+            _pendingAutoPlay = true;
+            return;
+        }
 
-        if (VideoView != null)
-            VideoView.MediaPlayer = _mediaPlayer;
+        if (!string.Equals(_currentVideoPath, path, StringComparison.OrdinalIgnoreCase))
+        {
+            UpdatePlayerSource(path, true);
+            return;
+        }
+
+        if (await TryTogglePlayAsync())
+            return;
+
+        UpdatePlayerSource(path, true);
     }
 
-    private void UpdateMedia(string? videoPath)
+    private void EnsurePlayerLoaded()
     {
-        if (_mediaPlayer == null)
+        if (!_viewAttached || VideoWebView == null)
             return;
 
-        if (!_videoViewReady)
+        var uri = BuildPlayerUri(null, false);
+        if (uri == null)
+            return;
+
+        if (VideoWebView.Url == null)
+            VideoWebView.Url = uri;
+    }
+
+    private void ApplyPending()
+    {
+        if (_pendingVideoPath == null && !_pendingAutoPlay)
+            return;
+
+        var path = _pendingVideoPath;
+        var autoplay = _pendingAutoPlay;
+
+        _pendingVideoPath = null;
+        _pendingAutoPlay = false;
+
+        UpdatePlayerSource(path, autoplay);
+    }
+
+    private void UpdatePlayerSource(string? videoPath, bool autoplay)
+    {
+        if (!_viewAttached || VideoWebView == null)
         {
             _pendingVideoPath = videoPath;
+            _pendingAutoPlay = autoplay;
             return;
         }
 
-        _mediaPlayer.Stop();
-        _currentMedia?.Dispose();
-        _currentMedia = null;
-
-        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
+        var normalizedPath = NormalizeVideoPath(videoPath);
+        if (!autoplay && string.Equals(_currentVideoPath, normalizedPath, StringComparison.OrdinalIgnoreCase))
             return;
 
-        _currentMedia = new Media(_libVlc!, new Uri(videoPath));
-        _mediaPlayer.Media = _currentMedia;
+        var uri = BuildPlayerUri(normalizedPath, autoplay);
+        if (uri == null)
+            return;
+
+        _currentVideoPath = normalizedPath;
+        VideoWebView.Url = uri;
     }
 
-    private void OnVideoViewAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    private async Task<bool> TryTogglePlayAsync()
     {
-        _videoViewReady = true;
-        EnsurePlayer();
+        if (VideoWebView == null)
+            return false;
 
-        if (_pendingVideoPath != null)
+        try
         {
-            var path = _pendingVideoPath;
-            _pendingVideoPath = null;
-            UpdateMedia(path);
+            await VideoWebView.ExecuteScriptAsync("window.togglePlay && window.togglePlay()");
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    private void OnVideoViewDetached(object? sender, VisualTreeAttachmentEventArgs e)
+    private static string? NormalizeVideoPath(string? videoPath)
     {
-        _videoViewReady = false;
-        _pendingVideoPath = null;
+        if (string.IsNullOrWhiteSpace(videoPath))
+            return null;
+
+        return File.Exists(videoPath) ? Path.GetFullPath(videoPath) : null;
     }
 
-    private void OnTogglePlayClicked(object? sender, RoutedEventArgs e)
+    private static Uri? BuildPlayerUri(string? videoPath, bool autoplay)
     {
-        EnsurePlayer();
+        var playerPath = GetPlayerHtmlPath();
+        if (playerPath == null)
+            return null;
 
-        if (_mediaPlayer == null)
-            return;
+        var playerUri = new Uri(playerPath);
+        if (string.IsNullOrWhiteSpace(videoPath))
+            return playerUri;
 
-        if (_mediaPlayer.Media == null)
-            UpdateMedia(_shot?.GeneratedVideoPath);
+        var videoUri = new Uri(videoPath).AbsoluteUri;
+        var query = $"src={Uri.EscapeDataString(videoUri)}";
+        if (autoplay)
+            query += "&autoplay=1";
 
-        if (_mediaPlayer.Media == null)
-            return;
+        var builder = new UriBuilder(playerUri)
+        {
+            Query = query
+        };
 
-        if (_mediaPlayer.IsPlaying)
-            _mediaPlayer.Pause();
-        else
-            _mediaPlayer.Play();
+        return builder.Uri;
+    }
+
+    private static string? GetPlayerHtmlPath()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "App", "Assets", "VideoPlayer", "player.html");
+        return File.Exists(path) ? path : null;
     }
 }

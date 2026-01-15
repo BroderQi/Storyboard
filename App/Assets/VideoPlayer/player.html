@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0a0a0a;
+    }
+    .player-wrap,
+    .plyr {
+      height: 100%;
+      width: 100%;
+    }
+    .plyr__video-wrapper {
+      height: 100%;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-wrap">
+    <video id="player" playsinline controls preload="metadata"></video>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.min.js"></script>
+  <script>
+    function guessMime(url) {
+      const lower = url.toLowerCase();
+      if (lower.endsWith(".webm")) return "video/webm";
+      if (lower.endsWith(".ogv") || lower.endsWith(".ogg")) return "video/ogg";
+      if (lower.endsWith(".mkv")) return "video/x-matroska";
+      return "video/mp4";
+    }
+
+    const player = new Plyr("#player", {
+      autoplay: false,
+      clickToPlay: true,
+      hideControls: false
+    });
+
+    function setSource(src, shouldAutoplay) {
+      if (!src) {
+        player.stop();
+        player.media.removeAttribute("src");
+        player.media.load();
+        return;
+      }
+
+      player.source = {
+        type: "video",
+        sources: [{ src: src, type: guessMime(src) }]
+      };
+
+      if (shouldAutoplay) {
+        player.play().catch(() => {});
+      }
+    }
+
+    function togglePlay() {
+      if (player.playing) {
+        player.pause();
+      } else {
+        player.play().catch(() => {});
+      }
+    }
+
+    window.setSource = setSource;
+    window.togglePlay = togglePlay;
+
+    const params = new URLSearchParams(window.location.search);
+    const src = params.get("src");
+    const autoplay = params.get("autoplay") === "1";
+    if (src) {
+      setSource(src, autoplay);
+    }
+  </script>
+</body>
+</html>
