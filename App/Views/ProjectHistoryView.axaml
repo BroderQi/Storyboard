@@ -26,7 +26,7 @@
         
         <!-- Content -->
         <ScrollViewer Grid.Row="1" Padding="40,32">
-            <StackPanel MaxWidth="1200" HorizontalAlignment="Center" Spacing="28">
+            <StackPanel MaxWidth="1200" HorizontalAlignment="Center" Spacing="28" Margin="0,0,0,120">
                 
                 <!-- Create New Project Card -->
                 <Border Classes="Card"
