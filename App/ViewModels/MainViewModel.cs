@@ -1234,6 +1234,10 @@ public partial class MainViewModel : ObservableObject
                         }
                         RenumberShots();
 
+                        // Select first shot by default
+                        if (Shots.Count > 0)
+                            SelectedShot = Shots[0];
+
                         foreach (var shot in Shots)
                         {
                             foreach (var asset in shot.VideoAssets)

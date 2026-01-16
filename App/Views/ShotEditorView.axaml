@@ -157,24 +157,6 @@
                 <ScrollViewer Padding="16,16,16,64" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Stretch">
                     <StackPanel Spacing="16" Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
 
-                        <!-- AI Parse Button -->
-                        <Button Classes="Secondary"
-                                HorizontalAlignment="Stretch"
-                                IsEnabled="{Binding IsAiParsing, Converter={StaticResource BoolNot}}"
-                                Command="{Binding AIParseCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                                          Width="14"
-                                          Height="14"
-                                          IsVisible="{Binding IsAiParsing, Converter={StaticResource BoolNot}}" />
-                                <ProgressBar IsIndeterminate="True"
-                                             Width="14"
-                                             Height="14"
-                                             IsVisible="{Binding IsAiParsing}" />
-                                <TextBlock Text="{Binding IsAiParsing, Converter={StaticResource AiParseButtonTextConverter}}" FontSize="13" />
-                            </StackPanel>
-                        </Button>
-
                         <!-- First Frame Section -->
                         <Border Background="#18181b"
                                 BorderBrush="#27272a"
@@ -726,24 +708,6 @@
                               VerticalAlignment="Stretch">
                     <StackPanel Spacing="16"
                                 Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
-
-                        <!-- AI Parse Button -->
-                        <Button Classes="Secondary"
-                                HorizontalAlignment="Stretch"
-                                IsEnabled="{Binding IsAiParsing, Converter={StaticResource BoolNot}}"
-                                Command="{Binding AIParseCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                                          Width="14"
-                                          Height="14"
-                                          IsVisible="{Binding IsAiParsing, Converter={StaticResource BoolNot}}" />
-                                <ProgressBar IsIndeterminate="True"
-                                             Width="14"
-                                             Height="14"
-                                             IsVisible="{Binding IsAiParsing}" />
-                                <TextBlock Text="{Binding IsAiParsing, Converter={StaticResource AiParseButtonTextConverter}}" FontSize="13" />
-                            </StackPanel>
-                        </Button>
 
                         <!-- Main Prompt Section -->
                         <Border Background="#18181b"
