@@ -22,4 +22,8 @@ public sealed record AiShotDescription(
     string? CameraMovement = null,
     string? ShootingStyle = null,
     string? VideoEffect = null,
-    string? VideoNegativePrompt = null);
+    string? VideoNegativePrompt = null,
+    // Additional parameters
+    string? ImageSize = null,
+    string? VideoResolution = null,
+    string? VideoRatio = null);

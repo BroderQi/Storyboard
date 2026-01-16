@@ -73,7 +73,35 @@ public sealed class ProjectStore : IProjectStore
                 s.GeneratedVideoPath,
                 s.MaterialThumbnailPath,
                 s.MaterialFilePath,
-                BuildAssetStates(s)))
+                BuildAssetStates(s),
+                // Image generation parameters
+                s.ImageSize,
+                s.NegativePrompt,
+                // Image professional parameters
+                s.AspectRatio,
+                s.LightingType,
+                s.TimeOfDay,
+                s.Composition,
+                s.ColorStyle,
+                s.LensType,
+                // Video generation parameters
+                s.VideoPrompt,
+                s.SceneDescription,
+                s.ActionDescription,
+                s.StyleDescription,
+                s.VideoNegativePrompt,
+                // Video professional parameters
+                s.CameraMovement,
+                s.ShootingStyle,
+                s.VideoEffect,
+                s.VideoResolution,
+                s.VideoRatio,
+                s.VideoFrames,
+                s.UseFirstFrameReference,
+                s.UseLastFrameReference,
+                s.Seed,
+                s.CameraFixed,
+                s.Watermark))
             .ToList();
 
         return new ProjectState(
@@ -196,6 +224,34 @@ public sealed class ProjectStore : IProjectStore
                 GeneratedVideoPath = s.GeneratedVideoPath,
                 MaterialThumbnailPath = s.MaterialThumbnailPath,
                 MaterialFilePath = s.MaterialFilePath,
+                // Image generation parameters
+                ImageSize = s.ImageSize,
+                NegativePrompt = s.NegativePrompt,
+                // Image professional parameters
+                AspectRatio = s.AspectRatio,
+                LightingType = s.LightingType,
+                TimeOfDay = s.TimeOfDay,
+                Composition = s.Composition,
+                ColorStyle = s.ColorStyle,
+                LensType = s.LensType,
+                // Video generation parameters
+                VideoPrompt = s.VideoPrompt,
+                SceneDescription = s.SceneDescription,
+                ActionDescription = s.ActionDescription,
+                StyleDescription = s.StyleDescription,
+                VideoNegativePrompt = s.VideoNegativePrompt,
+                // Video professional parameters
+                CameraMovement = s.CameraMovement,
+                ShootingStyle = s.ShootingStyle,
+                VideoEffect = s.VideoEffect,
+                VideoResolution = s.VideoResolution,
+                VideoRatio = s.VideoRatio,
+                VideoFrames = s.VideoFrames,
+                UseFirstFrameReference = s.UseFirstFrameReference,
+                UseLastFrameReference = s.UseLastFrameReference,
+                Seed = s.Seed,
+                CameraFixed = s.CameraFixed,
+                Watermark = s.Watermark,
                 Assets = s.Assets
                     .Select(a => new ShotAsset
                     {

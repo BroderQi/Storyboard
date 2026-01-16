@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet ef migrations list:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet ef migrations remove:*)",
+      "Bash(dir /b \"d:\\\\project\\\\分镜大师\\\\bin\\\\Debug\\\\net8.0\")",
+      "Bash(findstr:*)"
+    ],
+    "additionalDirectories": [
+      "d:\\project\\分镜大师"
+    ]
+  }
+}

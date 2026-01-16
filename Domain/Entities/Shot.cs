@@ -97,6 +97,130 @@ public sealed class Shot
     /// </summary>
     public string? MaterialFilePath { get; set; }
 
+    // Image generation parameters
+    /// <summary>
+    /// 图片尺寸
+    /// </summary>
+    public string ImageSize { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 负面提示词
+    /// </summary>
+    public string NegativePrompt { get; set; } = string.Empty;
+
+    // Image professional parameters
+    /// <summary>
+    /// 宽高比
+    /// </summary>
+    public string AspectRatio { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 光线类型
+    /// </summary>
+    public string LightingType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 时间段
+    /// </summary>
+    public string TimeOfDay { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 构图
+    /// </summary>
+    public string Composition { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 色调风格
+    /// </summary>
+    public string ColorStyle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 镜头类型
+    /// </summary>
+    public string LensType { get; set; } = string.Empty;
+
+    // Video generation parameters
+    /// <summary>
+    /// 视频提示词
+    /// </summary>
+    public string VideoPrompt { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 场景描述
+    /// </summary>
+    public string SceneDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 动作描述
+    /// </summary>
+    public string ActionDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 风格描述
+    /// </summary>
+    public string StyleDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 视频负面提示词
+    /// </summary>
+    public string VideoNegativePrompt { get; set; } = string.Empty;
+
+    // Video professional parameters
+    /// <summary>
+    /// 运镜方式
+    /// </summary>
+    public string CameraMovement { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 拍摄风格
+    /// </summary>
+    public string ShootingStyle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 视频特效
+    /// </summary>
+    public string VideoEffect { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 视频分辨率
+    /// </summary>
+    public string VideoResolution { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 视频比例
+    /// </summary>
+    public string VideoRatio { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 视频帧数
+    /// </summary>
+    public int VideoFrames { get; set; }
+
+    /// <summary>
+    /// 使用首帧参考
+    /// </summary>
+    public bool UseFirstFrameReference { get; set; } = true;
+
+    /// <summary>
+    /// 使用尾帧参考
+    /// </summary>
+    public bool UseLastFrameReference { get; set; }
+
+    /// <summary>
+    /// 随机种子
+    /// </summary>
+    public int? Seed { get; set; }
+
+    /// <summary>
+    /// 固定摄影机
+    /// </summary>
+    public bool CameraFixed { get; set; }
+
+    /// <summary>
+    /// 水印
+    /// </summary>
+    public bool Watermark { get; set; }
+
     /// <summary>
     /// 镜头下的素材列表
     /// </summary>

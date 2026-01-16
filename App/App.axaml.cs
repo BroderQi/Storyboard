@@ -40,6 +40,9 @@ public partial class App : Avalonia.Application
         ConfigureServices(services);
         Services = services.BuildServiceProvider();
 
+        // 应用数据库迁移
+        ApplyDatabaseMigrations().GetAwaiter().GetResult();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.Exit += (_, __) => Log.CloseAndFlush();
@@ -50,6 +53,26 @@ public partial class App : Avalonia.Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async System.Threading.Tasks.Task ApplyDatabaseMigrations()
+    {
+        try
+        {
+            using var scope = Services.CreateScope();
+            var contextFactory = scope.ServiceProvider.GetRequiredService<Microsoft.EntityFrameworkCore.IDbContextFactory<Infrastructure.Persistence.StoryboardDbContext>>();
+            var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<App>>();
+
+            await using var context = await contextFactory.CreateDbContextAsync();
+            await Infrastructure.Migrations.DatabaseMigrationHelper.ApplyIncrementalMigrationsAsync(context, logger);
+
+            Log.Information("数据库迁移成功完成");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "数据库迁移失败");
+            // 不抛出异常，允许应用继续启动
+        }
     }
 
     private void ConfigureServices(IServiceCollection services)

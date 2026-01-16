@@ -201,7 +201,27 @@ public sealed class AiShotService : IAiShotService
             GetString(root, "actionCommand", "action_command", "动作指令"),
             GetString(root, "sceneSettings", "scene_settings", "场景设定"),
             GetString(root, "firstFramePrompt", "first_frame_prompt", "首帧提示词"),
-            GetString(root, "lastFramePrompt", "last_frame_prompt", "尾帧提示词"));
+            GetString(root, "lastFramePrompt", "last_frame_prompt", "尾帧提示词"),
+            DurationSeconds: null,
+            // Image professional parameters
+            Composition: GetStringOrNull(root, "composition", "构图"),
+            LightingType: GetStringOrNull(root, "lightingType", "lighting_type", "光线类型"),
+            TimeOfDay: GetStringOrNull(root, "timeOfDay", "time_of_day", "时间段"),
+            ColorStyle: GetStringOrNull(root, "colorStyle", "color_style", "色调风格"),
+            NegativePrompt: GetStringOrNull(root, "negativePrompt", "negative_prompt", "负面提示词"),
+            // Video parameters
+            VideoPrompt: GetStringOrNull(root, "videoPrompt", "video_prompt", "视频提示词"),
+            SceneDescription: GetStringOrNull(root, "sceneDescription", "scene_description", "场景描述"),
+            ActionDescription: GetStringOrNull(root, "actionDescription", "action_description", "动作描述"),
+            StyleDescription: GetStringOrNull(root, "styleDescription", "style_description", "风格描述"),
+            CameraMovement: GetStringOrNull(root, "cameraMovement", "camera_movement", "运镜方式"),
+            ShootingStyle: GetStringOrNull(root, "shootingStyle", "shooting_style", "拍摄风格"),
+            VideoEffect: GetStringOrNull(root, "videoEffect", "video_effect", "视频特效"),
+            VideoNegativePrompt: GetStringOrNull(root, "videoNegativePrompt", "video_negative_prompt", "视频负面提示词"),
+            // Additional parameters
+            ImageSize: GetStringOrNull(root, "imageSize", "image_size", "图片尺寸"),
+            VideoResolution: GetStringOrNull(root, "videoResolution", "video_resolution", "视频分辨率"),
+            VideoRatio: GetStringOrNull(root, "videoRatio", "video_ratio", "视频比例"));
     }
 
     private static IReadOnlyList<AiShotDescription> ParseShotList(string json)
@@ -259,6 +279,21 @@ public sealed class AiShotService : IAiShotService
         }
 
         return string.Empty;
+    }
+
+    private static string? GetStringOrNull(JsonElement obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (obj.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String)
+            {
+                var value = prop.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value.Trim();
+            }
+        }
+
+        return null;
     }
 
     private static double? GetDouble(JsonElement obj, params string[] names)

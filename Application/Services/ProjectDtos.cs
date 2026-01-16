@@ -39,7 +39,35 @@ public sealed record ShotState(
     string? GeneratedVideoPath,
     string? MaterialThumbnailPath,
     string? MaterialFilePath,
-    IReadOnlyList<ShotAssetState> Assets);
+    IReadOnlyList<ShotAssetState> Assets,
+    // Image generation parameters
+    string ImageSize = "",
+    string NegativePrompt = "",
+    // Image professional parameters
+    string AspectRatio = "",
+    string LightingType = "",
+    string TimeOfDay = "",
+    string Composition = "",
+    string ColorStyle = "",
+    string LensType = "",
+    // Video generation parameters
+    string VideoPrompt = "",
+    string SceneDescription = "",
+    string ActionDescription = "",
+    string StyleDescription = "",
+    string VideoNegativePrompt = "",
+    // Video professional parameters
+    string CameraMovement = "",
+    string ShootingStyle = "",
+    string VideoEffect = "",
+    string VideoResolution = "",
+    string VideoRatio = "",
+    int VideoFrames = 0,
+    bool UseFirstFrameReference = true,
+    bool UseLastFrameReference = false,
+    int? Seed = null,
+    bool CameraFixed = false,
+    bool Watermark = false);
 
 public sealed record ShotAssetState(
     Domain.Entities.ShotAssetType Type,

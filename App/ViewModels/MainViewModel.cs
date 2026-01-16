@@ -1158,7 +1158,35 @@ public partial class MainViewModel : ObservableObject
                                 LastFrameImagePath = s.LastFrameImagePath,
                                 GeneratedVideoPath = s.GeneratedVideoPath,
                                 MaterialThumbnailPath = s.MaterialThumbnailPath,
-                                MaterialFilePath = s.MaterialFilePath
+                                MaterialFilePath = s.MaterialFilePath,
+                                // Image generation parameters
+                                ImageSize = s.ImageSize,
+                                NegativePrompt = s.NegativePrompt,
+                                // Image professional parameters
+                                AspectRatio = s.AspectRatio,
+                                LightingType = s.LightingType,
+                                TimeOfDay = s.TimeOfDay,
+                                Composition = s.Composition,
+                                ColorStyle = s.ColorStyle,
+                                LensType = s.LensType,
+                                // Video generation parameters
+                                VideoPrompt = s.VideoPrompt,
+                                SceneDescription = s.SceneDescription,
+                                ActionDescription = s.ActionDescription,
+                                StyleDescription = s.StyleDescription,
+                                VideoNegativePrompt = s.VideoNegativePrompt,
+                                // Video professional parameters
+                                CameraMovement = s.CameraMovement,
+                                ShootingStyle = s.ShootingStyle,
+                                VideoEffect = s.VideoEffect,
+                                VideoResolution = s.VideoResolution,
+                                VideoRatio = s.VideoRatio,
+                                VideoFrames = s.VideoFrames,
+                                UseFirstFrameReference = s.UseFirstFrameReference,
+                                UseLastFrameReference = s.UseLastFrameReference,
+                                Seed = s.Seed,
+                                CameraFixed = s.CameraFixed,
+                                Watermark = s.Watermark
                             };
                             LoadAssetsIntoShot(shot, s.Assets);
                             AttachShotEventHandlers(shot);
@@ -2302,6 +2330,8 @@ public partial class MainViewModel : ObservableObject
             shot.ColorStyle = MergeField(shot.ColorStyle, description.ColorStyle, mode);
         if (!string.IsNullOrWhiteSpace(description.NegativePrompt))
             shot.NegativePrompt = MergeField(shot.NegativePrompt, description.NegativePrompt, mode);
+        if (!string.IsNullOrWhiteSpace(description.ImageSize))
+            shot.ImageSize = MergeField(shot.ImageSize, description.ImageSize, mode);
 
         // Apply video parameters
         if (!string.IsNullOrWhiteSpace(description.VideoPrompt))
@@ -2320,6 +2350,10 @@ public partial class MainViewModel : ObservableObject
             shot.VideoEffect = MergeField(shot.VideoEffect, description.VideoEffect, mode);
         if (!string.IsNullOrWhiteSpace(description.VideoNegativePrompt))
             shot.VideoNegativePrompt = MergeField(shot.VideoNegativePrompt, description.VideoNegativePrompt, mode);
+        if (!string.IsNullOrWhiteSpace(description.VideoResolution))
+            shot.VideoResolution = MergeField(shot.VideoResolution, description.VideoResolution, mode);
+        if (!string.IsNullOrWhiteSpace(description.VideoRatio))
+            shot.VideoRatio = MergeField(shot.VideoRatio, description.VideoRatio, mode);
     }
 
     private static string MergeField(string current, string incoming, AiWriteMode mode)
