@@ -8,6 +8,7 @@
         <conv:StatusColorConverter x:Key="StatusColorConverter" />
         <conv:SelectedBorderConverter x:Key="SelectedBorderConverter" />
         <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+        <conv:AiParseButtonTextConverter x:Key="AiParseButtonTextConverter" />
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />

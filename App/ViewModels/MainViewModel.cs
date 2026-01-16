@@ -1446,7 +1446,7 @@ public partial class MainViewModel : ObservableObject
         var skipped = 0;
         foreach (var shot in Shots)
         {
-            if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) || !File.Exists(shot.FirstFrameImagePath))
+            if (string.IsNullOrWhiteSpace(shot.MaterialFilePath) || !File.Exists(shot.MaterialFilePath))
             {
                 skipped++;
                 continue;
@@ -1455,7 +1455,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         if (skipped > 0)
-            StatusMessage = $"已跳过 {skipped} 个缺少首帧图片的分镜。";
+            StatusMessage = $"已跳过 {skipped} 个缺少素材图片的分镜。";
     }
 
     [RelayCommand]
@@ -1961,24 +1961,45 @@ public partial class MainViewModel : ObservableObject
                 ct.ThrowIfCancellationRequested();
                 progress.Report(0);
 
-                var request = await CaptureAiRequestAsync(shot).ConfigureAwait(false);
-                if (string.IsNullOrWhiteSpace(request.FirstFramePath) || !File.Exists(request.FirstFramePath))
-                    throw new InvalidOperationException("缺少首帧图片，请先生成并选择首帧图片。");
-
-                var description = await _aiShotService.AnalyzeShotAsync(request, ct).ConfigureAwait(false);
-                progress.Report(0.7);
-
-                AiWriteMode? writeMode = mode;
-                if (writeMode == null && NeedsAiWriteMode(shot))
+                OnUi(() => shot.IsAiParsing = true);
+                try
                 {
-                    writeMode = await RequestAiWriteModeAsync().ConfigureAwait(false);
+                    var request = await CaptureAiRequestAsync(shot).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(request.FirstFramePath) || !File.Exists(request.FirstFramePath))
+                    {
+                        _logger.LogWarning("AI 解析失败: 分镜 #{ShotNumber} 缺少素材图片", shot.ShotNumber);
+                        throw new InvalidOperationException("缺少素材图片，请先导入或生成素材图片。");
+                    }
+
+                    _logger.LogInformation("开始 AI 解析分镜 #{ShotNumber}，素材图片: {MaterialPath}", shot.ShotNumber, request.FirstFramePath);
+                    var description = await _aiShotService.AnalyzeShotAsync(request, ct).ConfigureAwait(false);
+                    progress.Report(0.7);
+
+                    AiWriteMode? writeMode = mode;
+                    if (writeMode == null && NeedsAiWriteMode(shot))
+                    {
+                        writeMode = await RequestAiWriteModeAsync().ConfigureAwait(false);
+                    }
+
+                    if (writeMode == null)
+                    {
+                        _logger.LogInformation("AI 解析已取消: 分镜 #{ShotNumber}", shot.ShotNumber);
+                        return;
+                    }
+
+                    OnUi(() => ApplyAiShotDescription(shot, description, writeMode.Value));
+                    _logger.LogInformation("AI 解析完成: 分镜 #{ShotNumber}", shot.ShotNumber);
+                    progress.Report(1);
                 }
-
-                if (writeMode == null)
-                    return;
-
-                OnUi(() => ApplyAiShotDescription(shot, description, writeMode.Value));
-                progress.Report(1);
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "AI 解析失败: 分镜 #{ShotNumber}", shot.ShotNumber);
+                    throw;
+                }
+                finally
+                {
+                    OnUi(() => shot.IsAiParsing = false);
+                }
             },
             maxAttempts: 2);
     }
@@ -2056,7 +2077,7 @@ public partial class MainViewModel : ObservableObject
         if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
         {
             return Task.FromResult(new AiShotAnalysisRequest(
-                shot.FirstFrameImagePath,
+                shot.MaterialFilePath,
                 shot.LastFrameImagePath,
                 shot.ShotType,
                 shot.CoreContent,
@@ -2067,7 +2088,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => new AiShotAnalysisRequest(
-            shot.FirstFrameImagePath,
+            shot.MaterialFilePath,
             shot.LastFrameImagePath,
             shot.ShotType,
             shot.CoreContent,
@@ -2077,7 +2098,18 @@ public partial class MainViewModel : ObservableObject
             shot.LastFramePrompt)).GetTask();
     }
 
-    private async Task<AiWriteMode?> RequestAiWriteModeAsync()
+    private Task<AiWriteMode?> RequestAiWriteModeAsync()
+    {
+        // Ensure we're on the UI thread
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(RequestAiWriteModeOnUiThreadAsync);
+        }
+
+        return RequestAiWriteModeOnUiThreadAsync();
+    }
+
+    private async Task<AiWriteMode?> RequestAiWriteModeOnUiThreadAsync()
     {
         var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var owner = lifetime?.MainWindow;
@@ -2186,7 +2218,7 @@ public partial class MainViewModel : ObservableObject
 
     private async Task EnsureVideoAssetThumbnailAsync(ShotAssetItem asset)
     {
-        var (filePath, existingThumb) = await OnUiAsync(() => (asset.FilePath, asset.ThumbnailPath)).ConfigureAwait(false);
+        var (filePath, existingThumb) = await OnUiAsync(() => (asset.FilePath, asset.VideoThumbnailPath)).ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(filePath))
             return;
@@ -2198,7 +2230,7 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(thumbnailPath))
             return;
 
-        OnUi(() => asset.ThumbnailPath = thumbnailPath);
+        OnUi(() => asset.VideoThumbnailPath = thumbnailPath);
     }
 
     private static async Task<(int ExitCode, string Stdout, string Stderr)> RunProcessCaptureAsync(

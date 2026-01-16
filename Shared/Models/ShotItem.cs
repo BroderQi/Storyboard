@@ -61,6 +61,9 @@ public partial class ShotItem : ObservableObject
     private bool _isVideoGenerating;
 
     [ObservableProperty]
+    private bool _isAiParsing;
+
+    [ObservableProperty]
     private string? _materialThumbnailPath;
 
     [ObservableProperty]

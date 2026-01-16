@@ -17,6 +17,16 @@ public partial class ShotAssetItem : ObservableObject
     [ObservableProperty]
     private string? _videoThumbnailPath;
 
+    partial void OnThumbnailPathChanged(string? value)
+    {
+        OnPropertyChanged(nameof(DisplayPath));
+    }
+
+    partial void OnVideoThumbnailPathChanged(string? value)
+    {
+        OnPropertyChanged(nameof(DisplayPath));
+    }
+
     [ObservableProperty]
     private string? _prompt;
 
