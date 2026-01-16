@@ -100,22 +100,6 @@
                                FontWeight="SemiBold" 
                                Foreground="#8b5cf6" 
                                VerticalAlignment="Center" />
-                    
-                    <!-- Shot Type Badge -->
-                    <Border Background="#27272a" 
-                            CornerRadius="4" 
-                            Padding="8,2" 
-                            IsVisible="{Binding ShotType, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}">
-                        <TextBlock Text="{Binding ShotType}" 
-                                   FontSize="12" 
-                                   Foreground="#f5f5f5" />
-                    </Border>
-                    
-                    <!-- Duration -->
-                    <TextBlock Text="{Binding Duration, StringFormat='{}{0:F1}s'}" 
-                               FontSize="12" 
-                               Foreground="#a1a1aa" 
-                               VerticalAlignment="Center" />
                 </StackPanel>
 
                 <!-- Right: Action Buttons -->

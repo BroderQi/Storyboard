@@ -160,13 +160,49 @@ public class QwenServiceProvider : BaseAIServiceProvider
             messages = request.Messages.Select(m => new
             {
                 role = MapRole(m.Role),
-                content = m.Content
+                content = BuildMessageContent(m)
             }).ToArray(),
             temperature = request.Temperature,
             top_p = request.TopP,
             max_tokens = request.MaxTokens,
             stream = stream
         };
+    }
+
+    private static object BuildMessageContent(AIChatMessage message)
+    {
+        // 如果是多模态消息
+        if (message.IsMultimodal && message.MultimodalContent != null)
+        {
+            var contentArray = new List<object>();
+            foreach (var part in message.MultimodalContent)
+            {
+                if (part.Type == Core.MessageContentType.Text && !string.IsNullOrWhiteSpace(part.Text))
+                {
+                    contentArray.Add(new { type = "text", text = part.Text });
+                }
+                else if (part.Type == Core.MessageContentType.ImageBase64 && !string.IsNullOrWhiteSpace(part.ImageBase64))
+                {
+                    contentArray.Add(new
+                    {
+                        type = "image_url",
+                        image_url = new { url = $"data:image/jpeg;base64,{part.ImageBase64}" }
+                    });
+                }
+                else if (part.Type == Core.MessageContentType.ImageUrl && !string.IsNullOrWhiteSpace(part.ImageUrl))
+                {
+                    contentArray.Add(new
+                    {
+                        type = "image_url",
+                        image_url = new { url = part.ImageUrl }
+                    });
+                }
+            }
+            return contentArray;
+        }
+
+        // 普通文本消息
+        return message.Content ?? string.Empty;
     }
 
     private static string MapRole(AIChatRole role)

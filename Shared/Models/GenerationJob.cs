@@ -60,11 +60,13 @@ public partial class GenerationJob : ObservableObject
 
     public bool CanCancel => Status is GenerationJobStatus.Queued or GenerationJobStatus.Running or GenerationJobStatus.Retrying;
     public bool CanRetry => Status is GenerationJobStatus.Failed or GenerationJobStatus.Canceled;
+    public bool CanDelete => Status is GenerationJobStatus.Succeeded or GenerationJobStatus.Failed or GenerationJobStatus.Canceled;
 
     partial void OnStatusChanged(GenerationJobStatus value)
     {
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(CanCancel));
         OnPropertyChanged(nameof(CanRetry));
+        OnPropertyChanged(nameof(CanDelete));
     }
 }

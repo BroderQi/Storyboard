@@ -40,6 +40,12 @@ public sealed record ShotState(
     string? MaterialThumbnailPath,
     string? MaterialFilePath,
     IReadOnlyList<ShotAssetState> Assets,
+    // Material info
+    string MaterialResolution = "",
+    string MaterialFileSize = "",
+    string MaterialFormat = "",
+    string MaterialColorTone = "",
+    string MaterialBrightness = "",
     // Image generation parameters
     string ImageSize = "",
     string NegativePrompt = "",

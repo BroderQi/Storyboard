@@ -103,6 +103,27 @@ public sealed class JobQueueService : IJobQueueService
         SaveHistory();
     }
 
+    public void Remove(GenerationJob job)
+    {
+        if (job == null)
+            return;
+
+        _runners.TryRemove(job.Id, out _);
+        if (_cancellations.TryRemove(job.Id, out var cts))
+        {
+            try { cts.Cancel(); } catch { }
+        }
+
+        OnUi(() =>
+        {
+            if (Jobs.Contains(job))
+            {
+                Jobs.Remove(job);
+            }
+        });
+        SaveHistory();
+    }
+
     private void StartWorkerIfNeeded()
     {
         if (_workerStarted)

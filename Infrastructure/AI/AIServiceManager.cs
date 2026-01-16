@@ -170,6 +170,73 @@ public class AIServiceManager
         return await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<string> ChatWithImageAsync(
+        string promptTemplateId,
+        string? imagePath,
+        string additionalContext,
+        string? modelId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var provider = GetCurrentProvider();
+        var template = _promptService.GetTemplate(promptTemplateId);
+
+        if (template == null)
+        {
+            throw new ArgumentException($"Prompt template not found: {promptTemplateId}");
+        }
+
+        var messages = new List<AIChatMessage>();
+
+        if (!string.IsNullOrEmpty(template.SystemPrompt))
+        {
+            messages.Add(new AIChatMessage(AIChatRole.System, template.SystemPrompt));
+        }
+
+        // 构建多模态用户消息
+        var contentParts = new List<Core.MessageContent>();
+
+        // 添加图片（如果存在）
+        if (!string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath))
+        {
+            var imageBase64 = Convert.ToBase64String(File.ReadAllBytes(imagePath));
+            contentParts.Add(new Core.MessageContent(
+                Core.MessageContentType.ImageBase64,
+                ImageBase64: imageBase64));
+        }
+
+        // 添加文本提示
+        var textPrompt = $"请分析这张分镜素材图片，并结合以下已有信息生成结构化的分镜描述：\n\n{additionalContext}\n\n请输出 JSON 对象。";
+        contentParts.Add(new Core.MessageContent(
+            Core.MessageContentType.Text,
+            Text: textPrompt));
+
+        messages.Add(new AIChatMessage(AIChatRole.User, contentParts));
+
+        var request = new AIChatRequest
+        {
+            Model = ResolveTextModel(provider.ProviderType, modelId),
+            Messages = messages,
+            Temperature = template.ExecutionSettings.Temperature,
+            TopP = template.ExecutionSettings.TopP,
+            MaxTokens = template.ExecutionSettings.MaxTokens
+        };
+
+        _logger.LogInformation("Sending chat request with image: {Provider}, template: {Template}, image: {ImagePath}",
+            provider.DisplayName, template.Name, imagePath);
+
+        var response = await provider.ChatAsync(request, cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            _logger.LogWarning(
+                "Chat response empty. Provider: {Provider}, template: {Template}, model: {Model}",
+                provider.DisplayName,
+                template.Name,
+                request.Model);
+        }
+
+        return response;
+    }
+
     public async Task<Dictionary<AIProviderType, bool>> ValidateAllProvidersAsync()
     {
         var results = new Dictionary<AIProviderType, bool>();

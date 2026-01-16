@@ -31,7 +31,39 @@ public enum AIChatRole
     Assistant
 }
 
-public sealed record AIChatMessage(AIChatRole Role, string Content);
+public enum MessageContentType
+{
+    Text,
+    ImageUrl,
+    ImageBase64
+}
+
+public sealed record MessageContent(
+    MessageContentType Type,
+    string? Text = null,
+    string? ImageUrl = null,
+    string? ImageBase64 = null);
+
+public sealed class AIChatMessage
+{
+    public AIChatRole Role { get; init; }
+    public string? Content { get; init; }
+    public IReadOnlyList<MessageContent>? MultimodalContent { get; init; }
+
+    public AIChatMessage(AIChatRole role, string content)
+    {
+        Role = role;
+        Content = content;
+    }
+
+    public AIChatMessage(AIChatRole role, IReadOnlyList<MessageContent> multimodalContent)
+    {
+        Role = role;
+        MultimodalContent = multimodalContent;
+    }
+
+    public bool IsMultimodal => MultimodalContent != null && MultimodalContent.Count > 0;
+}
 
 public sealed class AIChatRequest
 {

@@ -130,6 +130,14 @@
                                                     CommandParameter="{Binding}">
                                                 <TextBlock Text="重试" FontSize="11" />
                                             </Button>
+                                            <Button Classes="Ghost"
+                                                    x:CompileBindings="False"
+                                                    Padding="6,2"
+                                                    IsVisible="{Binding CanDelete}"
+                                                    Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}">
+                                                <TextBlock Text="删除" FontSize="11" />
+                                            </Button>
                                         </StackPanel>
                                     </StackPanel>
                                     

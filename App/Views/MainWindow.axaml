@@ -6,12 +6,17 @@
         x:Class="Storyboard.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Storyboard Studio"
+        Icon="avares://Storyboard/App/Assets/icon.ico"
         Width="1600"
         Height="1000"
         MinWidth="1200"
         MinHeight="700"
         WindowState="Maximized"
-        Background="#0a0a0a">
+        Background="#0a0a0a"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="56">
 
     <Window.Resources>
         <conv:BooleanNotConverter x:Key="BoolNot" />
@@ -25,18 +30,20 @@
         
         <!-- Header -->
         <Border Grid.Row="0" 
-                Background="#18181b" 
-                BorderBrush="#27272a" 
-                BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto" Margin="16,0">
+                Background="{StaticResource TitleBarBrush}" 
+                BorderBrush="{StaticResource TitleBarBorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="16,0"
+                PointerPressed="TitleBar_PointerPressed">
+            <Grid ColumnDefinitions="*,Auto">
                 
                 <!-- Left: Title and Project Info -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <!-- App Icon -->
-                    <PathIcon Data="M8 5v14l11-7z" 
-                              Width="24" 
-                              Height="24" 
-                              Foreground="#8b5cf6" />
+                    <Image Source="avares://Storyboard/App/Assets/icon.ico"
+                           Width="28"
+                           Height="28"
+                           Stretch="Uniform" />
                     <TextBlock Text="Storyboard Studio" 
                                FontSize="16" 
                                FontWeight="SemiBold" 
@@ -69,77 +76,113 @@
                     </Button>
                 </StackPanel>
                 
-                <!-- Right: Actions -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <!-- Right: Actions + Window Controls -->
+                <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     
-                    <!-- Undo/Redo -->
-                    <Button Classes="Ghost" 
-                            IsVisible="{Binding HasCurrentProject}"
-                            Command="{Binding UndoCommand}"
-                            IsEnabled="{Binding CanUndo}"
-                            ToolTip.Tip="撤销 (Ctrl+Z)">
-                        <PathIcon Data="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" 
-                                  Width="16" 
-                                  Height="16" />
-                    </Button>
-                    <Button Classes="Ghost" 
-                            IsVisible="{Binding HasCurrentProject}"
-                            Command="{Binding RedoCommand}"
-                            IsEnabled="{Binding CanRedo}"
-                            ToolTip.Tip="重做 (Ctrl+Shift+Z)">
-                        <PathIcon Data="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" 
-                                  Width="16" 
-                                  Height="16" />
-                    </Button>
-                    
-                    <!-- Separator -->
-                    <Border Width="1" 
-                            Height="24" 
-                            Background="#3f3f46" 
-                            IsVisible="{Binding HasCurrentProject}" />
-                    
-                    <!-- Batch Operations -->
-                    <Button Classes="Ghost" 
-                            IsVisible="{Binding HasCurrentProject}"
-                            Command="{Binding ShowBatchOperationsCommand}"
-                            IsEnabled="{Binding HasShots}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" 
+                    <StackPanel Grid.Column="0" 
+                                Orientation="Horizontal" 
+                                Spacing="8" 
+                                VerticalAlignment="Center"
+                                Margin="0,0,8,0">
+                        <!-- Undo/Redo -->
+                        <Button Classes="Ghost" 
+                                IsVisible="{Binding HasCurrentProject}"
+                                Command="{Binding UndoCommand}"
+                                IsEnabled="{Binding CanUndo}"
+                                ToolTip.Tip="撤销 (Ctrl+Z)">
+                            <PathIcon Data="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" 
                                       Width="16" 
                                       Height="16" />
-                            <TextBlock Text="批量操作" />
-                        </StackPanel>
-                    </Button>
-                    
-                    <!-- Export -->
-                    <Button Classes="Ghost" 
-                            IsVisible="{Binding HasCurrentProject}"
-                            Command="{Binding ShowExportDialogCommand}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" 
+                        </Button>
+                        <Button Classes="Ghost" 
+                                IsVisible="{Binding HasCurrentProject}"
+                                Command="{Binding RedoCommand}"
+                                IsEnabled="{Binding CanRedo}"
+                                ToolTip.Tip="重做 (Ctrl+Shift+Z)">
+                            <PathIcon Data="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" 
                                       Width="16" 
                                       Height="16" />
-                            <TextBlock Text="导出" />
-                        </StackPanel>
-                    </Button>
+                        </Button>
+                        
+                        <!-- Separator -->
+                        <Border Width="1" 
+                                Height="24" 
+                                Background="#3f3f46" 
+                                IsVisible="{Binding HasCurrentProject}" />
+                        
+                        <!-- Batch Operations -->
+                        <Button Classes="Ghost" 
+                                IsVisible="{Binding HasCurrentProject}"
+                                Command="{Binding ShowBatchOperationsCommand}"
+                                IsEnabled="{Binding HasShots}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <PathIcon Data="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" 
+                                          Width="16" 
+                                          Height="16" />
+                                <TextBlock Text="批量操作" />
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Export -->
+                        <Button Classes="Ghost" 
+                                IsVisible="{Binding HasCurrentProject}"
+                                Command="{Binding ShowExportDialogCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <PathIcon Data="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" 
+                                          Width="16" 
+                                          Height="16" />
+                                <TextBlock Text="导出" />
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Task Manager -->
+                        <Button Classes="Ghost" 
+                                Command="{Binding ShowTaskManagerCommand}">
+                            <TextBlock Text="任务管理" />
+                        </Button>
+                        
+                        <!-- Settings -->
+                        <Button Classes="Ghost" 
+                                Command="{Binding ShowProviderSettingsCommand}">
+                            <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" 
+                                          Width="16" 
+                                          Height="16" />
+                        </Button>
+                    </StackPanel>
                     
-                    <!-- Task Manager -->
-                    <Button Classes="Ghost" 
-                            Command="{Binding ShowTaskManagerCommand}">
-                        <TextBlock Text="任务管理" />
-                    </Button>
-                    
-                    <!-- Settings -->
-                    <Button Classes="Ghost" 
-                            Command="{Binding ShowProviderSettingsCommand}">
-                        <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" 
-                                      Width="16" 
-                                      Height="16" />
-                    </Button>
-                </StackPanel>
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal" 
+                                Spacing="4" 
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right">
+                        <Button Classes="WindowControl" 
+                                Click="OnMinimizeClick"
+                                ToolTip.Tip="Minimize">
+                            <PathIcon Data="M6 11h12v2H6z" Width="14" Height="14" />
+                        </Button>
+                        <Button Classes="WindowControl" 
+                                Click="OnToggleMaximizeClick"
+                                ToolTip.Tip="Maximize">
+                            <PathIcon Data="M5 5h14v14H5z M7 7v10h10V7z" Width="14" Height="14" />
+                        </Button>
+                        <Button Classes="WindowControl close" 
+                                Click="OnCloseClick"
+                                ToolTip.Tip="Close">
+                            <Grid Width="14" Height="14">
+                                <Path Data="M2 2L12 12M12 2L2 12"
+                                      Stroke="{DynamicResource ForegroundBrush}"
+                                      StrokeThickness="2"
+                                      StrokeLineCap="Round" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
-        
         <!-- Main Content -->
         <Panel Grid.Row="1">
             <!-- Project History View (when no project open) -->

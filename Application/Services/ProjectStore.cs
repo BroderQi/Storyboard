@@ -74,6 +74,12 @@ public sealed class ProjectStore : IProjectStore
                 s.MaterialThumbnailPath,
                 s.MaterialFilePath,
                 BuildAssetStates(s),
+                // Material info
+                s.MaterialResolution,
+                s.MaterialFileSize,
+                s.MaterialFormat,
+                s.MaterialColorTone,
+                s.MaterialBrightness,
                 // Image generation parameters
                 s.ImageSize,
                 s.NegativePrompt,
@@ -224,6 +230,12 @@ public sealed class ProjectStore : IProjectStore
                 GeneratedVideoPath = s.GeneratedVideoPath,
                 MaterialThumbnailPath = s.MaterialThumbnailPath,
                 MaterialFilePath = s.MaterialFilePath,
+                // Material info
+                MaterialResolution = s.MaterialResolution,
+                MaterialFileSize = s.MaterialFileSize,
+                MaterialFormat = s.MaterialFormat,
+                MaterialColorTone = s.MaterialColorTone,
+                MaterialBrightness = s.MaterialBrightness,
                 // Image generation parameters
                 ImageSize = s.ImageSize,
                 NegativePrompt = s.NegativePrompt,

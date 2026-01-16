@@ -97,6 +97,31 @@ public sealed class Shot
     /// </summary>
     public string? MaterialFilePath { get; set; }
 
+    /// <summary>
+    /// 素材分辨率
+    /// </summary>
+    public string MaterialResolution { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 素材文件大小
+    /// </summary>
+    public string MaterialFileSize { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 素材格式
+    /// </summary>
+    public string MaterialFormat { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 素材主色调
+    /// </summary>
+    public string MaterialColorTone { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 素材亮度
+    /// </summary>
+    public string MaterialBrightness { get; set; } = string.Empty;
+
     // Image generation parameters
     /// <summary>
     /// 图片尺寸

@@ -915,6 +915,12 @@ public partial class MainViewModel : ObservableObject
                     s.MaterialThumbnailPath,
                     s.MaterialFilePath,
                     BuildAssetStates(s),
+                    // Material info
+                    s.MaterialResolution,
+                    s.MaterialFileSize,
+                    s.MaterialFormat,
+                    s.MaterialColorTone,
+                    s.MaterialBrightness,
                     // Image generation parameters
                     s.ImageSize,
                     s.NegativePrompt,
@@ -1187,6 +1193,12 @@ public partial class MainViewModel : ObservableObject
                                 GeneratedVideoPath = s.GeneratedVideoPath,
                                 MaterialThumbnailPath = s.MaterialThumbnailPath,
                                 MaterialFilePath = s.MaterialFilePath,
+                                // Material info
+                                MaterialResolution = s.MaterialResolution,
+                                MaterialFileSize = s.MaterialFileSize,
+                                MaterialFormat = s.MaterialFormat,
+                                MaterialColorTone = s.MaterialColorTone,
+                                MaterialBrightness = s.MaterialBrightness,
                                 // Image generation parameters
                                 ImageSize = s.ImageSize,
                                 NegativePrompt = s.NegativePrompt,
@@ -1783,6 +1795,15 @@ public partial class MainViewModel : ObservableObject
             return;
 
         _jobQueue.Retry(job);
+    }
+    
+    [RelayCommand]
+    private void DeleteJob(GenerationJob? job)
+    {
+        if (job == null)
+            return;
+
+        _jobQueue.Remove(job);
     }
     
     [RelayCommand]

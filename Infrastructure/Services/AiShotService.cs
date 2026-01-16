@@ -27,14 +27,13 @@ public sealed class AiShotService : IAiShotService
     {
         await EnsureInitializedAsync().ConfigureAwait(false);
 
-        var parameters = new Dictionary<string, object>
-        {
-            ["first_frame_features"] = DescribeImage(request.FirstFramePath),
-            ["last_frame_features"] = DescribeImage(request.LastFramePath),
-            ["existing_context"] = BuildExistingContext(request)
-        };
+        // 使用多模态消息，将素材图片直接发送给AI进行视觉分析
+        var response = await _ai.ChatWithImageAsync(
+            "shot_analysis",
+            request.FirstFramePath,
+            BuildExistingContext(request),
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        var response = await _ai.ChatAsync("shot_analysis", parameters, cancellationToken: cancellationToken).ConfigureAwait(false);
         var json = ExtractJson(response);
         return ParseShotDescription(json);
     }

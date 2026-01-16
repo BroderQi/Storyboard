@@ -26,6 +26,12 @@ public static class DatabaseMigrationHelper
             // 检查并添加新列
             var columnsToAdd = new Dictionary<string, string>
             {
+                // Material info fields
+                { "MaterialResolution", "TEXT NOT NULL DEFAULT ''" },
+                { "MaterialFileSize", "TEXT NOT NULL DEFAULT ''" },
+                { "MaterialFormat", "TEXT NOT NULL DEFAULT ''" },
+                { "MaterialColorTone", "TEXT NOT NULL DEFAULT ''" },
+                { "MaterialBrightness", "TEXT NOT NULL DEFAULT ''" },
                 // 图片生成参数
                 { "ImageSize", "TEXT NOT NULL DEFAULT ''" },
                 { "NegativePrompt", "TEXT NOT NULL DEFAULT ''" },

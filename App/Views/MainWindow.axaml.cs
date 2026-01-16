@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 using Storyboard;
 using Storyboard.ViewModels;
@@ -93,5 +95,28 @@ public partial class MainWindow : Window
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
         base.OnClosing(e);
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
+    private void OnMinimizeClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void OnToggleMaximizeClick(object? sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void OnCloseClick(object? sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }

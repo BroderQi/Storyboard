@@ -14,6 +14,11 @@
         <SolidColorBrush x:Key="CardBrush" Color="#18181b" />
         <SolidColorBrush x:Key="CardHoverBrush" Color="#27272a" />
         <SolidColorBrush x:Key="InputBrush" Color="#1a1a1a" />
+        <SolidColorBrush x:Key="TitleBarBrush" Color="#111014" />
+        <SolidColorBrush x:Key="TitleBarBorderBrush" Color="#27272a" />
+        <SolidColorBrush x:Key="WindowControlHoverBrush" Color="#27272a" />
+        <SolidColorBrush x:Key="WindowControlPressedBrush" Color="#1f1f1f" />
+        <SolidColorBrush x:Key="WindowControlCloseHoverBrush" Color="#dc2626" />
         
         <!-- Border Colors -->
         <SolidColorBrush x:Key="BorderBrush" Color="#27272a" />
@@ -244,6 +249,36 @@
         <Setter Property="Background" Value="{StaticResource BorderBrush}" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0,8" />
+    </Style>
+
+    <!-- Custom Window Controls -->
+    <Style Selector="Button.WindowControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="Button.WindowControl:pointerover">
+        <Setter Property="Background" Value="{StaticResource WindowControlHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.WindowControl:pressed">
+        <Setter Property="Background" Value="{StaticResource WindowControlPressedBrush}" />
+    </Style>
+
+    <Style Selector="Button.WindowControl.close:pointerover">
+        <Setter Property="Background" Value="{StaticResource WindowControlCloseHoverBrush}" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="Button.WindowControl.close:pressed">
+        <Setter Property="Background" Value="#b91c1c" />
     </Style>
 
     <!-- TabControl Style -->
