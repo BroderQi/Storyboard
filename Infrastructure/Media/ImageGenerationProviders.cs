@@ -10,7 +10,15 @@ public sealed record ImageGenerationRequest(
     string Model,
     int Width,
     int Height,
-    string Style);
+    string Style,
+    // Professional parameters
+    string? ShotType = null,
+    string? Composition = null,
+    string? LightingType = null,
+    string? TimeOfDay = null,
+    string? ColorStyle = null,
+    string? NegativePrompt = null,
+    string? AspectRatio = null);
 
 public sealed record ImageGenerationResult(
     byte[] ImageBytes,

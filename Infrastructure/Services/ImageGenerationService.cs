@@ -59,6 +59,31 @@ public sealed class ImageGenerationService : IImageGenerationService
         return filePath;
     }
 
+    public async Task<string> GenerateImageAsync(
+        ImageGenerationRequest request,
+        string? outputDirectory = null,
+        string? filePrefix = null,
+        CancellationToken cancellationToken = default)
+    {
+        var outDir = string.IsNullOrWhiteSpace(outputDirectory)
+            ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output", "images")
+            : outputDirectory;
+        Directory.CreateDirectory(outDir);
+
+        var safePrefix = string.IsNullOrWhiteSpace(filePrefix) ? "image" : filePrefix;
+        var aiConfig = _configMonitor.CurrentValue;
+        var imageConfig = aiConfig.Image;
+        var provider = ResolveProvider(imageConfig);
+
+        // Use the request directly - it already contains all parameters
+        var result = await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
+        var extension = NormalizeExtension(result.FileExtension);
+        var filePath = Path.Combine(outDir, $"{safePrefix}_{DateTime.Now:yyyyMMdd_HHmmss_fff}{extension}");
+
+        await File.WriteAllBytesAsync(filePath, result.ImageBytes, cancellationToken).ConfigureAwait(false);
+        return filePath;
+    }
+
     private IImageGenerationProvider ResolveProvider(ImageServicesConfiguration config)
     {
         var selected = _providers.FirstOrDefault(p => p.ProviderType == config.DefaultProvider && p.IsConfigured);

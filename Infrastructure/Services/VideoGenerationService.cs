@@ -7,6 +7,7 @@ using Storyboard.AI.Core;
 using Storyboard.Application.Abstractions;
 using Storyboard.Infrastructure.Media;
 using Storyboard.Models;
+using VideoGenerationRequest = Storyboard.Infrastructure.Media.VideoGenerationRequest;
 
 namespace Storyboard.Infrastructure.Services;
 

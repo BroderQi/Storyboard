@@ -42,6 +42,117 @@ public partial class ShotItem : ObservableObject
     [ObservableProperty]
     private string _selectedModel = string.Empty;
 
+    // Image generation parameters
+    [ObservableProperty]
+    private string _imageSize = string.Empty;
+
+    [ObservableProperty]
+    private string _negativePrompt = string.Empty;
+
+    // Image professional parameters
+    [ObservableProperty]
+    private string _aspectRatio = string.Empty;
+
+    [ObservableProperty]
+    private string _lightingType = string.Empty;
+
+    [ObservableProperty]
+    private string _timeOfDay = string.Empty;
+
+    [ObservableProperty]
+    private string _composition = string.Empty;
+
+    [ObservableProperty]
+    private string _colorStyle = string.Empty;
+
+    [ObservableProperty]
+    private string _lensType = string.Empty;
+
+    // Video generation parameters
+    [ObservableProperty]
+    private string _videoPrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _sceneDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _actionDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _styleDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _videoNegativePrompt = string.Empty;
+
+    // Video professional parameters
+    [ObservableProperty]
+    private string _cameraMovement = string.Empty;
+
+    [ObservableProperty]
+    private string _shootingStyle = string.Empty;
+
+    [ObservableProperty]
+    private string _videoEffect = string.Empty;
+
+    [ObservableProperty]
+    private string _videoResolution = string.Empty;
+
+    [ObservableProperty]
+    private string _videoRatio = string.Empty;
+
+    [ObservableProperty]
+    private int _videoFrames;
+
+    [ObservableProperty]
+    private bool _useFirstFrameReference = true;
+
+    [ObservableProperty]
+    private bool _useLastFrameReference;
+
+    [ObservableProperty]
+    private int? _seed;
+
+    [ObservableProperty]
+    private bool _cameraFixed;
+
+    [ObservableProperty]
+    private bool _watermark;
+
+    // Material info fields
+    [ObservableProperty]
+    private string _materialResolution = string.Empty;
+
+    [ObservableProperty]
+    private string _materialFileSize = string.Empty;
+
+    [ObservableProperty]
+    private string _materialFormat = string.Empty;
+
+    [ObservableProperty]
+    private string _materialColorTone = string.Empty;
+
+    [ObservableProperty]
+    private string _materialBrightness = string.Empty;
+
+    // Collapsible section states
+    [ObservableProperty]
+    private bool _isImageProfessionalParamsExpanded;
+
+    [ObservableProperty]
+    private bool _isImageNegativePromptExpanded;
+
+    [ObservableProperty]
+    private bool _isVideoSceneActionExpanded;
+
+    [ObservableProperty]
+    private bool _isVideoProfessionalParamsExpanded;
+
+    [ObservableProperty]
+    private bool _isVideoNegativePromptExpanded;
+
+    [ObservableProperty]
+    private bool _isVideoAdvancedOptionsExpanded;
+
     [ObservableProperty]
     private string? _firstFrameImagePath;
 
@@ -169,6 +280,57 @@ public partial class ShotItem : ObservableObject
     private void GenerateVideo()
     {
         GenerateVideoRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void ToggleImageProfessionalParams()
+    {
+        IsImageProfessionalParamsExpanded = !IsImageProfessionalParamsExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleImageNegativePrompt()
+    {
+        IsImageNegativePromptExpanded = !IsImageNegativePromptExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleVideoSceneAction()
+    {
+        IsVideoSceneActionExpanded = !IsVideoSceneActionExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleVideoProfessionalParams()
+    {
+        IsVideoProfessionalParamsExpanded = !IsVideoProfessionalParamsExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleVideoNegativePrompt()
+    {
+        IsVideoNegativePromptExpanded = !IsVideoNegativePromptExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleVideoAdvancedOptions()
+    {
+        IsVideoAdvancedOptionsExpanded = !IsVideoAdvancedOptionsExpanded;
+    }
+
+    [RelayCommand]
+    private void CombineToMainPrompt()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(SceneDescription))
+            parts.Add(SceneDescription);
+        if (!string.IsNullOrWhiteSpace(ActionDescription))
+            parts.Add(ActionDescription);
+        if (!string.IsNullOrWhiteSpace(StyleDescription))
+            parts.Add(StyleDescription);
+
+        if (parts.Count > 0)
+            VideoPrompt = string.Join(", ", parts);
     }
 
     [RelayCommand]

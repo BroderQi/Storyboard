@@ -1538,6 +1538,9 @@ public partial class MainViewModel : ObservableObject
 
             var duration = Math.Max(0.5, end - start);
 
+            // Extract material info from the frame file
+            var materialInfo = ExtractMaterialInfo(current.FilePath);
+
             var shot = new ShotItem(i + 1)
             {
                 Duration = duration,
@@ -1551,12 +1554,107 @@ public partial class MainViewModel : ObservableObject
                 LastFramePrompt = string.Empty,
                 SelectedModel = string.Empty,
                 MaterialFilePath = current.FilePath,
-                MaterialThumbnailPath = current.FilePath
+                MaterialThumbnailPath = current.FilePath,
+                MaterialResolution = materialInfo.Resolution,
+                MaterialFileSize = materialInfo.FileSize,
+                MaterialFormat = materialInfo.Format,
+                MaterialColorTone = materialInfo.ColorTone,
+                MaterialBrightness = materialInfo.Brightness
             };
 
             AttachShotEventHandlers(shot);
             Shots.Add(shot);
         }
+    }
+
+    private (string Resolution, string FileSize, string Format, string ColorTone, string Brightness) ExtractMaterialInfo(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+                return ("未知", "未知", "未知", "未知", "未知");
+
+            var fileInfo = new FileInfo(filePath);
+            var format = Path.GetExtension(filePath).TrimStart('.').ToUpperInvariant();
+            var fileSize = FormatFileSize(fileInfo.Length);
+
+            // Use SkiaSharp to extract image info
+            using var stream = File.OpenRead(filePath);
+            using var bitmap = SkiaSharp.SKBitmap.Decode(stream);
+
+            if (bitmap == null)
+                return ($"{0}x{0}", fileSize, format, "未知", "未知");
+
+            var resolution = $"{bitmap.Width}x{bitmap.Height}";
+            var (colorTone, brightness) = AnalyzeImageColor(bitmap);
+
+            return (resolution, fileSize, format, colorTone, brightness);
+        }
+        catch
+        {
+            return ("未知", "未知", "未知", "未知", "未知");
+        }
+    }
+
+    private (string ColorTone, string Brightness) AnalyzeImageColor(SkiaSharp.SKBitmap bitmap)
+    {
+        long totalR = 0, totalG = 0, totalB = 0;
+        int sampleCount = 0;
+        int step = Math.Max(1, bitmap.Width / 100); // Sample every N pixels
+
+        for (int y = 0; y < bitmap.Height; y += step)
+        {
+            for (int x = 0; x < bitmap.Width; x += step)
+            {
+                var pixel = bitmap.GetPixel(x, y);
+                totalR += pixel.Red;
+                totalG += pixel.Green;
+                totalB += pixel.Blue;
+                sampleCount++;
+            }
+        }
+
+        if (sampleCount == 0)
+            return ("中性", "中等");
+
+        var avgR = totalR / sampleCount;
+        var avgG = totalG / sampleCount;
+        var avgB = totalB / sampleCount;
+
+        // Calculate brightness (0-1)
+        var brightness = (avgR + avgG + avgB) / (3.0 * 255.0);
+
+        // Determine color tone
+        string colorTone;
+        if (avgR > avgG && avgR > avgB)
+            colorTone = avgR - Math.Max(avgG, avgB) > 30 ? "暖色调" : "中性";
+        else if (avgB > avgR && avgB > avgG)
+            colorTone = avgB - Math.Max(avgR, avgG) > 30 ? "冷色调" : "中性";
+        else
+            colorTone = "中性";
+
+        // Determine brightness level
+        string brightnessLevel = brightness switch
+        {
+            < 0.3 => "暗",
+            < 0.7 => "中等",
+            _ => "亮"
+        };
+
+        return (colorTone, brightnessLevel);
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
     }
 
     [RelayCommand]
@@ -1887,12 +1985,28 @@ public partial class MainViewModel : ObservableObject
                 {
                     var outputDir = GetProjectOutputDirectory("images");
                     var prefix = $"shot_{shot.ShotNumber:000}_first";
-                    var imagePath = await _imageGenerationService.GenerateImageAsync(
-                        shot.FirstFramePrompt,
-                        shot.SelectedModel,
-                        outputDir,
-                        prefix,
-                        ct).ConfigureAwait(false);
+
+                    // Parse image size (e.g., "1024x1024" or "1024x768")
+                    var (width, height) = ParseImageSize(shot.ImageSize);
+
+                    // Build full prompt with professional parameters
+                    var fullPrompt = BuildImagePrompt(shot.FirstFramePrompt, shot);
+
+                    var request = new Storyboard.Infrastructure.Media.ImageGenerationRequest(
+                        Prompt: fullPrompt,
+                        Model: string.IsNullOrWhiteSpace(shot.SelectedModel) ? "default" : shot.SelectedModel,
+                        Width: width,
+                        Height: height,
+                        Style: "default",
+                        ShotType: shot.ShotType,
+                        Composition: shot.Composition,
+                        LightingType: shot.LightingType,
+                        TimeOfDay: shot.TimeOfDay,
+                        ColorStyle: shot.ColorStyle,
+                        NegativePrompt: shot.NegativePrompt,
+                        AspectRatio: shot.AspectRatio);
+
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(request, outputDir, prefix, ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
                     OnUi(() =>
@@ -1928,12 +2042,28 @@ public partial class MainViewModel : ObservableObject
                 {
                     var outputDir = GetProjectOutputDirectory("images");
                     var prefix = $"shot_{shot.ShotNumber:000}_last";
-                    var imagePath = await _imageGenerationService.GenerateImageAsync(
-                        shot.LastFramePrompt,
-                        shot.SelectedModel,
-                        outputDir,
-                        prefix,
-                        ct).ConfigureAwait(false);
+
+                    // Parse image size (e.g., "1024x1024" or "1024x768")
+                    var (width, height) = ParseImageSize(shot.ImageSize);
+
+                    // Build full prompt with professional parameters
+                    var fullPrompt = BuildImagePrompt(shot.LastFramePrompt, shot);
+
+                    var request = new Storyboard.Infrastructure.Media.ImageGenerationRequest(
+                        Prompt: fullPrompt,
+                        Model: string.IsNullOrWhiteSpace(shot.SelectedModel) ? "default" : shot.SelectedModel,
+                        Width: width,
+                        Height: height,
+                        Style: "default",
+                        ShotType: shot.ShotType,
+                        Composition: shot.Composition,
+                        LightingType: shot.LightingType,
+                        TimeOfDay: shot.TimeOfDay,
+                        ColorStyle: shot.ColorStyle,
+                        NegativePrompt: shot.NegativePrompt,
+                        AspectRatio: shot.AspectRatio);
+
+                    var imagePath = await _imageGenerationService.GenerateImageAsync(request, outputDir, prefix, ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
 
                     OnUi(() =>
@@ -1949,6 +2079,37 @@ public partial class MainViewModel : ObservableObject
                 }
             },
             maxAttempts: 2);
+    }
+
+    private (int Width, int Height) ParseImageSize(string? imageSize)
+    {
+        if (string.IsNullOrWhiteSpace(imageSize))
+            return (1024, 1024); // Default size
+
+        var parts = imageSize.Split('x', 'X', '×');
+        if (parts.Length == 2 && int.TryParse(parts[0].Trim(), out var w) && int.TryParse(parts[1].Trim(), out var h))
+            return (w, h);
+
+        return (1024, 1024); // Fallback to default
+    }
+
+    private string BuildImagePrompt(string basePrompt, ShotItem shot)
+    {
+        var parts = new List<string> { basePrompt };
+
+        // Add professional parameters to enhance the prompt
+        if (!string.IsNullOrWhiteSpace(shot.ShotType))
+            parts.Add($"shot type: {shot.ShotType}");
+        if (!string.IsNullOrWhiteSpace(shot.Composition))
+            parts.Add($"composition: {shot.Composition}");
+        if (!string.IsNullOrWhiteSpace(shot.LightingType))
+            parts.Add($"lighting: {shot.LightingType}");
+        if (!string.IsNullOrWhiteSpace(shot.TimeOfDay))
+            parts.Add($"time: {shot.TimeOfDay}");
+        if (!string.IsNullOrWhiteSpace(shot.ColorStyle))
+            parts.Add($"color style: {shot.ColorStyle}");
+
+        return string.Join(", ", parts);
     }
 
     private GenerationJob EnqueueAiParseJob(ShotItem shot, AiWriteMode? mode = null)
@@ -2129,6 +2290,36 @@ public partial class MainViewModel : ObservableObject
         shot.SceneSettings = MergeField(shot.SceneSettings, description.SceneSettings, mode);
         shot.FirstFramePrompt = MergeField(shot.FirstFramePrompt, description.FirstFramePrompt, mode);
         shot.LastFramePrompt = MergeField(shot.LastFramePrompt, description.LastFramePrompt, mode);
+
+        // Apply image professional parameters
+        if (!string.IsNullOrWhiteSpace(description.Composition))
+            shot.Composition = MergeField(shot.Composition, description.Composition, mode);
+        if (!string.IsNullOrWhiteSpace(description.LightingType))
+            shot.LightingType = MergeField(shot.LightingType, description.LightingType, mode);
+        if (!string.IsNullOrWhiteSpace(description.TimeOfDay))
+            shot.TimeOfDay = MergeField(shot.TimeOfDay, description.TimeOfDay, mode);
+        if (!string.IsNullOrWhiteSpace(description.ColorStyle))
+            shot.ColorStyle = MergeField(shot.ColorStyle, description.ColorStyle, mode);
+        if (!string.IsNullOrWhiteSpace(description.NegativePrompt))
+            shot.NegativePrompt = MergeField(shot.NegativePrompt, description.NegativePrompt, mode);
+
+        // Apply video parameters
+        if (!string.IsNullOrWhiteSpace(description.VideoPrompt))
+            shot.VideoPrompt = MergeField(shot.VideoPrompt, description.VideoPrompt, mode);
+        if (!string.IsNullOrWhiteSpace(description.SceneDescription))
+            shot.SceneDescription = MergeField(shot.SceneDescription, description.SceneDescription, mode);
+        if (!string.IsNullOrWhiteSpace(description.ActionDescription))
+            shot.ActionDescription = MergeField(shot.ActionDescription, description.ActionDescription, mode);
+        if (!string.IsNullOrWhiteSpace(description.StyleDescription))
+            shot.StyleDescription = MergeField(shot.StyleDescription, description.StyleDescription, mode);
+        if (!string.IsNullOrWhiteSpace(description.CameraMovement))
+            shot.CameraMovement = MergeField(shot.CameraMovement, description.CameraMovement, mode);
+        if (!string.IsNullOrWhiteSpace(description.ShootingStyle))
+            shot.ShootingStyle = MergeField(shot.ShootingStyle, description.ShootingStyle, mode);
+        if (!string.IsNullOrWhiteSpace(description.VideoEffect))
+            shot.VideoEffect = MergeField(shot.VideoEffect, description.VideoEffect, mode);
+        if (!string.IsNullOrWhiteSpace(description.VideoNegativePrompt))
+            shot.VideoNegativePrompt = MergeField(shot.VideoNegativePrompt, description.VideoNegativePrompt, mode);
     }
 
     private static string MergeField(string current, string incoming, AiWriteMode mode)
