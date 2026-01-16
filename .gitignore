@@ -34,3 +34,4 @@ Thumbs.db
 
 # Local settings
 appsettings.Development.json
+/Release

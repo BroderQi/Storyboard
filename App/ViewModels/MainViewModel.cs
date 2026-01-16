@@ -892,45 +892,73 @@ public partial class MainViewModel : ObservableObject
         PersistCurrentProjectFireAndForget();
     }
 
-    private ProjectState BuildCurrentProjectState()
-    {
-        var id = CurrentProjectId ?? Guid.NewGuid().ToString("N");
-        var shots = Shots
-            .OrderBy(s => s.ShotNumber)
-            .Select(s => new ShotState(
-                s.ShotNumber,
-                s.Duration,
-                s.StartTime,
-                s.EndTime,
-                s.FirstFramePrompt,
-                s.LastFramePrompt,
-                s.ShotType,
-                s.CoreContent,
-                s.ActionCommand,
-                s.SceneSettings,
-                s.SelectedModel,
-                s.FirstFrameImagePath,
-                s.LastFrameImagePath,
-                s.GeneratedVideoPath,
-                s.MaterialThumbnailPath,
-                s.MaterialFilePath,
-                BuildAssetStates(s)))
-            .ToList();
+        private ProjectState BuildCurrentProjectState()
+        {
+            var id = CurrentProjectId ?? Guid.NewGuid().ToString("N");
+            var shots = Shots
+                .OrderBy(s => s.ShotNumber)
+                .Select(s => new ShotState(
+                    s.ShotNumber,
+                    s.Duration,
+                    s.StartTime,
+                    s.EndTime,
+                    s.FirstFramePrompt,
+                    s.LastFramePrompt,
+                    s.ShotType,
+                    s.CoreContent,
+                    s.ActionCommand,
+                    s.SceneSettings,
+                    s.SelectedModel,
+                    s.FirstFrameImagePath,
+                    s.LastFrameImagePath,
+                    s.GeneratedVideoPath,
+                    s.MaterialThumbnailPath,
+                    s.MaterialFilePath,
+                    BuildAssetStates(s),
+                    // Image generation parameters
+                    s.ImageSize,
+                    s.NegativePrompt,
+                    // Image professional parameters
+                    s.AspectRatio,
+                    s.LightingType,
+                    s.TimeOfDay,
+                    s.Composition,
+                    s.ColorStyle,
+                    s.LensType,
+                    // Video generation parameters
+                    s.VideoPrompt,
+                    s.SceneDescription,
+                    s.ActionDescription,
+                    s.StyleDescription,
+                    s.VideoNegativePrompt,
+                    // Video professional parameters
+                    s.CameraMovement,
+                    s.ShootingStyle,
+                    s.VideoEffect,
+                    s.VideoResolution,
+                    s.VideoRatio,
+                    s.VideoFrames,
+                    s.UseFirstFrameReference,
+                    s.UseLastFrameReference,
+                    s.Seed,
+                    s.CameraFixed,
+                    s.Watermark))
+                .ToList();
 
-        return new ProjectState(
-            id,
-            ProjectName,
-            SelectedVideoPath,
-            HasVideoFile,
-            VideoFileDuration,
-            VideoFileResolution,
-            VideoFileFps,
-            ExtractModeIndex,
-            FrameCount,
-            TimeInterval,
-            DetectionSensitivity,
-            shots);
-    }
+            return new ProjectState(
+                id,
+                ProjectName,
+                SelectedVideoPath,
+                HasVideoFile,
+                VideoFileDuration,
+                VideoFileResolution,
+                VideoFileFps,
+                ExtractModeIndex,
+                FrameCount,
+                TimeInterval,
+                DetectionSensitivity,
+                shots);
+        }
 
     private static IReadOnlyList<ShotAssetState> BuildAssetStates(ShotItem shot)
     {
