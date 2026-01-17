@@ -270,6 +270,8 @@ public partial class MainViewModel : ObservableObject
         _messenger.Register<ShotAddedMessage>(this, (r, m) => _ = SaveProjectAsync());
         _messenger.Register<ShotDeletedMessage>(this, (r, m) => _ = SaveProjectAsync());
         _messenger.Register<ShotUpdatedMessage>(this, (r, m) => _ = SaveProjectAsync());
+        _messenger.Register<ImageGenerationCompletedMessage>(this, (r, m) => _ = SaveProjectAsync());
+        _messenger.Register<VideoGenerationCompletedMessage>(this, (r, m) => _ = SaveProjectAsync());
 
         _logger.LogInformation("MainViewModel 初始化完成");
     }

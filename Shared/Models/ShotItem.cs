@@ -43,6 +43,12 @@ public partial class ShotItem : ObservableObject
     [ObservableProperty]
     private string _imageSize = string.Empty;
 
+    [ObservableProperty]
+    private string _imageQuality = "2K";
+
+    [ObservableProperty]
+    private bool _imageWatermark;
+
     // First frame image parameters
     [ObservableProperty]
     private string _firstFrameNegativePrompt = string.Empty;
@@ -163,10 +169,10 @@ public partial class ShotItem : ObservableObject
     private string _videoEffect = string.Empty;
 
     [ObservableProperty]
-    private string _videoResolution = string.Empty;
+    private string _videoResolution = "720p";
 
     [ObservableProperty]
-    private string _videoRatio = string.Empty;
+    private string _videoRatio = "16:9";
 
     [ObservableProperty]
     private int _videoFrames;
@@ -176,6 +182,12 @@ public partial class ShotItem : ObservableObject
 
     [ObservableProperty]
     private bool _useLastFrameReference;
+
+    [ObservableProperty]
+    private bool _useReferenceImages;
+
+    [ObservableProperty]
+    private bool _generateAudio;
 
     [ObservableProperty]
     private int? _seed;
@@ -237,6 +249,20 @@ public partial class ShotItem : ObservableObject
     [ObservableProperty]
     private bool _isVideoAdvancedOptionsExpanded;
 
+    // Video generation mode selection
+    [ObservableProperty]
+    private bool _isTextToVideoMode;
+
+    [ObservableProperty]
+    private bool _useDurationMode = true;
+
+    [ObservableProperty]
+    private bool _useCustomSeed;
+
+    // Video generation presets
+    [ObservableProperty]
+    private string _selectedPreset = string.Empty;
+
     [ObservableProperty]
     private string? _firstFrameImagePath;
 
@@ -297,6 +323,72 @@ public partial class ShotItem : ObservableObject
     public bool CanGenerateVideo => true;
     public bool CanGenerateVideoNow => !IsVideoGenerating;
 
+    // Computed properties for UI
+    public bool IsNotReferenceMode => !UseReferenceImages;
+
+    public bool SupportsResolution => !UseReferenceImages && !SelectedModel.Contains("t2v", StringComparison.OrdinalIgnoreCase);
+
+    public bool SupportsAudio => SelectedModel.Contains("seedance-1-5-pro", StringComparison.OrdinalIgnoreCase);
+
+    public int MinDuration => SelectedModel.Contains("1-5-pro") ? 4 : 2;
+
+    public int EstimatedFrames => (int)(Duration * 24);
+
+    public string ResolutionWarning
+    {
+        get
+        {
+            if (UseReferenceImages)
+                return "参考图模式不支持分辨率设置";
+            if (SelectedModel.Contains("t2v", StringComparison.OrdinalIgnoreCase))
+                return "T2V 模型不支持分辨率设置";
+            return string.Empty;
+        }
+    }
+
+    public string DurationHint
+    {
+        get
+        {
+            if (SelectedModel.Contains("1-5-pro"))
+                return "Seedance 1.5 Pro 支持 4-12 秒";
+            return "支持 2-12 秒";
+        }
+    }
+
+    public string ParameterSummary
+    {
+        get
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"模式: {GetModeName()}");
+            sb.AppendLine($"宽高比: {VideoRatio}");
+            if (SupportsResolution && !string.IsNullOrWhiteSpace(VideoResolution))
+                sb.AppendLine($"分辨率: {VideoResolution}");
+            if (UseDurationMode)
+                sb.AppendLine($"时长: {Duration:F1} 秒");
+            else if (VideoFrames > 0)
+                sb.AppendLine($"帧数: {VideoFrames} 帧");
+            if (GenerateAudio)
+                sb.AppendLine("音频: 是");
+            if (Watermark)
+                sb.AppendLine("水印: 是");
+            if (CameraFixed)
+                sb.AppendLine("固定镜头: 是");
+            if (UseCustomSeed && Seed.HasValue)
+                sb.AppendLine($"种子: {Seed}");
+            return sb.ToString();
+        }
+    }
+
+    private string GetModeName()
+    {
+        if (UseReferenceImages) return "参考图模式";
+        if (UseFirstFrameReference && UseLastFrameReference) return "首尾帧模式";
+        if (UseFirstFrameReference) return "首帧模式";
+        return "纯文本模式";
+    }
+
     // Events for communicating with parent ViewModel
     public event EventHandler? DuplicateRequested;
     public event EventHandler? DeleteRequested;
@@ -304,6 +396,20 @@ public partial class ShotItem : ObservableObject
     public event EventHandler? GenerateFirstFrameRequested;
     public event EventHandler? GenerateLastFrameRequested;
     public event EventHandler? GenerateVideoRequested;
+
+    // Image size options for ComboBox
+    // Note: Volcengine API requires minimum 3,686,400 pixels (e.g., 2560x1440 for 16:9)
+    public ObservableCollection<string> ImageSizeOptions { get; } = new()
+    {
+        "",
+        "2048x2048",  // 4,194,304 pixels ✓
+        "2560x1440",  // 3,686,400 pixels ✓ (16:9)
+        "1440x2560",  // 3,686,400 pixels ✓ (9:16)
+        "2304x1728",  // 3,981,312 pixels ✓ (4:3)
+        "1728x2304",  // 3,981,312 pixels ✓ (3:4)
+        "2688x1512",  // 4,064,256 pixels ✓ (16:9)
+        "1512x2688"   // 4,064,256 pixels ✓ (9:16)
+    };
 
     public ShotItem(int shotNumber)
     {
@@ -363,6 +469,9 @@ public partial class ShotItem : ObservableObject
     [RelayCommand]
     private void GenerateVideo()
     {
+        System.Diagnostics.Debug.WriteLine($"[ShotItem] GenerateVideo called for Shot {ShotNumber}");
+        System.Diagnostics.Debug.WriteLine($"[ShotItem] VideoPrompt: '{VideoPrompt}'");
+        System.Diagnostics.Debug.WriteLine($"[ShotItem] GenerateVideoRequested subscribers: {GenerateVideoRequested?.GetInvocationList().Length ?? 0}");
         GenerateVideoRequested?.Invoke(this, EventArgs.Empty);
     }
 
@@ -442,6 +551,55 @@ public partial class ShotItem : ObservableObject
     }
 
     [RelayCommand]
+    private void GenerateRandomSeed()
+    {
+        Seed = Random.Shared.Next(0, int.MaxValue);
+    }
+
+    [RelayCommand]
+    private void ApplyPreset(string? presetName)
+    {
+        if (string.IsNullOrWhiteSpace(presetName))
+            return;
+
+        switch (presetName)
+        {
+            case "抖音竖屏":
+                VideoRatio = "9:16";
+                VideoResolution = "1080p";
+                Duration = 5;
+                UseDurationMode = true;
+                break;
+            case "横屏高清":
+                VideoRatio = "16:9";
+                VideoResolution = "1080p";
+                Duration = 8;
+                UseDurationMode = true;
+                break;
+            case "快速预览":
+                VideoRatio = "16:9";
+                VideoResolution = "480p";
+                Duration = 3;
+                UseDurationMode = true;
+                break;
+            case "方形社交":
+                VideoRatio = "1:1";
+                VideoResolution = "1080p";
+                Duration = 5;
+                UseDurationMode = true;
+                break;
+            case "电影宽屏":
+                VideoRatio = "21:9";
+                VideoResolution = "1080p";
+                Duration = 10;
+                UseDurationMode = true;
+                break;
+        }
+
+        SelectedPreset = presetName;
+    }
+
+    [RelayCommand]
     private void SelectAsset(ShotAssetItem? asset)
     {
         if (asset == null || string.IsNullOrWhiteSpace(asset.FilePath))
@@ -486,6 +644,83 @@ public partial class ShotItem : ObservableObject
     partial void OnIsVideoGeneratingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanGenerateVideoNow));
+    }
+
+    partial void OnUseReferenceImagesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsNotReferenceMode));
+        OnPropertyChanged(nameof(SupportsResolution));
+        OnPropertyChanged(nameof(ResolutionWarning));
+    }
+
+    partial void OnSelectedModelChanged(string value)
+    {
+        OnPropertyChanged(nameof(SupportsResolution));
+        OnPropertyChanged(nameof(SupportsAudio));
+        OnPropertyChanged(nameof(MinDuration));
+        OnPropertyChanged(nameof(ResolutionWarning));
+        OnPropertyChanged(nameof(DurationHint));
+    }
+
+    partial void OnDurationChanged(double value)
+    {
+        OnPropertyChanged(nameof(EstimatedFrames));
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnVideoRatioChanged(string value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnVideoResolutionChanged(string value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnVideoFramesChanged(int value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnGenerateAudioChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnWatermarkChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnCameraFixedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnSeedChanged(int? value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnUseCustomSeedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnUseDurationModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnUseFirstFrameReferenceChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
+    }
+
+    partial void OnUseLastFrameReferenceChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ParameterSummary));
     }
 
     private void UpdateAssetSelections(ShotAssetType type)

@@ -36,19 +36,30 @@ public sealed class VideoGenerationService : IVideoGenerationService
         if (shot == null)
             throw new ArgumentNullException(nameof(shot));
 
+        _logger.LogInformation("VideoGenerationService.GenerateVideoAsync 开始 - Shot {ShotNumber}", shot.ShotNumber);
+
         var outDir = string.IsNullOrWhiteSpace(outputDirectory)
             ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output", "shots")
             : outputDirectory;
         Directory.CreateDirectory(outDir);
+        _logger.LogInformation("输出目录: {OutputDir}", outDir);
 
         var safePrefix = string.IsNullOrWhiteSpace(filePrefix) ? $"shot_{shot.ShotNumber:000}" : filePrefix;
         var outputPath = Path.Combine(outDir, $"{safePrefix}_{DateTime.Now:yyyyMMdd_HHmmss_fff}.mp4");
+        _logger.LogInformation("输出路径: {OutputPath}", outputPath);
 
         var aiConfig = _configMonitor.CurrentValue;
         var videoConfig = aiConfig.Video;
+        _logger.LogInformation("正在解析视频提供商...");
+
         var provider = ResolveProvider(videoConfig);
+        _logger.LogInformation("使用提供商: {Provider}", provider.DisplayName);
+
         var model = ResolveModel(provider, shot.SelectedModel, aiConfig);
+        _logger.LogInformation("使用模型: {Model}", model);
+
         var (width, height) = ResolveDimensions(videoConfig.Volcengine.Resolution);
+        _logger.LogInformation("分辨率: {Width}x{Height}", width, height);
 
         var request = new VideoGenerationRequest(
             shot,
@@ -61,11 +72,31 @@ public sealed class VideoGenerationService : IVideoGenerationService
             0,
             false);
 
-        await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation("调用提供商生成视频...");
+        try
+        {
+            await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation("提供商生成完成");
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("视频生成任务已取消");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "提供商生成视频时发生异常 - 类型: {ExceptionType}, 消息: {Message}, 堆栈: {StackTrace}",
+                ex.GetType().Name, ex.Message, ex.StackTrace);
+            throw;
+        }
 
         if (!File.Exists(outputPath))
+        {
+            _logger.LogError("视频文件未找到: {OutputPath}", outputPath);
             throw new InvalidOperationException("分镜视频生成完成但未找到输出文件。");
+        }
 
+        _logger.LogInformation("视频生成成功: {OutputPath}", outputPath);
         return outputPath;
     }
 

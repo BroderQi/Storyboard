@@ -22,7 +22,10 @@ public sealed record ImageGenerationRequest(
     // Image-to-image parameters
     List<string>? ReferenceImagePaths = null,
     bool SequentialGeneration = false,
-    int? MaxImages = null);
+    int? MaxImages = null,
+    // Size and watermark parameters
+    string? Size = null,
+    bool Watermark = false);
 
 public sealed record ImageGenerationResult(
     byte[] ImageBytes,

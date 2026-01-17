@@ -50,6 +50,179 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
     {
         _logger.LogInformation("Starting image generation. Request: {Request}", JsonSerializer.Serialize(request));
 
+        // Determine generation mode based on request parameters
+        var hasReferenceImages = request.ReferenceImagePaths != null &&
+                                 request.ReferenceImagePaths.Any(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+        var isSequentialGeneration = request.SequentialGeneration ||
+                                     (!string.IsNullOrWhiteSpace(ImageConfig.SequentialImageGeneration) &&
+                                      ImageConfig.SequentialImageGeneration != "disabled");
+
+        if (isSequentialGeneration)
+        {
+            // 组图输出（多图输出）
+            if (hasReferenceImages)
+            {
+                var imageCount = request.ReferenceImagePaths!.Count(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+                if (imageCount > 1)
+                {
+                    // 多图生组图
+                    return await GenerateSequentialImagesFromMultipleImagesAsync(request, cancellationToken);
+                }
+                else
+                {
+                    // 单图生组图
+                    return await GenerateSequentialImagesFromSingleImageAsync(request, cancellationToken);
+                }
+            }
+            else
+            {
+                // 文生组图
+                return await GenerateSequentialImagesFromTextAsync(request, cancellationToken);
+            }
+        }
+        else
+        {
+            if (hasReferenceImages)
+            {
+                var imageCount = request.ReferenceImagePaths!.Count(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+                if (imageCount > 1)
+                {
+                    // 多图融合（多图输入单图输出）
+                    return await GenerateImageFromMultipleImagesAsync(request, cancellationToken);
+                }
+                else
+                {
+                    // 图文生图（单图输入单图输出）
+                    return await GenerateImageFromSingleImageAsync(request, cancellationToken);
+                }
+            }
+            else
+            {
+                // 文生图（纯文本输入单图输出）
+                return await GenerateImageFromTextAsync(request, cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 文生图（纯文本输入单图输出）
+    /// Text-to-image generation: pure text input, single image output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateImageFromTextAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Text-to-image generation mode");
+
+        var payload = BuildBasePayload(request);
+        payload["sequential_image_generation"] = "disabled";
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    /// <summary>
+    /// 图文生图（单图输入单图输出）
+    /// Image-to-image generation: single image input, single image output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateImageFromSingleImageAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Single image-to-image generation mode");
+
+        var validImage = request.ReferenceImagePaths!
+            .First(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+
+        var payload = BuildBasePayload(request);
+        payload["image"] = ToDataUrl(validImage);
+        payload["sequential_image_generation"] = "disabled";
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    /// <summary>
+    /// 多图融合（多图输入单图输出）
+    /// Multi-image fusion: multiple images input, single image output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateImageFromMultipleImagesAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Multiple images fusion mode");
+
+        var validImages = request.ReferenceImagePaths!
+            .Where(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            .ToList();
+
+        var payload = BuildBasePayload(request);
+        payload["image"] = validImages.Select(ToDataUrl).ToArray();
+        payload["sequential_image_generation"] = "disabled";
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    /// <summary>
+    /// 文生组图（纯文本输入多图输出）
+    /// Text-to-sequential-images: pure text input, multiple images output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateSequentialImagesFromTextAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Text-to-sequential-images generation mode");
+
+        var payload = BuildBasePayload(request);
+        payload["sequential_image_generation"] = "auto";
+        AddSequentialGenerationOptions(payload, request);
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    /// <summary>
+    /// 单图生组图（单图输入多图输出）
+    /// Single-image-to-sequential-images: single image input, multiple images output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateSequentialImagesFromSingleImageAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Single image-to-sequential-images generation mode");
+
+        var validImage = request.ReferenceImagePaths!
+            .First(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+
+        var payload = BuildBasePayload(request);
+        payload["image"] = ToDataUrl(validImage);
+        payload["sequential_image_generation"] = "auto";
+        AddSequentialGenerationOptions(payload, request);
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    /// <summary>
+    /// 多图生组图（多图输入多图输出）
+    /// Multiple-images-to-sequential-images: multiple images input, multiple images output
+    /// </summary>
+    private async Task<ImageGenerationResult> GenerateSequentialImagesFromMultipleImagesAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Multiple images-to-sequential-images generation mode");
+
+        var validImages = request.ReferenceImagePaths!
+            .Where(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            .ToList();
+
+        var payload = BuildBasePayload(request);
+        payload["image"] = validImages.Select(ToDataUrl).ToArray();
+        payload["sequential_image_generation"] = "auto";
+        AddSequentialGenerationOptions(payload, request);
+
+        return await ExecuteGenerationAsync(payload, request.Model, cancellationToken);
+    }
+
+    private Dictionary<string, object?> BuildBasePayload(ImageGenerationRequest request)
+    {
         var providerConfig = ProviderConfig;
         if (!IsConfigured)
             throw new InvalidOperationException("Volcengine image generation is not configured.");
@@ -64,21 +237,28 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
             throw new InvalidOperationException("No image model configured for Volcengine.");
 
         var imageConfig = ImageConfig;
-        var size = ResolveSize(imageConfig, request.Width, request.Height);
+
+        // Resolve size: prioritize request.Size, then fall back to Width/Height, then config
+        string size;
+        if (!string.IsNullOrWhiteSpace(request.Size))
+        {
+            // Use the size from request (e.g., "2K", "1920x1080")
+            size = ValidateAndAdjustSize(request.Size.Trim());
+        }
+        else
+        {
+            // Fall back to Width/Height or config
+            size = ResolveSize(imageConfig, request.Width, request.Height);
+        }
+
         var responseFormat = string.IsNullOrWhiteSpace(imageConfig.ResponseFormat)
             ? "b64_json"
             : imageConfig.ResponseFormat.Trim();
         if (imageConfig.Stream)
             throw new InvalidOperationException("Streaming image generation is not supported.");
 
-        using var httpClient = new HttpClient
-        {
-            BaseAddress = BuildBaseAddress(providerConfig.Endpoint),
-            Timeout = TimeSpan.FromSeconds(providerConfig.TimeoutSeconds)
-        };
-
-        httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", providerConfig.ApiKey);
+        // Use watermark from request, fall back to config
+        var watermark = request.Watermark || imageConfig.Watermark;
 
         var payload = new Dictionary<string, object?>
         {
@@ -87,30 +267,8 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
             ["size"] = size,
             ["response_format"] = responseFormat,
             ["stream"] = false,
-            ["watermark"] = imageConfig.Watermark
+            ["watermark"] = watermark
         };
-
-        // Add reference images if provided (for image-to-image generation)
-        if (request.ReferenceImagePaths != null && request.ReferenceImagePaths.Count > 0)
-        {
-            var validImages = request.ReferenceImagePaths
-                .Where(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path))
-                .ToList();
-
-            if (validImages.Count > 0)
-            {
-                if (validImages.Count == 1)
-                {
-                    // Single image: use "image" field
-                    payload["image"] = ToDataUrl(validImages[0]);
-                }
-                else
-                {
-                    // Multiple images: use "image" array
-                    payload["image"] = validImages.Select(ToDataUrl).ToArray();
-                }
-            }
-        }
 
         // Add negative prompt if provided
         if (!string.IsNullOrWhiteSpace(request.NegativePrompt))
@@ -118,12 +276,21 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
             payload["negative_prompt"] = request.NegativePrompt.Trim();
         }
 
-        // Sequential generation settings
-        var sequentialMode = request.SequentialGeneration ? "auto" : "disabled";
-        if (!string.IsNullOrWhiteSpace(imageConfig.SequentialImageGeneration))
-            sequentialMode = imageConfig.SequentialImageGeneration;
+        // Add optimize prompt options if configured
+        if (!string.IsNullOrWhiteSpace(imageConfig.OptimizePromptMode))
+        {
+            payload["optimize_prompt_options"] = new Dictionary<string, object?>
+            {
+                ["mode"] = imageConfig.OptimizePromptMode
+            };
+        }
 
-        payload["sequential_image_generation"] = sequentialMode;
+        return payload;
+    }
+
+    private void AddSequentialGenerationOptions(Dictionary<string, object?> payload, ImageGenerationRequest request)
+    {
+        var imageConfig = ImageConfig;
 
         if (request.MaxImages.HasValue && request.MaxImages.Value > 0)
         {
@@ -139,14 +306,26 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
                 ["max_images"] = imageConfig.SequentialMaxImages.Value
             };
         }
+    }
 
-        if (!string.IsNullOrWhiteSpace(imageConfig.OptimizePromptMode))
+    private async Task<ImageGenerationResult> ExecuteGenerationAsync(
+        Dictionary<string, object?> payload,
+        string? requestModel,
+        CancellationToken cancellationToken)
+    {
+        var providerConfig = ProviderConfig;
+        var model = string.IsNullOrWhiteSpace(requestModel)
+            ? providerConfig.DefaultModels.Image
+            : requestModel;
+
+        using var httpClient = new HttpClient
         {
-            payload["optimize_prompt_options"] = new Dictionary<string, object?>
-            {
-                ["mode"] = imageConfig.OptimizePromptMode
-            };
-        }
+            BaseAddress = BuildBaseAddress(providerConfig.Endpoint),
+            Timeout = TimeSpan.FromSeconds(providerConfig.TimeoutSeconds)
+        };
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", providerConfig.ApiKey);
 
         var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         var response = await httpClient.PostAsync("images/generations", content, cancellationToken).ConfigureAwait(false);
@@ -157,7 +336,7 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"Volcengine image generation failed: {responseBody}");
 
-        var result = await ParseImageResultAsync(responseBody, model, cancellationToken).ConfigureAwait(false);
+        var result = await ParseImageResultAsync(responseBody, model!, cancellationToken).ConfigureAwait(false);
         _logger.LogInformation("Image generation completed. Result: Model={Model}, Extension={Extension}, BytesLength={Length}", result.ModelUsed, result.FileExtension, result.ImageBytes.Length);
 
         return result;
@@ -166,11 +345,60 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
     private static string ResolveSize(VolcengineImageConfig config, int width, int height)
     {
         if (!string.IsNullOrWhiteSpace(config.Size))
-            return config.Size.Trim();
+            return ValidateAndAdjustSize(config.Size.Trim());
 
         if (width > 0 && height > 0)
-            return $"{width}x{height}";
+            return ValidateAndAdjustSize($"{width}x{height}");
 
+        return "2048x2048";
+    }
+
+    /// <summary>
+    /// Validates and adjusts image size to meet Volcengine API minimum requirement of 3,686,400 pixels.
+    /// </summary>
+    private static string ValidateAndAdjustSize(string size)
+    {
+        const int MinPixels = 3686400; // Volcengine API minimum
+
+        // If it's a preset like "1K", "2K", "4K", return as-is (API handles these)
+        if (size.EndsWith("K", StringComparison.OrdinalIgnoreCase))
+            return size;
+
+        // Try to parse WxH format
+        var parts = size.Split('x', 'X');
+        if (parts.Length == 2 &&
+            int.TryParse(parts[0], out var width) &&
+            int.TryParse(parts[1], out var height) &&
+            width > 0 && height > 0)
+        {
+            var pixels = width * height;
+
+            // If size meets minimum, return as-is
+            if (pixels >= MinPixels)
+                return size;
+
+            // Size is too small, scale up proportionally to meet minimum
+            var scale = Math.Sqrt((double)MinPixels / pixels);
+            var newWidth = (int)Math.Ceiling(width * scale);
+            var newHeight = (int)Math.Ceiling(height * scale);
+
+            // Ensure we meet the minimum after rounding
+            while (newWidth * newHeight < MinPixels)
+            {
+                if (newWidth <= newHeight)
+                    newWidth++;
+                else
+                    newHeight++;
+            }
+
+            var adjustedSize = $"{newWidth}x{newHeight}";
+            // Log warning about adjustment (in production, use proper logging)
+            System.Diagnostics.Debug.WriteLine($"[Volcengine] Size {size} ({pixels:N0} pixels) adjusted to {adjustedSize} ({newWidth * newHeight:N0} pixels) to meet minimum requirement of {MinPixels:N0} pixels");
+
+            return adjustedSize;
+        }
+
+        // Invalid format, return default
         return "2048x2048";
     }
 

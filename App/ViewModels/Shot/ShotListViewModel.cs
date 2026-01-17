@@ -267,7 +267,10 @@ public partial class ShotListViewModel : ObservableObject
     private void OnShotGenerateVideoRequestedEvent(object? sender, EventArgs e)
     {
         if (sender is ShotItem shot)
+        {
+            _logger.LogInformation("镜头请求生成视频: Shot {ShotNumber}", shot.ShotNumber);
             _messenger.Send(new VideoGenerationRequestedMessage(shot));
+        }
     }
 
     private void Shot_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

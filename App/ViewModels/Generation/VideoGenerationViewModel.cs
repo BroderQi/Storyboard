@@ -91,6 +91,8 @@ public partial class VideoGenerationViewModel : ObservableObject
     {
         var shot = message.Shot;
 
+        _logger.LogInformation("收到视频生成请求: Shot {ShotNumber}, VideoPrompt: '{VideoPrompt}'", shot.ShotNumber, shot.VideoPrompt);
+
         try
         {
             shot.IsVideoGenerating = true;
@@ -105,6 +107,8 @@ public partial class VideoGenerationViewModel : ObservableObject
                 return;
             }
 
+            _logger.LogInformation("开始生成视频: Shot {ShotNumber}, Prompt: '{Prompt}'", shot.ShotNumber, prompt);
+
             // 创建视频生成任务
             _jobQueue.Enqueue(
                 GenerationJobType.Video,
@@ -113,11 +117,19 @@ public partial class VideoGenerationViewModel : ObservableObject
                 {
                     try
                     {
+                        _logger.LogInformation("视频生成任务开始执行: Shot {ShotNumber}", shot.ShotNumber);
+                        _logger.LogInformation("视频生成参数 - VideoPrompt: '{VideoPrompt}', Duration: {Duration}, Ratio: {Ratio}, Resolution: {Resolution}",
+                            shot.VideoPrompt, shot.Duration, shot.VideoRatio, shot.VideoResolution);
+                        _logger.LogInformation("视频生成模式 - UseFirstFrameReference: {UseFirstFrame}, UseLastFrameReference: {UseLastFrame}, UseReferenceImages: {UseReference}",
+                            shot.UseFirstFrameReference, shot.UseLastFrameReference, shot.UseReferenceImages);
+
                         var videoPath = await _videoGenerationService.GenerateVideoAsync(
                             shot,
                             outputDirectory: null,
                             filePrefix: $"shot_{shot.ShotNumber:000}_video",
                             cancellationToken: ct);
+
+                        _logger.LogInformation("视频生成服务返回路径: {VideoPath}", videoPath);
 
                         if (!string.IsNullOrWhiteSpace(videoPath))
                         {
@@ -151,10 +163,17 @@ public partial class VideoGenerationViewModel : ObservableObject
                             _logger.LogWarning("视频生成失败: Shot {ShotNumber}", shot.ShotNumber);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "视频生成任务执行异常: Shot {ShotNumber}, 错误信息: {Message}", shot.ShotNumber, ex.Message);
+                        _messenger.Send(new VideoGenerationCompletedMessage(shot, false, null));
+                        throw; // 重新抛出异常，让任务队列知道任务失败
+                    }
                     finally
                     {
                         // 任务完成后重置生成状态
                         shot.IsVideoGenerating = false;
+                        _logger.LogInformation("视频生成状态已重置: Shot {ShotNumber}", shot.ShotNumber);
                     }
                 });
         }

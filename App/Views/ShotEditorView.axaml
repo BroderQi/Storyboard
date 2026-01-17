@@ -3,6 +3,7 @@
              xmlns:m="using:Storyboard.Models"
              xmlns:conv="using:Storyboard.Converters"
              xmlns:wv="clr-namespace:AvaloniaWebView;assembly=Avalonia.WebView"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:Class="Storyboard.Views.ShotEditorView"
              x:DataType="m:ShotItem">
 
@@ -286,22 +287,62 @@
                                 <!-- Generation Settings -->
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="生成设置" FontSize="13" Foreground="#f5f5f5" FontWeight="Medium" />
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                        <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock Text="尺寸" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding ImageSize}"
-                                                     Watermark="1024x1024"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
+
+                                    <!-- Quality Level -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="清晰度等级" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding ImageQuality}"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                            <ComboBoxItem Content="2K - 中等清晰度（推荐）">2K</ComboBoxItem>
+                                            <ComboBoxItem Content="1K - 低清晰度">1K</ComboBoxItem>
+                                            <ComboBoxItem Content="4K - 高清晰度">4K</ComboBoxItem>
+                                        </ComboBox>
+                                        <TextBlock Text="💡 清晰度等级，API会自动决定最佳比例"
+                                                   Foreground="#71717a"
+                                                   FontSize="10"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Custom Size (Optional) -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="自定义尺寸（可选）" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding ImageSize}"
+                                                  ItemsSource="{Binding ImageSizeOptions}"
+                                                  IsEditable="True"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                        </ComboBox>
+                                        <TextBlock Text="💡 填写后将覆盖清晰度等级，精确控制宽高比例"
+                                                   Foreground="#71717a"
+                                                   FontSize="10"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Model Selection -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
+                                        <TextBox Text="{Binding SelectedModel}"
+                                                 Watermark="留空使用默认"
+                                                 Background="#1a1a1a"
+                                                 BorderBrush="#3f3f46" />
+                                    </StackPanel>
+
+                                    <!-- Watermark Control -->
+                                    <CheckBox IsChecked="{Binding ImageWatermark}"
+                                              Margin="0,4,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="添加水印" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                            <TextBlock Text="在生成的图片上添加AI生成水印"
+                                                       Foreground="#71717a"
+                                                       FontSize="11"
+                                                       Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding SelectedModel}"
-                                                     Watermark="留空使用默认"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
-                                        </StackPanel>
-                                    </Grid>
+                                    </CheckBox>
                                 </StackPanel>
 
                                 <!-- Actions -->
@@ -555,22 +596,62 @@
                                 <!-- Generation Settings -->
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="生成设置" FontSize="13" Foreground="#f5f5f5" FontWeight="Medium" />
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                        <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock Text="尺寸" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding ImageSize}"
-                                                     Watermark="1024x1024"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
+
+                                    <!-- Quality Level -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="清晰度等级" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding ImageQuality}"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                            <ComboBoxItem Content="2K - 中等清晰度（推荐）">2K</ComboBoxItem>
+                                            <ComboBoxItem Content="1K - 低清晰度">1K</ComboBoxItem>
+                                            <ComboBoxItem Content="4K - 高清晰度">4K</ComboBoxItem>
+                                        </ComboBox>
+                                        <TextBlock Text="💡 清晰度等级，API会自动决定最佳比例"
+                                                   Foreground="#71717a"
+                                                   FontSize="10"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Custom Size (Optional) -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="自定义尺寸（可选）" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding ImageSize}"
+                                                  ItemsSource="{Binding ImageSizeOptions}"
+                                                  IsEditable="True"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                        </ComboBox>
+                                        <TextBlock Text="💡 填写后将覆盖清晰度等级，精确控制宽高比例"
+                                                   Foreground="#71717a"
+                                                   FontSize="10"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Model Selection -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
+                                        <TextBox Text="{Binding SelectedModel}"
+                                                 Watermark="留空使用默认"
+                                                 Background="#1a1a1a"
+                                                 BorderBrush="#3f3f46" />
+                                    </StackPanel>
+
+                                    <!-- Watermark Control -->
+                                    <CheckBox IsChecked="{Binding ImageWatermark}"
+                                              Margin="0,4,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="添加水印" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                            <TextBlock Text="在生成的图片上添加AI生成水印"
+                                                       Foreground="#71717a"
+                                                       FontSize="11"
+                                                       Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding SelectedModel}"
-                                                     Watermark="留空使用默认"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
-                                        </StackPanel>
-                                    </Grid>
+                                    </CheckBox>
                                 </StackPanel>
 
                                 <!-- Actions -->
@@ -711,6 +792,59 @@
                     <StackPanel Spacing="16"
                                 Width="{Binding Path=Viewport.Width, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
 
+                        <!-- Generation Mode Section -->
+                        <Border Background="#18181b"
+                                BorderBrush="#27272a"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="🎬 生成模式"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="#f5f5f5" />
+
+                                <!-- Text to Video Mode -->
+                                <RadioButton GroupName="VideoMode"
+                                             IsChecked="{Binding IsTextToVideoMode}">
+                                    <StackPanel>
+                                        <TextBlock Text="纯文本生成视频" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="仅使用文字描述生成视频"
+                                                   Foreground="#71717a" FontSize="11" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </RadioButton>
+
+                                <!-- First Frame Mode -->
+                                <RadioButton GroupName="VideoMode"
+                                             IsChecked="{Binding UseFirstFrameReference}">
+                                    <StackPanel>
+                                        <TextBlock Text="基于首帧图片生成" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="从指定的首帧图片开始生成视频动画"
+                                                   Foreground="#71717a" FontSize="11" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </RadioButton>
+
+                                <!-- Last Frame Option -->
+                                <CheckBox Content="同时使用尾帧图片（首尾帧过渡动画）"
+                                          IsChecked="{Binding UseLastFrameReference}"
+                                          IsEnabled="{Binding UseFirstFrameReference}"
+                                          Margin="20,5,0,0"
+                                          Foreground="#a1a1aa"
+                                          FontSize="12" />
+
+                                <!-- Reference Images Mode -->
+                                <RadioButton GroupName="VideoMode"
+                                             IsChecked="{Binding UseReferenceImages}">
+                                    <StackPanel>
+                                        <TextBlock Text="参考图模式（角色一致性）" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                        <TextBlock Text="精准提取参考图的人物、服装、场景特征（1-4张）"
+                                                   Foreground="#71717a" FontSize="11" Margin="0,2,0,0" />
+                                        <TextBlock Text="⚠️ 此模式不支持分辨率、宽高比、固定镜头参数"
+                                                   Foreground="Orange" FontSize="10" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </RadioButton>
+                            </StackPanel>
+                        </Border>
                         <!-- Main Prompt Section -->
                         <Border Background="#18181b"
                                 BorderBrush="#27272a"
@@ -889,53 +1023,111 @@
                                 <!-- Generation Settings -->
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="生成设置" FontSize="13" Foreground="#f5f5f5" FontWeight="Medium" />
-                                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
-                                        <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
-                                            <TextBlock Text="分辨率" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding VideoResolution}"
-                                                     Watermark="1920x1080"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
+
+                                    <!-- Aspect Ratio -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="宽高比" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding VideoRatio}"
+                                                  IsEnabled="{Binding IsNotReferenceMode}"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                            <system:String>adaptive</system:String>
+                                            <system:String>16:9</system:String>
+                                            <system:String>9:16</system:String>
+                                            <system:String>1:1</system:String>
+                                            <system:String>4:3</system:String>
+                                            <system:String>3:4</system:String>
+                                            <system:String>21:9</system:String>
+                                        </ComboBox>
+                                        <TextBlock Text="⚠️ 参考图模式不支持宽高比设置"
+                                                   Foreground="Orange"
+                                                   FontSize="11"
+                                                   Margin="0,5,0,0"
+                                                   IsVisible="{Binding UseReferenceImages}" />
+                                    </StackPanel>
+
+                                    <!-- Resolution -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="分辨率" FontSize="12" Foreground="#a1a1aa" />
+                                        <ComboBox SelectedItem="{Binding VideoResolution}"
+                                                  IsEnabled="{Binding SupportsResolution}"
+                                                  HorizontalAlignment="Stretch"
+                                                  Background="#1a1a1a"
+                                                  BorderBrush="#3f3f46">
+                                            <system:String>1080p</system:String>
+                                            <system:String>720p</system:String>
+                                            <system:String>480p</system:String>
+                                        </ComboBox>
+                                        <TextBlock Text="{Binding ResolutionWarning}"
+                                                   Foreground="Orange"
+                                                   FontSize="11"
+                                                   Margin="0,5,0,0"
+                                                   IsVisible="{Binding ResolutionWarning, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                                    </StackPanel>
+
+                                    <!-- Duration / Frames -->
+                                    <StackPanel Spacing="4">
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <TextBlock Grid.Column="0" Text="视频时长" FontSize="12" Foreground="#a1a1aa" />
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                                                <RadioButton Content="按秒数"
+                                                             IsChecked="{Binding UseDurationMode}"
+                                                             GroupName="DurationMode"
+                                                             FontSize="11"
+                                                             Foreground="#a1a1aa" />
+                                                <RadioButton Content="按帧数"
+                                                             IsChecked="{Binding UseDurationMode, Converter={StaticResource BoolNot}}"
+                                                             GroupName="DurationMode"
+                                                             FontSize="11"
+                                                             Foreground="#a1a1aa" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Duration Slider -->
+                                        <StackPanel Spacing="4" IsVisible="{Binding UseDurationMode}">
+                                            <Slider Value="{Binding Duration}"
+                                                    Minimum="{Binding MinDuration}"
+                                                    Maximum="12"
+                                                    TickFrequency="0.5"
+                                                    IsSnapToTickEnabled="True" />
+                                            <TextBlock HorizontalAlignment="Center" Foreground="#f5f5f5">
+                                                <Run Text="{Binding Duration, StringFormat='{}{0:F1}'}" />
+                                                <Run Text=" 秒" />
+                                                <Run Text=" (约 " Foreground="#71717a" />
+                                                <Run Text="{Binding EstimatedFrames}" Foreground="#71717a" />
+                                                <Run Text=" 帧)" Foreground="#71717a" />
+                                            </TextBlock>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
-                                            <TextBlock Text="比例" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding VideoRatio}"
-                                                     Watermark="16:9"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="0" Grid.Row="1" Spacing="4">
-                                            <TextBlock Text="时长（秒）" FontSize="12" Foreground="#a1a1aa" />
-                                            <NumericUpDown Value="{Binding Duration}"
-                                                           Minimum="0.5"
-                                                           Maximum="60"
-                                                           Increment="0.1"
-                                                           FormatString="F1"
-                                                           Background="#1a1a1a"
-                                                           BorderBrush="#3f3f46" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Grid.Row="1" Spacing="4">
-                                            <TextBlock Text="帧数" FontSize="12" Foreground="#a1a1aa" />
+
+                                        <!-- Frames Input -->
+                                        <StackPanel Spacing="4" IsVisible="{Binding UseDurationMode, Converter={StaticResource BoolNot}}">
                                             <NumericUpDown Value="{Binding VideoFrames}"
-                                                           Minimum="0"
-                                                           Maximum="300"
-                                                           Increment="1"
-                                                           Watermark="自动"
+                                                           Minimum="29"
+                                                           Maximum="289"
+                                                           Increment="4"
                                                            Background="#1a1a1a"
                                                            BorderBrush="#3f3f46" />
+                                            <TextBlock Text="⚠️ 帧数必须符合 25+4n 格式（如 29, 33, 37, 41...）"
+                                                       Foreground="Orange"
+                                                       FontSize="10"
+                                                       Margin="0,5,0,0" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="0" Grid.Row="2" Spacing="4" Orientation="Horizontal">
-                                            <CheckBox IsChecked="{Binding UseFirstFrameReference}" Content="首帧" />
-                                            <CheckBox IsChecked="{Binding UseLastFrameReference}" Content="尾帧" Margin="12,0,0,0" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Grid.Row="2" Spacing="4">
-                                            <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
-                                            <TextBox Text="{Binding SelectedModel}"
-                                                     Watermark="留空使用默认"
-                                                     Background="#1a1a1a"
-                                                     BorderBrush="#3f3f46" />
-                                        </StackPanel>
-                                    </Grid>
+
+                                        <TextBlock Text="{Binding DurationHint}"
+                                                   Foreground="#71717a"
+                                                   FontSize="11"
+                                                   Margin="0,5,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Model Selection -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="模型" FontSize="12" Foreground="#a1a1aa" />
+                                        <TextBox Text="{Binding SelectedModel}"
+                                                 Watermark="留空使用默认"
+                                                 Background="#1a1a1a"
+                                                 BorderBrush="#3f3f46" />
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Advanced Options (Collapsible) -->
@@ -960,18 +1152,73 @@
                                         </Button>
 
                                         <StackPanel Spacing="12" IsVisible="{Binding IsVideoAdvancedOptionsExpanded}">
-                                            <StackPanel Spacing="4">
+                                            <!-- Audio Generation -->
+                                            <CheckBox IsChecked="{Binding GenerateAudio}"
+                                                      IsEnabled="{Binding SupportsAudio}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="生成音频 🎵" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                                </StackPanel>
+                                            </CheckBox>
+                                            <TextBlock Text="为视频生成配乐和音效（仅 Seedance 1.5 Pro 支持）"
+                                                       Foreground="#71717a"
+                                                       FontSize="11"
+                                                       Margin="20,-8,0,0" />
+                                            <TextBlock Text="⚠️ 当前模型不支持音频生成"
+                                                       Foreground="Orange"
+                                                       FontSize="11"
+                                                       Margin="20,-8,0,0"
+                                                       IsVisible="{Binding SupportsAudio, Converter={StaticResource BoolNot}}" />
+
+                                            <!-- Camera Fixed -->
+                                            <CheckBox IsChecked="{Binding CameraFixed}"
+                                                      IsEnabled="{Binding IsNotReferenceMode}">
+                                                <StackPanel>
+                                                    <TextBlock Text="固定镜头" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                                    <TextBlock Text="禁止镜头移动，保持静态视角"
+                                                               Foreground="#71717a"
+                                                               FontSize="11"
+                                                               Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </CheckBox>
+
+                                            <!-- Watermark -->
+                                            <CheckBox IsChecked="{Binding Watermark}">
+                                                <StackPanel>
+                                                    <TextBlock Text="添加水印" FontWeight="SemiBold" Foreground="#f5f5f5" />
+                                                    <TextBlock Text="在生成的视频上添加AI生成水印"
+                                                               Foreground="#71717a"
+                                                               FontSize="11"
+                                                               Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </CheckBox>
+
+                                            <!-- Custom Seed -->
+                                            <CheckBox IsChecked="{Binding UseCustomSeed}"
+                                                      Content="使用自定义随机种子"
+                                                      Foreground="#f5f5f5" />
+                                            <StackPanel Spacing="4" IsVisible="{Binding UseCustomSeed}">
                                                 <TextBlock Text="Seed" FontSize="12" Foreground="#a1a1aa" />
-                                                <NumericUpDown Value="{Binding Seed}"
-                                                               Minimum="0"
-                                                               Maximum="2147483647"
-                                                               Increment="1"
-                                                               Watermark="随机"
-                                                               Background="#1a1a1a"
-                                                               BorderBrush="#3f3f46" />
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <NumericUpDown Grid.Column="0"
+                                                                   Value="{Binding Seed}"
+                                                                   Minimum="0"
+                                                                   Maximum="2147483647"
+                                                                   Increment="1"
+                                                                   Watermark="随机"
+                                                                   Background="#1a1a1a"
+                                                                   BorderBrush="#3f3f46"
+                                                                   Margin="0,0,8,0" />
+                                                    <Button Grid.Column="1"
+                                                            Classes="Secondary"
+                                                            Content="随机"
+                                                            Command="{Binding GenerateRandomSeedCommand}"
+                                                            Padding="12,6" />
+                                                </Grid>
+                                                <TextBlock Text="使用相同的种子可以生成相似的视频"
+                                                           Foreground="#71717a"
+                                                           FontSize="11"
+                                                           Margin="0,5,0,0" />
                                             </StackPanel>
-                                            <CheckBox IsChecked="{Binding CameraFixed}" Content="固定摄影机" />
-                                            <CheckBox IsChecked="{Binding Watermark}" Content="水印" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -1083,12 +1330,12 @@
                                                     <StackPanel Spacing="6" Width="140">
                                                         <Border Height="80" CornerRadius="4" ClipToBounds="True" Background="#0f0f0f" BorderBrush="#27272a" BorderThickness="1">
                                                             <Panel>
-                                                                <Image Source="{Binding ThumbnailPath, Converter={StaticResource PathToBitmapConverter}}"
+                                                                <Image Source="{Binding DisplayPath, Converter={StaticResource PathToBitmapConverter}}"
                                                                        Stretch="UniformToFill"
-                                                                       IsVisible="{Binding ThumbnailPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+                                                                       IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
                                                                 <StackPanel HorizontalAlignment="Center"
                                                                             VerticalAlignment="Center"
-                                                                            IsVisible="{Binding ThumbnailPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
+                                                                            IsVisible="{Binding DisplayPath, Converter={x:Static conv:StringConverters.IsNullOrEmpty}}">
                                                                     <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"
                                                                               Width="24"
                                                                               Height="24"

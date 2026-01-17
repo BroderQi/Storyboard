@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Storyboard.Models;
 using System;
 using System.ComponentModel;
@@ -63,7 +64,12 @@ public partial class ShotEditorView : UserControl
     private void OnShotPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ShotItem.GeneratedVideoPath))
-            UpdatePlayerSource(_shot?.GeneratedVideoPath, false);
+        {
+            var videoPath = _shot?.GeneratedVideoPath;
+            System.Diagnostics.Debug.WriteLine($"[ShotEditorView] GeneratedVideoPath changed: {videoPath}");
+            System.Diagnostics.Debug.WriteLine($"[ShotEditorView] File exists: {(videoPath != null && File.Exists(videoPath))}");
+            Dispatcher.UIThread.Post(() => UpdatePlayerSource(videoPath, false));
+        }
     }
 
     private async void OnTogglePlayClicked(object? sender, RoutedEventArgs e)
@@ -120,23 +126,38 @@ public partial class ShotEditorView : UserControl
 
     private void UpdatePlayerSource(string? videoPath, bool autoplay)
     {
+        System.Diagnostics.Debug.WriteLine($"[ShotEditorView] UpdatePlayerSource called: videoPath={videoPath}, autoplay={autoplay}");
+        System.Diagnostics.Debug.WriteLine($"[ShotEditorView] _viewAttached={_viewAttached}, VideoWebView={VideoWebView != null}");
+
         if (!_viewAttached || VideoWebView == null)
         {
             _pendingVideoPath = videoPath;
             _pendingAutoPlay = autoplay;
+            System.Diagnostics.Debug.WriteLine($"[ShotEditorView] View not attached, pending video path set");
             return;
         }
 
         var normalizedPath = NormalizeVideoPath(videoPath);
+        System.Diagnostics.Debug.WriteLine($"[ShotEditorView] Normalized path: {normalizedPath}");
+
         if (!autoplay && string.Equals(_currentVideoPath, normalizedPath, StringComparison.OrdinalIgnoreCase))
+        {
+            System.Diagnostics.Debug.WriteLine($"[ShotEditorView] Path unchanged, skipping update");
             return;
+        }
 
         var uri = BuildPlayerUri(normalizedPath, autoplay);
+        System.Diagnostics.Debug.WriteLine($"[ShotEditorView] Built URI: {uri}");
+
         if (uri == null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ShotEditorView] URI is null, cannot update player");
             return;
+        }
 
         _currentVideoPath = normalizedPath;
         VideoWebView.Url = uri;
+        System.Diagnostics.Debug.WriteLine($"[ShotEditorView] WebView URL updated successfully");
     }
 
     private async Task<bool> TryTogglePlayAsync()

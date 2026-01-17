@@ -107,7 +107,55 @@ public sealed class ImageGenerationService : IImageGenerationService
         var aiConfig = _configMonitor.CurrentValue;
         var imageConfig = aiConfig.Image;
         var provider = ResolveProvider(imageConfig);
-        var (width, height) = ResolveSize(imageConfig.Volcengine);
+
+        // Resolve size: use ImageSize if provided, otherwise use ImageQuality
+        string? sizeParam = null;
+        int width = 0;
+        int height = 0;
+
+        if (!string.IsNullOrWhiteSpace(shot.ImageSize))
+        {
+            // User provided custom size (e.g., "1920x1080")
+            sizeParam = shot.ImageSize.Trim();
+            if (TryParseSize(sizeParam, out width, out height))
+            {
+                // Successfully parsed custom size
+            }
+            else
+            {
+                // Invalid format, use as-is (API will handle it)
+                width = 2048;
+                height = 2048;
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(shot.ImageQuality))
+        {
+            // Use quality level (1K/2K/4K)
+            sizeParam = shot.ImageQuality.Trim();
+            // Set default dimensions based on quality
+            if (string.Equals(sizeParam, "1K", StringComparison.OrdinalIgnoreCase))
+            {
+                width = 1024;
+                height = 1024;
+            }
+            else if (string.Equals(sizeParam, "4K", StringComparison.OrdinalIgnoreCase))
+            {
+                width = 4096;
+                height = 4096;
+            }
+            else // Default to 2K
+            {
+                width = 2048;
+                height = 2048;
+            }
+        }
+        else
+        {
+            // No size specified, use default from config
+            (width, height) = ResolveSize(imageConfig.Volcengine);
+            sizeParam = imageConfig.Volcengine.Size;
+        }
+
         var model = ResolveModel(provider, shot.SelectedModel, aiConfig);
 
         // Get frame-specific parameters
@@ -136,7 +184,9 @@ public sealed class ImageGenerationService : IImageGenerationService
             shot.AspectRatio,
             ReferenceImagePaths: null,
             SequentialGeneration: false,
-            MaxImages: null);
+            MaxImages: null,
+            Size: sizeParam,
+            Watermark: shot.ImageWatermark);
 
         var result = await provider.GenerateAsync(request, cancellationToken).ConfigureAwait(false);
         var extension = NormalizeExtension(result.FileExtension);
