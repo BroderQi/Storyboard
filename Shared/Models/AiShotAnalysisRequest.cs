@@ -1,8 +1,7 @@
 namespace Storyboard.Models;
 
 public sealed record AiShotAnalysisRequest(
-    string? FirstFramePath,
-    string? LastFramePath,
+    string? MaterialImagePath,
     string? ExistingShotType,
     string? ExistingCoreContent,
     string? ExistingActionCommand,

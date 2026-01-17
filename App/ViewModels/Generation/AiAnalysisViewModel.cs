@@ -161,48 +161,57 @@ public partial class AiAnalysisViewModel : ObservableObject
                 shot.ShotNumber,
                 async (ct, progress) =>
                 {
-                    // 创建 AI 分析请求
-                    var request = new AiShotAnalysisRequest(
-                        FirstFramePath: shot.FirstFrameImagePath,
-                        LastFramePath: shot.LastFrameImagePath,
-                        ExistingShotType: shot.ShotType,
-                        ExistingCoreContent: shot.CoreContent,
-                        ExistingActionCommand: shot.ActionCommand,
-                        ExistingSceneSettings: shot.SceneSettings,
-                        ExistingFirstFramePrompt: shot.FirstFramePrompt,
-                        ExistingLastFramePrompt: shot.LastFramePrompt
-                    );
-
-                    // 执行 AI 解析
-                    var result = await _aiShotService.AnalyzeShotAsync(request, ct);
-
-                    if (result != null)
+                    try
                     {
-                        // 应用 AI 解析结果
-                        shot.FirstFramePrompt = result.FirstFramePrompt ?? shot.FirstFramePrompt;
-                        shot.LastFramePrompt = result.LastFramePrompt ?? shot.LastFramePrompt;
-                        shot.ShotType = result.ShotType ?? shot.ShotType;
-                        shot.CoreContent = result.CoreContent ?? shot.CoreContent;
-                        shot.ActionCommand = result.ActionCommand ?? shot.ActionCommand;
-                        shot.SceneSettings = result.SceneSettings ?? shot.SceneSettings;
+                        // 创建 AI 分析请求 - 使用素材图片进行分析
+                        var request = new AiShotAnalysisRequest(
+                            MaterialImagePath: shot.MaterialFilePath,
+                            ExistingShotType: shot.ShotType,
+                            ExistingCoreContent: shot.CoreContent,
+                            ExistingActionCommand: shot.ActionCommand,
+                            ExistingSceneSettings: shot.SceneSettings,
+                            ExistingFirstFramePrompt: shot.FirstFramePrompt,
+                            ExistingLastFramePrompt: shot.LastFramePrompt
+                        );
 
-                        _messenger.Send(new AiParseCompletedMessage(shot, true));
-                        _logger.LogInformation("AI 解析完成: Shot {ShotNumber}", shot.ShotNumber);
+                        // 执行 AI 解析
+                        var result = await _aiShotService.AnalyzeShotAsync(request, ct);
+
+                        if (result != null)
+                        {
+                            // 应用 AI 解析结果
+                            shot.FirstFramePrompt = result.FirstFramePrompt ?? shot.FirstFramePrompt;
+                            shot.LastFramePrompt = result.LastFramePrompt ?? shot.LastFramePrompt;
+                            shot.ShotType = result.ShotType ?? shot.ShotType;
+                            shot.CoreContent = result.CoreContent ?? shot.CoreContent;
+                            shot.ActionCommand = result.ActionCommand ?? shot.ActionCommand;
+                            shot.SceneSettings = result.SceneSettings ?? shot.SceneSettings;
+
+                            _messenger.Send(new AiParseCompletedMessage(shot, true));
+                            _logger.LogInformation("AI 解析完成: Shot {ShotNumber}", shot.ShotNumber);
+                        }
+                        else
+                        {
+                            _messenger.Send(new AiParseCompletedMessage(shot, false));
+                            _logger.LogWarning("AI 解析失败: Shot {ShotNumber}", shot.ShotNumber);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
+                        _logger.LogError(ex, "AI 解析任务执行异常: Shot {ShotNumber}", shot.ShotNumber);
                         _messenger.Send(new AiParseCompletedMessage(shot, false));
-                        _logger.LogWarning("AI 解析失败: Shot {ShotNumber}", shot.ShotNumber);
+                    }
+                    finally
+                    {
+                        // 任务完成后重置状态
+                        shot.IsAiParsing = false;
                     }
                 });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "AI 解析异常: Shot {ShotNumber}", shot.ShotNumber);
+            _logger.LogError(ex, "AI 解析入队异常: Shot {ShotNumber}", shot.ShotNumber);
             _messenger.Send(new AiParseCompletedMessage(shot, false));
-        }
-        finally
-        {
             shot.IsAiParsing = false;
         }
     }

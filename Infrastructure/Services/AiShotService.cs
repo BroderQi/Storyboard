@@ -30,7 +30,7 @@ public sealed class AiShotService : IAiShotService
         // 使用多模态消息，将素材图片直接发送给AI进行视觉分析
         var response = await _ai.ChatWithImageAsync(
             "shot_analysis",
-            request.FirstFramePath,
+            request.MaterialImagePath,
             BuildExistingContext(request),
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -259,7 +259,26 @@ public sealed class AiShotService : IAiShotService
                 GetString(item, "sceneSettings", "scene_settings", "场景设定"),
                 GetString(item, "firstFramePrompt", "first_frame_prompt", "首帧提示词"),
                 GetString(item, "lastFramePrompt", "last_frame_prompt", "尾帧提示词"),
-                duration));
+                duration,
+                // Image professional parameters
+                Composition: GetStringOrNull(item, "composition", "构图"),
+                LightingType: GetStringOrNull(item, "lightingType", "lighting_type", "光线类型"),
+                TimeOfDay: GetStringOrNull(item, "timeOfDay", "time_of_day", "时间段"),
+                ColorStyle: GetStringOrNull(item, "colorStyle", "color_style", "色调风格"),
+                NegativePrompt: GetStringOrNull(item, "negativePrompt", "negative_prompt", "负面提示词"),
+                // Video parameters
+                VideoPrompt: GetStringOrNull(item, "videoPrompt", "video_prompt", "视频提示词"),
+                SceneDescription: GetStringOrNull(item, "sceneDescription", "scene_description", "场景描述"),
+                ActionDescription: GetStringOrNull(item, "actionDescription", "action_description", "动作描述"),
+                StyleDescription: GetStringOrNull(item, "styleDescription", "style_description", "风格描述"),
+                CameraMovement: GetStringOrNull(item, "cameraMovement", "camera_movement", "运镜方式"),
+                ShootingStyle: GetStringOrNull(item, "shootingStyle", "shooting_style", "拍摄风格"),
+                VideoEffect: GetStringOrNull(item, "videoEffect", "video_effect", "视频特效"),
+                VideoNegativePrompt: GetStringOrNull(item, "videoNegativePrompt", "video_negative_prompt", "视频负面提示词"),
+                // Additional parameters
+                ImageSize: GetStringOrNull(item, "imageSize", "image_size", "图片尺寸"),
+                VideoResolution: GetStringOrNull(item, "videoResolution", "video_resolution", "视频分辨率"),
+                VideoRatio: GetStringOrNull(item, "videoRatio", "video_ratio", "视频比例")));
         }
 
         return list;

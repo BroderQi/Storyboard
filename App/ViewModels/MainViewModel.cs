@@ -497,13 +497,42 @@ public partial class MainViewModel : ObservableObject
             {
                 var shot = new ShotItem(startNumber++)
                 {
+                    // 基础字段
                     ShotType = shotDesc.ShotType ?? string.Empty,
                     CoreContent = shotDesc.CoreContent ?? string.Empty,
                     ActionCommand = shotDesc.ActionCommand ?? string.Empty,
                     SceneSettings = shotDesc.SceneSettings ?? string.Empty,
                     FirstFramePrompt = shotDesc.FirstFramePrompt ?? string.Empty,
                     LastFramePrompt = shotDesc.LastFramePrompt ?? string.Empty,
-                    Duration = shotDesc.DurationSeconds > 0 ? shotDesc.DurationSeconds.Value : 3.5
+                    Duration = shotDesc.DurationSeconds > 0 ? shotDesc.DurationSeconds.Value : 3.5,
+
+                    // 图片生成专业参数 - 应用到首帧和尾帧
+                    FirstFrameComposition = shotDesc.Composition ?? string.Empty,
+                    FirstFrameLightingType = shotDesc.LightingType ?? string.Empty,
+                    FirstFrameTimeOfDay = shotDesc.TimeOfDay ?? string.Empty,
+                    FirstFrameColorStyle = shotDesc.ColorStyle ?? string.Empty,
+                    FirstFrameNegativePrompt = shotDesc.NegativePrompt ?? string.Empty,
+
+                    LastFrameComposition = shotDesc.Composition ?? string.Empty,
+                    LastFrameLightingType = shotDesc.LightingType ?? string.Empty,
+                    LastFrameTimeOfDay = shotDesc.TimeOfDay ?? string.Empty,
+                    LastFrameColorStyle = shotDesc.ColorStyle ?? string.Empty,
+                    LastFrameNegativePrompt = shotDesc.NegativePrompt ?? string.Empty,
+
+                    // 视频生成参数
+                    VideoPrompt = shotDesc.VideoPrompt ?? string.Empty,
+                    SceneDescription = shotDesc.SceneDescription ?? string.Empty,
+                    ActionDescription = shotDesc.ActionDescription ?? string.Empty,
+                    StyleDescription = shotDesc.StyleDescription ?? string.Empty,
+                    CameraMovement = shotDesc.CameraMovement ?? string.Empty,
+                    ShootingStyle = shotDesc.ShootingStyle ?? string.Empty,
+                    VideoEffect = shotDesc.VideoEffect ?? string.Empty,
+                    VideoNegativePrompt = shotDesc.VideoNegativePrompt ?? string.Empty,
+
+                    // 其他参数
+                    ImageSize = shotDesc.ImageSize ?? string.Empty,
+                    VideoResolution = shotDesc.VideoResolution ?? string.Empty,
+                    VideoRatio = shotDesc.VideoRatio ?? string.Empty
                 };
 
                 ShotList.AddShot(shot);
