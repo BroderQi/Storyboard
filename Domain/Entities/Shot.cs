@@ -246,6 +246,108 @@ public sealed class Shot
     /// </summary>
     public bool Watermark { get; set; }
 
+    // First frame professional parameters
+    /// <summary>
+    /// 首帧构图
+    /// </summary>
+    public string FirstFrameComposition { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧光线类型
+    /// </summary>
+    public string FirstFrameLightingType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧时间
+    /// </summary>
+    public string FirstFrameTimeOfDay { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧色调风格
+    /// </summary>
+    public string FirstFrameColorStyle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧景别
+    /// </summary>
+    public string FirstFrameLensType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧负面提示词
+    /// </summary>
+    public string FirstFrameNegativePrompt { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧图片尺寸
+    /// </summary>
+    public string FirstFrameImageSize { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧宽高比
+    /// </summary>
+    public string FirstFrameAspectRatio { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧选择的模型
+    /// </summary>
+    public string FirstFrameSelectedModel { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 首帧随机种子
+    /// </summary>
+    public int? FirstFrameSeed { get; set; }
+
+    // Last frame professional parameters
+    /// <summary>
+    /// 尾帧构图
+    /// </summary>
+    public string LastFrameComposition { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧光线类型
+    /// </summary>
+    public string LastFrameLightingType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧时间
+    /// </summary>
+    public string LastFrameTimeOfDay { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧色调风格
+    /// </summary>
+    public string LastFrameColorStyle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧景别
+    /// </summary>
+    public string LastFrameLensType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧负面提示词
+    /// </summary>
+    public string LastFrameNegativePrompt { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧图片尺寸
+    /// </summary>
+    public string LastFrameImageSize { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧宽高比
+    /// </summary>
+    public string LastFrameAspectRatio { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧选择的模型
+    /// </summary>
+    public string LastFrameSelectedModel { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 尾帧随机种子
+    /// </summary>
+    public int? LastFrameSeed { get; set; }
+
     /// <summary>
     /// 镜头下的素材列表
     /// </summary>

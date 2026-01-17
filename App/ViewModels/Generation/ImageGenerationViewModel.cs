@@ -103,6 +103,12 @@ public partial class ImageGenerationViewModel : ObservableObject
             {
                 _logger.LogWarning("提示词为空，无法生成图像: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
                     shot.ShotNumber, isFirstFrame);
+
+                // 重置生成状态
+                if (isFirstFrame)
+                    shot.IsFirstFrameGenerating = false;
+                else
+                    shot.IsLastFrameGenerating = false;
                 return;
             }
 
@@ -112,47 +118,58 @@ public partial class ImageGenerationViewModel : ObservableObject
                 shot.ShotNumber,
                 async (ct, progress) =>
                 {
-                    // 使用新的 GenerateFrameImageAsync 方法
-                    var imagePath = await _imageGenerationService.GenerateFrameImageAsync(
-                        shot,
-                        isFirstFrame,
-                        outputDirectory: null,
-                        cancellationToken: ct);
-
-                    if (!string.IsNullOrWhiteSpace(imagePath))
+                    try
                     {
-                        // 保存图像路径
-                        if (isFirstFrame)
-                            shot.FirstFrameImagePath = imagePath;
-                        else
-                            shot.LastFrameImagePath = imagePath;
+                        // 使用新的 GenerateFrameImageAsync 方法
+                        var imagePath = await _imageGenerationService.GenerateFrameImageAsync(
+                            shot,
+                            isFirstFrame,
+                            outputDirectory: null,
+                            cancellationToken: ct);
 
-                        // 添加到资产列表
-                        var asset = new ShotAssetItem
+                        if (!string.IsNullOrWhiteSpace(imagePath))
                         {
-                            FilePath = imagePath,
-                            ThumbnailPath = imagePath,
-                            Type = isFirstFrame ? ShotAssetType.FirstFrameImage : ShotAssetType.LastFrameImage,
-                            CreatedAt = DateTime.Now,
-                            IsSelected = true
-                        };
+                            // 保存图像路径
+                            if (isFirstFrame)
+                                shot.FirstFrameImagePath = imagePath;
+                            else
+                                shot.LastFrameImagePath = imagePath;
 
-                        if (isFirstFrame)
-                            shot.FirstFrameAssets.Add(asset);
+                            // 添加到资产列表
+                            var asset = new ShotAssetItem
+                            {
+                                FilePath = imagePath,
+                                ThumbnailPath = imagePath,
+                                Type = isFirstFrame ? ShotAssetType.FirstFrameImage : ShotAssetType.LastFrameImage,
+                                CreatedAt = DateTime.Now,
+                                IsSelected = true
+                            };
+
+                            if (isFirstFrame)
+                                shot.FirstFrameAssets.Add(asset);
+                            else
+                                shot.LastFrameAssets.Add(asset);
+
+                            GeneratedImagesCount++;
+
+                            _messenger.Send(new ImageGenerationCompletedMessage(shot, isFirstFrame, true, imagePath));
+                            _logger.LogInformation("图像生成成功: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
+                                shot.ShotNumber, isFirstFrame);
+                        }
                         else
-                            shot.LastFrameAssets.Add(asset);
-
-                        GeneratedImagesCount++;
-
-                        _messenger.Send(new ImageGenerationCompletedMessage(shot, isFirstFrame, true, imagePath));
-                        _logger.LogInformation("图像生成成功: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
-                            shot.ShotNumber, isFirstFrame);
+                        {
+                            _messenger.Send(new ImageGenerationCompletedMessage(shot, isFirstFrame, false, null));
+                            _logger.LogWarning("图像生成失败: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
+                                shot.ShotNumber, isFirstFrame);
+                        }
                     }
-                    else
+                    finally
                     {
-                        _messenger.Send(new ImageGenerationCompletedMessage(shot, isFirstFrame, false, null));
-                        _logger.LogWarning("图像生成失败: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
-                            shot.ShotNumber, isFirstFrame);
+                        // 任务完成后重置生成状态
+                        if (isFirstFrame)
+                            shot.IsFirstFrameGenerating = false;
+                        else
+                            shot.IsLastFrameGenerating = false;
                     }
                 });
         }
@@ -161,9 +178,8 @@ public partial class ImageGenerationViewModel : ObservableObject
             _logger.LogError(ex, "图像生成异常: Shot {ShotNumber}, IsFirstFrame: {IsFirstFrame}",
                 shot.ShotNumber, isFirstFrame);
             _messenger.Send(new ImageGenerationCompletedMessage(shot, isFirstFrame, false, null));
-        }
-        finally
-        {
+
+            // 异常时重置生成状态
             if (isFirstFrame)
                 shot.IsFirstFrameGenerating = false;
             else

@@ -35,13 +35,35 @@ public static class DatabaseMigrationHelper
                 // 图片生成参数
                 { "ImageSize", "TEXT NOT NULL DEFAULT ''" },
                 { "NegativePrompt", "TEXT NOT NULL DEFAULT ''" },
-                // 图片专业参数
+                // 图片专业参数 (legacy)
                 { "AspectRatio", "TEXT NOT NULL DEFAULT ''" },
                 { "LightingType", "TEXT NOT NULL DEFAULT ''" },
                 { "TimeOfDay", "TEXT NOT NULL DEFAULT ''" },
                 { "Composition", "TEXT NOT NULL DEFAULT ''" },
                 { "ColorStyle", "TEXT NOT NULL DEFAULT ''" },
                 { "LensType", "TEXT NOT NULL DEFAULT ''" },
+                // 首帧专业参数
+                { "FirstFrameComposition", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameLightingType", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameTimeOfDay", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameColorStyle", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameLensType", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameNegativePrompt", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameImageSize", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameAspectRatio", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameSelectedModel", "TEXT NOT NULL DEFAULT ''" },
+                { "FirstFrameSeed", "INTEGER" },
+                // 尾帧专业参数
+                { "LastFrameComposition", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameLightingType", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameTimeOfDay", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameColorStyle", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameLensType", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameNegativePrompt", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameImageSize", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameAspectRatio", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameSelectedModel", "TEXT NOT NULL DEFAULT ''" },
+                { "LastFrameSeed", "INTEGER" },
                 // 视频生成参数
                 { "VideoPrompt", "TEXT NOT NULL DEFAULT ''" },
                 { "SceneDescription", "TEXT NOT NULL DEFAULT ''" },

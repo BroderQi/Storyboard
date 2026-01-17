@@ -62,6 +62,21 @@ public partial class ShotItem : ObservableObject
     [ObservableProperty]
     private string _firstFrameColorStyle = string.Empty;
 
+    [ObservableProperty]
+    private string _firstFrameLensType = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameImageSize = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameAspectRatio = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameSelectedModel = string.Empty;
+
+    [ObservableProperty]
+    private int? _firstFrameSeed;
+
     // Last frame image parameters
     [ObservableProperty]
     private string _lastFrameNegativePrompt = string.Empty;
@@ -80,6 +95,21 @@ public partial class ShotItem : ObservableObject
 
     [ObservableProperty]
     private string _lastFrameColorStyle = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameLensType = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameImageSize = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameAspectRatio = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameSelectedModel = string.Empty;
+
+    [ObservableProperty]
+    private int? _lastFrameSeed;
 
     // Legacy image professional parameters (kept for backward compatibility, but deprecated)
     [ObservableProperty]
@@ -481,5 +511,112 @@ public partial class ShotItem : ObservableObject
 
         foreach (var item in list)
             item.IsSelected = !string.IsNullOrWhiteSpace(selectedPath) && string.Equals(item.FilePath, selectedPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 批量更新 AI 解析结果，避免多次触发 PropertyChanged 事件
+    /// </summary>
+    public void ApplyAiAnalysisResult(AiShotDescription result)
+    {
+        try
+        {
+            // 注意：CommunityToolkit.Mvvm 的 ObservableObject 没有内置的暂停通知机制
+            // 所以我们直接更新字段，然后手动触发一次通知
+
+            // 基本信息
+            if (!string.IsNullOrWhiteSpace(result.ShotType))
+                ShotType = result.ShotType;
+
+            if (!string.IsNullOrWhiteSpace(result.CoreContent))
+                CoreContent = result.CoreContent;
+
+            if (!string.IsNullOrWhiteSpace(result.ActionCommand))
+                ActionCommand = result.ActionCommand;
+
+            if (!string.IsNullOrWhiteSpace(result.SceneSettings))
+                SceneSettings = result.SceneSettings;
+
+            // 首帧和尾帧提示词
+            if (!string.IsNullOrWhiteSpace(result.FirstFramePrompt))
+                FirstFramePrompt = result.FirstFramePrompt;
+
+            if (!string.IsNullOrWhiteSpace(result.LastFramePrompt))
+                LastFramePrompt = result.LastFramePrompt;
+
+            // 图片专业参数 - 应用到首帧和尾帧（AI 返回的是通用参数）
+            if (!string.IsNullOrWhiteSpace(result.Composition))
+            {
+                FirstFrameComposition = result.Composition;
+                LastFrameComposition = result.Composition;
+                Composition = result.Composition; // 兼容旧版
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.LightingType))
+            {
+                FirstFrameLightingType = result.LightingType;
+                LastFrameLightingType = result.LightingType;
+                LightingType = result.LightingType; // 兼容旧版
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.TimeOfDay))
+            {
+                FirstFrameTimeOfDay = result.TimeOfDay;
+                LastFrameTimeOfDay = result.TimeOfDay;
+                TimeOfDay = result.TimeOfDay; // 兼容旧版
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.ColorStyle))
+            {
+                FirstFrameColorStyle = result.ColorStyle;
+                LastFrameColorStyle = result.ColorStyle;
+                ColorStyle = result.ColorStyle; // 兼容旧版
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.NegativePrompt))
+            {
+                FirstFrameNegativePrompt = result.NegativePrompt;
+                LastFrameNegativePrompt = result.NegativePrompt;
+                NegativePrompt = result.NegativePrompt; // 兼容旧版
+            }
+
+            // 图片尺寸
+            if (!string.IsNullOrWhiteSpace(result.ImageSize))
+                ImageSize = result.ImageSize;
+
+            // 视频参数
+            if (!string.IsNullOrWhiteSpace(result.VideoPrompt))
+                VideoPrompt = result.VideoPrompt;
+
+            if (!string.IsNullOrWhiteSpace(result.SceneDescription))
+                SceneDescription = result.SceneDescription;
+
+            if (!string.IsNullOrWhiteSpace(result.ActionDescription))
+                ActionDescription = result.ActionDescription;
+
+            if (!string.IsNullOrWhiteSpace(result.StyleDescription))
+                StyleDescription = result.StyleDescription;
+
+            if (!string.IsNullOrWhiteSpace(result.CameraMovement))
+                CameraMovement = result.CameraMovement;
+
+            if (!string.IsNullOrWhiteSpace(result.ShootingStyle))
+                ShootingStyle = result.ShootingStyle;
+
+            if (!string.IsNullOrWhiteSpace(result.VideoEffect))
+                VideoEffect = result.VideoEffect;
+
+            if (!string.IsNullOrWhiteSpace(result.VideoNegativePrompt))
+                VideoNegativePrompt = result.VideoNegativePrompt;
+
+            if (!string.IsNullOrWhiteSpace(result.VideoResolution))
+                VideoResolution = result.VideoResolution;
+
+            if (!string.IsNullOrWhiteSpace(result.VideoRatio))
+                VideoRatio = result.VideoRatio;
+        }
+        catch
+        {
+            // 确保不会因为异常导致状态不一致
+        }
     }
 }

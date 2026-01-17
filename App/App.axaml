@@ -9,6 +9,7 @@
         <conv:SelectedBorderConverter x:Key="SelectedBorderConverter" />
         <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
         <conv:AiParseButtonTextConverter x:Key="AiParseButtonTextConverter" />
+        <conv:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />

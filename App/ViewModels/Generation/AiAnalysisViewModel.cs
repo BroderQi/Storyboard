@@ -177,34 +177,67 @@ public partial class AiAnalysisViewModel : ObservableObject
                         // 执行 AI 解析
                         var result = await _aiShotService.AnalyzeShotAsync(request, ct);
 
-                        if (result != null)
+                        // 在 UI 线程上更新结果
+                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            // 应用 AI 解析结果
-                            shot.FirstFramePrompt = result.FirstFramePrompt ?? shot.FirstFramePrompt;
-                            shot.LastFramePrompt = result.LastFramePrompt ?? shot.LastFramePrompt;
-                            shot.ShotType = result.ShotType ?? shot.ShotType;
-                            shot.CoreContent = result.CoreContent ?? shot.CoreContent;
-                            shot.ActionCommand = result.ActionCommand ?? shot.ActionCommand;
-                            shot.SceneSettings = result.SceneSettings ?? shot.SceneSettings;
+                            if (result != null)
+                            {
+                                // 记录 AI 解析结果（完整版）
+                                _logger.LogInformation("AI 解析结果 - Shot {ShotNumber}:\n" +
+                                    "  基础: ShotType={ShotType}, CoreContent={CoreContent}\n" +
+                                    "  提示词: FirstFrame={FirstFrame}..., LastFrame={LastFrame}...\n" +
+                                    "  图片参数: Composition={Composition}, Lighting={Lighting}, TimeOfDay={TimeOfDay}, ColorStyle={ColorStyle}, NegativePrompt={NegativePrompt}, ImageSize={ImageSize}\n" +
+                                    "  视频参数: VideoPrompt={VideoPrompt}..., Scene={Scene}..., Action={Action}..., Style={Style}..., Camera={Camera}, Shooting={Shooting}, Effect={Effect}, VideoNegative={VideoNegative}, Resolution={Resolution}, Ratio={Ratio}",
+                                    shot.ShotNumber,
+                                    result.ShotType,
+                                    result.CoreContent?.Substring(0, Math.Min(30, result.CoreContent?.Length ?? 0)),
+                                    result.FirstFramePrompt?.Substring(0, Math.Min(30, result.FirstFramePrompt?.Length ?? 0)),
+                                    result.LastFramePrompt?.Substring(0, Math.Min(30, result.LastFramePrompt?.Length ?? 0)),
+                                    result.Composition ?? "null",
+                                    result.LightingType ?? "null",
+                                    result.TimeOfDay ?? "null",
+                                    result.ColorStyle ?? "null",
+                                    result.NegativePrompt?.Substring(0, Math.Min(20, result.NegativePrompt?.Length ?? 0)) ?? "null",
+                                    result.ImageSize ?? "null",
+                                    result.VideoPrompt?.Substring(0, Math.Min(30, result.VideoPrompt?.Length ?? 0)) ?? "null",
+                                    result.SceneDescription?.Substring(0, Math.Min(30, result.SceneDescription?.Length ?? 0)) ?? "null",
+                                    result.ActionDescription?.Substring(0, Math.Min(30, result.ActionDescription?.Length ?? 0)) ?? "null",
+                                    result.StyleDescription?.Substring(0, Math.Min(30, result.StyleDescription?.Length ?? 0)) ?? "null",
+                                    result.CameraMovement ?? "null",
+                                    result.ShootingStyle ?? "null",
+                                    result.VideoEffect ?? "null",
+                                    result.VideoNegativePrompt?.Substring(0, Math.Min(20, result.VideoNegativePrompt?.Length ?? 0)) ?? "null",
+                                    result.VideoResolution ?? "null",
+                                    result.VideoRatio ?? "null");
 
-                            _messenger.Send(new AiParseCompletedMessage(shot, true));
-                            _logger.LogInformation("AI 解析完成: Shot {ShotNumber}", shot.ShotNumber);
-                        }
-                        else
-                        {
-                            _messenger.Send(new AiParseCompletedMessage(shot, false));
-                            _logger.LogWarning("AI 解析失败: Shot {ShotNumber}", shot.ShotNumber);
-                        }
+                                // 使用批量更新方法，避免多次触发 PropertyChanged
+                                shot.ApplyAiAnalysisResult(result);
+
+                                _messenger.Send(new AiParseCompletedMessage(shot, true));
+                                _logger.LogInformation("AI 解析完成并已应用到 Shot {ShotNumber}", shot.ShotNumber);
+                            }
+                            else
+                            {
+                                _messenger.Send(new AiParseCompletedMessage(shot, false));
+                                _logger.LogWarning("AI 解析失败: Shot {ShotNumber}", shot.ShotNumber);
+                            }
+                        });
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "AI 解析任务执行异常: Shot {ShotNumber}", shot.ShotNumber);
-                        _messenger.Send(new AiParseCompletedMessage(shot, false));
+                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            _messenger.Send(new AiParseCompletedMessage(shot, false));
+                        });
                     }
                     finally
                     {
-                        // 任务完成后重置状态
-                        shot.IsAiParsing = false;
+                        // 在 UI 线程上重置状态
+                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            shot.IsAiParsing = false;
+                        });
                     }
                 });
         }

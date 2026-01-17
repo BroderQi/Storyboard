@@ -99,6 +99,9 @@ public partial class VideoGenerationViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(prompt))
             {
                 _logger.LogWarning("视频提示词为空，无法生成视频: Shot {ShotNumber}", shot.ShotNumber);
+
+                // 重置生成状态
+                shot.IsVideoGenerating = false;
                 return;
             }
 
@@ -108,42 +111,50 @@ public partial class VideoGenerationViewModel : ObservableObject
                 shot.ShotNumber,
                 async (ct, progress) =>
                 {
-                    var videoPath = await _videoGenerationService.GenerateVideoAsync(
-                        shot,
-                        outputDirectory: null,
-                        filePrefix: $"shot_{shot.ShotNumber:000}_video",
-                        cancellationToken: ct);
-
-                    if (!string.IsNullOrWhiteSpace(videoPath))
+                    try
                     {
-                        // 生成视频缩略图
-                        var thumbnailPath = await TryCreateVideoThumbnailAsync(videoPath, ct);
+                        var videoPath = await _videoGenerationService.GenerateVideoAsync(
+                            shot,
+                            outputDirectory: null,
+                            filePrefix: $"shot_{shot.ShotNumber:000}_video",
+                            cancellationToken: ct);
 
-                        // 保存视频路径
-                        shot.GeneratedVideoPath = videoPath;
-
-                        // 添加到资产列表
-                        var asset = new ShotAssetItem
+                        if (!string.IsNullOrWhiteSpace(videoPath))
                         {
-                            FilePath = videoPath,
-                            ThumbnailPath = null,
-                            VideoThumbnailPath = thumbnailPath,
-                            Type = ShotAssetType.GeneratedVideo,
-                            CreatedAt = DateTime.Now,
-                            IsSelected = true
-                        };
+                            // 生成视频缩略图
+                            var thumbnailPath = await TryCreateVideoThumbnailAsync(videoPath, ct);
 
-                        shot.VideoAssets.Add(asset);
+                            // 保存视频路径
+                            shot.GeneratedVideoPath = videoPath;
 
-                        GeneratedVideosCount++;
+                            // 添加到资产列表
+                            var asset = new ShotAssetItem
+                            {
+                                FilePath = videoPath,
+                                ThumbnailPath = null,
+                                VideoThumbnailPath = thumbnailPath,
+                                Type = ShotAssetType.GeneratedVideo,
+                                CreatedAt = DateTime.Now,
+                                IsSelected = true
+                            };
 
-                        _messenger.Send(new VideoGenerationCompletedMessage(shot, true, videoPath));
-                        _logger.LogInformation("视频生成成功: Shot {ShotNumber}", shot.ShotNumber);
+                            shot.VideoAssets.Add(asset);
+
+                            GeneratedVideosCount++;
+
+                            _messenger.Send(new VideoGenerationCompletedMessage(shot, true, videoPath));
+                            _logger.LogInformation("视频生成成功: Shot {ShotNumber}", shot.ShotNumber);
+                        }
+                        else
+                        {
+                            _messenger.Send(new VideoGenerationCompletedMessage(shot, false, null));
+                            _logger.LogWarning("视频生成失败: Shot {ShotNumber}", shot.ShotNumber);
+                        }
                     }
-                    else
+                    finally
                     {
-                        _messenger.Send(new VideoGenerationCompletedMessage(shot, false, null));
-                        _logger.LogWarning("视频生成失败: Shot {ShotNumber}", shot.ShotNumber);
+                        // 任务完成后重置生成状态
+                        shot.IsVideoGenerating = false;
                     }
                 });
         }
@@ -151,9 +162,8 @@ public partial class VideoGenerationViewModel : ObservableObject
         {
             _logger.LogError(ex, "视频生成异常: Shot {ShotNumber}", shot.ShotNumber);
             _messenger.Send(new VideoGenerationCompletedMessage(shot, false, null));
-        }
-        finally
-        {
+
+            // 异常时重置生成状态
             shot.IsVideoGenerating = false;
         }
     }

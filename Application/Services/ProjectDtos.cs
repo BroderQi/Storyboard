@@ -49,13 +49,35 @@ public sealed record ShotState(
     // Image generation parameters
     string ImageSize = "",
     string NegativePrompt = "",
-    // Image professional parameters
+    // Image professional parameters (legacy, kept for backward compatibility)
     string AspectRatio = "",
     string LightingType = "",
     string TimeOfDay = "",
     string Composition = "",
     string ColorStyle = "",
     string LensType = "",
+    // First frame professional parameters
+    string FirstFrameComposition = "",
+    string FirstFrameLightingType = "",
+    string FirstFrameTimeOfDay = "",
+    string FirstFrameColorStyle = "",
+    string FirstFrameLensType = "",
+    string FirstFrameNegativePrompt = "",
+    string FirstFrameImageSize = "",
+    string FirstFrameAspectRatio = "",
+    string FirstFrameSelectedModel = "",
+    int? FirstFrameSeed = null,
+    // Last frame professional parameters
+    string LastFrameComposition = "",
+    string LastFrameLightingType = "",
+    string LastFrameTimeOfDay = "",
+    string LastFrameColorStyle = "",
+    string LastFrameLensType = "",
+    string LastFrameNegativePrompt = "",
+    string LastFrameImageSize = "",
+    string LastFrameAspectRatio = "",
+    string LastFrameSelectedModel = "",
+    int? LastFrameSeed = null,
     // Video generation parameters
     string VideoPrompt = "",
     string SceneDescription = "",
