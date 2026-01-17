@@ -81,5 +81,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="nul" />
+  </ItemGroup>
+
 
 </Project>

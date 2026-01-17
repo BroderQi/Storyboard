@@ -1,0 +1,157 @@
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
+using Storyboard.Application.Abstractions;
+using Storyboard.Messages;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Storyboard.ViewModels.Import;
+
+/// <summary>
+/// 视频导入 ViewModel - 负责视频文件选择和元数据显示
+/// </summary>
+public partial class VideoImportViewModel : ObservableObject
+{
+    private readonly IVideoMetadataService _videoMetadataService;
+    private readonly IMessenger _messenger;
+    private readonly ILogger<VideoImportViewModel> _logger;
+
+    [ObservableProperty]
+    private string? _selectedVideoPath;
+
+    [ObservableProperty]
+    private bool _hasVideoFile;
+
+    [ObservableProperty]
+    private string _videoFileDuration = "--:--";
+
+    [ObservableProperty]
+    private string _videoFileResolution = "-- x --";
+
+    [ObservableProperty]
+    private string _videoFileFps = "--";
+
+    public VideoImportViewModel(
+        IVideoMetadataService videoMetadataService,
+        IMessenger messenger,
+        ILogger<VideoImportViewModel> logger)
+    {
+        _videoMetadataService = videoMetadataService;
+        _messenger = messenger;
+        _logger = logger;
+
+        // 订阅项目打开/关闭消息
+        _messenger.Register<ProjectOpenedMessage>(this, OnProjectOpened);
+        _messenger.Register<ProjectDataLoadedMessage>(this, OnProjectDataLoaded);
+        _messenger.Register<ProjectClosedMessage>(this, OnProjectClosed);
+    }
+
+    [RelayCommand]
+    private async Task ImportVideo()
+    {
+        var path = await PickVideoPathAsync();
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        SelectedVideoPath = path;
+        HasVideoFile = true;
+
+        try
+        {
+            var metadata = await _videoMetadataService.GetMetadataAsync(path);
+            if (metadata != null)
+            {
+                VideoFileDuration = FormatDuration(metadata.DurationSeconds);
+                VideoFileResolution = $"{metadata.Width} x {metadata.Height}";
+                VideoFileFps = $"{metadata.Fps:F1}";
+
+                _logger.LogInformation("视频导入成功: {Path}, 时长: {Duration}, 分辨率: {Resolution}",
+                    path, VideoFileDuration, VideoFileResolution);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "获取视频元数据失败: {Path}", path);
+            VideoFileDuration = "--:--";
+            VideoFileResolution = "-- x --";
+            VideoFileFps = "--";
+        }
+    }
+
+    [RelayCommand]
+    private async Task UploadVideo()
+    {
+        await ImportVideo();
+    }
+
+    private async Task<string?> PickVideoPathAsync()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return null;
+
+        var mainWindow = desktop.MainWindow;
+        if (mainWindow == null)
+            return null;
+
+        var files = await mainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择视频文件",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("视频文件")
+                {
+                    Patterns = new[] { "*.mp4", "*.avi", "*.mov", "*.mkv", "*.flv", "*.wmv" }
+                },
+                new FilePickerFileType("所有文件")
+                {
+                    Patterns = new[] { "*.*" }
+                }
+            }
+        });
+
+        return files?.FirstOrDefault()?.Path.LocalPath;
+    }
+
+    private static string FormatDuration(double seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        if (ts.TotalHours >= 1)
+            return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+        return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
+    }
+
+    private void OnProjectOpened(object recipient, ProjectOpenedMessage message)
+    {
+        // 项目打开时，视频路径会由项目数据加载
+        // 这里暂时不做处理，等待完整的项目加载逻辑
+    }
+
+    private void OnProjectDataLoaded(object recipient, ProjectDataLoadedMessage message)
+    {
+        var state = message.ProjectState;
+
+        SelectedVideoPath = state.SelectedVideoPath;
+        HasVideoFile = state.HasVideoFile;
+        VideoFileDuration = state.VideoFileDuration;
+        VideoFileResolution = state.VideoFileResolution;
+        VideoFileFps = state.VideoFileFps;
+
+        _logger.LogInformation("项目视频数据加载完成: {HasVideo}", HasVideoFile);
+    }
+
+    private void OnProjectClosed(object recipient, ProjectClosedMessage message)
+    {
+        SelectedVideoPath = null;
+        HasVideoFile = false;
+        VideoFileDuration = "--:--";
+        VideoFileResolution = "-- x --";
+        VideoFileFps = "--";
+    }
+}

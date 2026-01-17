@@ -7,7 +7,8 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet ef migrations remove:*)",
       "Bash(dir /b \"d:\\\\project\\\\分镜大师\\\\bin\\\\Debug\\\\net8.0\")",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(find:*)"
     ],
     "additionalDirectories": [
       "d:\\project\\分镜大师"

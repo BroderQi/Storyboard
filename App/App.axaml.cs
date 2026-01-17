@@ -20,6 +20,7 @@ using Storyboard.Infrastructure.Services;
 using Storyboard.Infrastructure.Ui;
 using System.IO;
 using System;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Storyboard;
 
@@ -86,6 +87,9 @@ public partial class App : Avalonia.Application
         services.AddSingleton<IConfiguration>(configuration);
         services.Configure<AIServicesConfiguration>(configuration.GetSection("AIServices"));
 
+        // Messenger for ViewModel communication
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+
         // Persistence (SQLite + EF Core)
         var dbRoot = Path.Combine(AppContext.BaseDirectory, "Data");
         Directory.CreateDirectory(dbRoot);
@@ -109,6 +113,19 @@ public partial class App : Avalonia.Application
         // ViewModels
         services.AddTransient<MainViewModel>();
         services.AddTransient<ApiKeyViewModel>();
+
+        // 新的子 ViewModels
+        services.AddTransient<ViewModels.Project.ProjectManagementViewModel>();
+        services.AddTransient<ViewModels.Queue.JobQueueViewModel>();
+        services.AddTransient<ViewModels.Import.VideoImportViewModel>();
+        services.AddTransient<ViewModels.Import.FrameExtractionViewModel>();
+        services.AddTransient<ViewModels.Shot.ShotListViewModel>();
+        services.AddTransient<ViewModels.Shot.TimelineViewModel>();
+        services.AddTransient<ViewModels.Generation.AiAnalysisViewModel>();
+        services.AddTransient<ViewModels.Generation.ImageGenerationViewModel>();
+        services.AddTransient<ViewModels.Generation.VideoGenerationViewModel>();
+        services.AddTransient<ViewModels.Generation.ExportViewModel>();
+        services.AddTransient<ViewModels.Shared.HistoryViewModel>();
 
         // Services - 保持现有业务逻辑
         services.AddSingleton<VideoAnalysisService>();

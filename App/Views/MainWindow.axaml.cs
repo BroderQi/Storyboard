@@ -40,15 +40,6 @@ public partial class MainWindow : Window
                 }
                 break;
 
-            case nameof(MainViewModel.IsBatchOperationsDialogOpen):
-                if (viewModel.IsBatchOperationsDialogOpen)
-                {
-                    var dialog = new BatchOperationsDialog { DataContext = new BatchOperationsViewModel(viewModel) };
-                    await dialog.ShowDialog(this);
-                    viewModel.IsBatchOperationsDialogOpen = false;
-                }
-                break;
-
             case nameof(MainViewModel.IsExportDialogOpen):
                 if (viewModel.IsExportDialogOpen)
                 {
