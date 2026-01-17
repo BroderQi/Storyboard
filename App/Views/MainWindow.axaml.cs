@@ -29,9 +29,12 @@ public partial class MainWindow : Window
         if (sender is not MainViewModel viewModel)
             return;
 
+        System.Diagnostics.Debug.WriteLine($"MainWindow: PropertyChanged - {e.PropertyName}");
+
         switch (e.PropertyName)
         {
             case nameof(MainViewModel.IsNewProjectDialogOpen):
+                System.Diagnostics.Debug.WriteLine($"MainWindow: IsNewProjectDialogOpen = {viewModel.IsNewProjectDialogOpen}");
                 if (viewModel.IsNewProjectDialogOpen)
                 {
                     var dialog = new CreateProjectDialog { DataContext = viewModel };

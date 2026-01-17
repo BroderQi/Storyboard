@@ -39,12 +39,112 @@ public partial class AiAnalysisViewModel : ObservableObject
     [RelayCommand]
     private async Task AIAnalyzeAll()
     {
-        // 需要从 ShotListViewModel 获取镜头列表
-        // 这里暂时使用消息机制
         _logger.LogInformation("开始批量 AI 分析");
 
-        // TODO: 实现批量 AI 分析逻辑
-        // 需要获取所有镜头并逐个加入队列
+        // 查询所有镜头
+        var query = new GetAllShotsQuery();
+        _messenger.Send(query);
+        var shots = query.Shots;
+
+        if (shots == null || shots.Count == 0)
+        {
+            _logger.LogWarning("没有镜头可分析");
+            return;
+        }
+
+        // 检查是否需要询问AI写入模式
+        var needMode = shots.Any(NeedsAiWriteMode);
+        AiWriteMode? mode = null;
+
+        if (needMode)
+        {
+            mode = await RequestAiWriteModeAsync();
+            if (mode == null)
+            {
+                _logger.LogInformation("用户取消了批量AI分析");
+                return;
+            }
+        }
+
+        var queuedCount = 0;
+        var skippedCount = 0;
+
+        foreach (var shot in shots)
+        {
+            // 跳过没有素材图片的镜头
+            if (string.IsNullOrWhiteSpace(shot.MaterialFilePath) || !System.IO.File.Exists(shot.MaterialFilePath))
+            {
+                _logger.LogInformation("跳过缺少素材的镜头: Shot {ShotNumber}", shot.ShotNumber);
+                skippedCount++;
+                continue;
+            }
+
+            // 跳过正在解析的镜头
+            if (shot.IsAiParsing)
+            {
+                _logger.LogInformation("跳过正在解析的镜头: Shot {ShotNumber}", shot.ShotNumber);
+                skippedCount++;
+                continue;
+            }
+
+            // 发送AI解析请求消息
+            _messenger.Send(new AiParseRequestedMessage(shot));
+            queuedCount++;
+        }
+
+        _logger.LogInformation("批量AI分析: 已加入队列 {Queued} 个镜头, 跳过 {Skipped} 个镜头", queuedCount, skippedCount);
+    }
+
+    private static bool NeedsAiWriteMode(ShotItem shot)
+    {
+        return !string.IsNullOrWhiteSpace(shot.ShotType)
+            || !string.IsNullOrWhiteSpace(shot.CoreContent)
+            || !string.IsNullOrWhiteSpace(shot.ActionCommand)
+            || !string.IsNullOrWhiteSpace(shot.SceneSettings)
+            || !string.IsNullOrWhiteSpace(shot.FirstFramePrompt)
+            || !string.IsNullOrWhiteSpace(shot.LastFramePrompt);
+    }
+
+    private async Task<AiWriteMode?> RequestAiWriteModeAsync()
+    {
+        // 确保在UI线程上执行
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            return await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(RequestAiWriteModeOnUiThreadAsync);
+        }
+
+        return await RequestAiWriteModeOnUiThreadAsync();
+    }
+
+    private async Task<AiWriteMode?> RequestAiWriteModeOnUiThreadAsync()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
+        var owner = lifetime?.MainWindow;
+        var dialog = new Views.AiWriteModeDialog();
+
+        if (owner == null)
+            return AiWriteMode.Overwrite;
+
+        return await dialog.ShowDialog<AiWriteMode?>(owner);
+    }
+
+    /// <summary>
+    /// 根据文本提示生成分镜列表
+    /// </summary>
+    public async Task<IReadOnlyList<AiShotDescription>> GenerateShotsFromTextAsync(string prompt)
+    {
+        try
+        {
+            _logger.LogInformation("开始文本生成分镜");
+            var result = await _aiShotService.GenerateShotsFromTextAsync(prompt);
+            _logger.LogInformation("文本生成分镜完成，生成了 {Count} 个分镜", result.Count);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "文本生成分镜失败");
+            throw;
+        }
     }
 
     private async void OnAiParseRequested(object recipient, AiParseRequestedMessage message)

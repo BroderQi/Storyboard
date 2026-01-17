@@ -20,3 +20,6 @@ public record ProjectDeletedMessage(string ProjectId);
 
 // 项目更新消息
 public record ProjectUpdatedMessage(string ProjectId);
+
+// 视频导入消息
+public record VideoImportedMessage(string VideoPath);

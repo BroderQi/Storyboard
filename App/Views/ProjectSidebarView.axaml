@@ -28,38 +28,51 @@
             <StackPanel Spacing="16">
                 
                 <!-- Video Import Section -->
-                <Border Background="#18181b" 
-                        BorderBrush="#27272a" 
-                        BorderThickness="1" 
-                        CornerRadius="8" 
+                <Border Background="#18181b"
+                        BorderBrush="#27272a"
+                        BorderThickness="1"
+                        CornerRadius="8"
                         Padding="16">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" 
-                                      Width="16" 
-                                      Height="16" 
+                            <PathIcon Data="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"
+                                      Width="16"
+                                      Height="16"
                                       Foreground="#8b5cf6" />
-                            <TextBlock Text="视频导入" 
-                                       FontSize="14" 
-                                       FontWeight="SemiBold" 
-                                       Foreground="#f5f5f5" 
+                            <TextBlock Text="视频导入"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#f5f5f5"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                         
                         <!-- Video Info or Import Button -->
                         <StackPanel Spacing="12" IsVisible="{Binding HasVideoFile, Converter={StaticResource BoolNot}}">
-                            <Button Classes="Secondary" 
+                            <Button Classes="Secondary"
                                     HorizontalAlignment="Stretch"
                                     Command="{Binding ImportVideoCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                    <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" 
-                                              Width="14" 
+                                    <PathIcon Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"
+                                              Width="14"
                                               Height="14" />
                                     <TextBlock Text="导入视频文件" FontSize="13" />
                                 </StackPanel>
                             </Button>
+
+                            <!-- Error Message -->
+                            <Border Background="#7f1d1d"
+                                    BorderBrush="#991b1b"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    IsVisible="{Binding ImportErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding ImportErrorMessage}"
+                                           FontSize="12"
+                                           Foreground="#fecaca"
+                                           TextWrapping="Wrap" />
+                            </Border>
                         </StackPanel>
-                        
+
                         <StackPanel Spacing="10" IsVisible="{Binding HasVideoFile}">
                             <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0" 

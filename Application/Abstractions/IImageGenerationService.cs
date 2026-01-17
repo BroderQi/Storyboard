@@ -1,4 +1,5 @@
 using Storyboard.Infrastructure.Media;
+using Storyboard.Models;
 
 namespace Storyboard.Application.Abstractions;
 
@@ -15,5 +16,11 @@ public interface IImageGenerationService
         ImageGenerationRequest request,
         string? outputDirectory = null,
         string? filePrefix = null,
+        CancellationToken cancellationToken = default);
+
+    Task<string> GenerateFrameImageAsync(
+        ShotItem shot,
+        bool isFirstFrame,
+        string? outputDirectory = null,
         CancellationToken cancellationToken = default);
 }

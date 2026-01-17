@@ -52,24 +52,30 @@ public partial class ProjectManagementViewModel : ObservableObject
         _messenger = messenger;
         _logger = logger;
 
+        // 订阅查询消息 - 允许其他ViewModel查询当前项目ID
+        _messenger.Register<GetCurrentProjectIdQuery>(this, (r, m) => m.ProjectId = CurrentProjectId);
+
         _ = ReloadProjectsAsync();
     }
 
     [RelayCommand]
     private void ShowCreateProjectDialog()
     {
+        _logger.LogInformation("ShowCreateProjectDialog called");
         IsNewProjectDialogOpen = true;
+        _logger.LogInformation("IsNewProjectDialogOpen set to true");
     }
 
     [RelayCommand]
-    private void CreateNewProject(string? projectName = null)
+    private async Task CreateNewProject(string? projectName = null)
     {
         if (string.IsNullOrWhiteSpace(projectName))
         {
             projectName = $"新项目 {DateTime.Now:MMdd-HHmm}";
         }
 
-        CurrentProjectId = Guid.NewGuid().ToString("N");
+        // 保存到数据库并获取项目 ID
+        CurrentProjectId = await _projectStore.CreateAsync(projectName);
         ProjectName = projectName;
         HasCurrentProject = true;
         IsNewProjectDialogOpen = false;

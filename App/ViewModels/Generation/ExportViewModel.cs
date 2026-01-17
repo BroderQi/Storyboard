@@ -64,27 +64,73 @@ public partial class ExportViewModel : ObservableObject
         {
             _logger.LogInformation("开始导出视频到: {OutputPath}", outputPath);
 
+            // 查询所有镜头
+            var query = new GetAllShotsQuery();
+            _messenger.Send(query);
+            var shots = query.Shots;
+
+            if (shots == null || shots.Count == 0)
+            {
+                _logger.LogWarning("没有镜头可导出");
+                _messenger.Send(new ExportCompletedMessage(false, null));
+                return;
+            }
+
+            // 获取所有镜头的视频路径
+            var videoClips = shots
+                .OrderBy(s => s.ShotNumber)
+                .Select(s => s.GeneratedVideoPath)
+                .Where(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p))
+                .ToList();
+
+            if (videoClips.Count == 0)
+            {
+                _logger.LogWarning("没有已生成的视频可导出");
+                _messenger.Send(new ExportCompletedMessage(false, null));
+                return;
+            }
+
+            if (videoClips.Count < shots.Count)
+            {
+                _logger.LogWarning("部分镜头视频缺失: {Missing}/{Total}", shots.Count - videoClips.Count, shots.Count);
+            }
+
             // 创建导出任务
             _jobQueue.Enqueue(
                 GenerationJobType.FullRender,
                 0,
                 async (ct, progress) =>
                 {
-                    // TODO: 获取所有镜头的视频路径
-                    // 这需要从 ShotListViewModel 获取
-                    var videoClips = new System.Collections.Generic.List<string>();
-
                     try
                     {
                         var resultPath = await _finalRenderService.RenderAsync(
-                            videoClips,
+                            videoClips!,
                             ct,
                             progress);
 
                         if (!string.IsNullOrWhiteSpace(resultPath))
                         {
-                            _messenger.Send(new ExportCompletedMessage(true, resultPath));
-                            _logger.LogInformation("视频导出成功: {OutputPath}", resultPath);
+                            // 复制到目标路径
+                            var dir = Path.GetDirectoryName(outputPath);
+                            if (!string.IsNullOrWhiteSpace(dir))
+                                Directory.CreateDirectory(dir);
+
+                            File.Copy(resultPath, outputPath, overwrite: true);
+
+                            _messenger.Send(new ExportCompletedMessage(true, outputPath));
+                            _logger.LogInformation("视频导出成功: {OutputPath}", outputPath);
+
+                            // 打开文件所在文件夹
+                            try
+                            {
+                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                                {
+                                    FileName = "explorer.exe",
+                                    Arguments = $"/select,\"{outputPath}\"",
+                                    UseShellExecute = true
+                                });
+                            }
+                            catch { }
                         }
                         else
                         {
@@ -96,6 +142,7 @@ public partial class ExportViewModel : ObservableObject
                     {
                         _messenger.Send(new ExportCompletedMessage(false, null));
                         _logger.LogError(ex, "视频导出失败");
+                        throw;
                     }
                 });
 
@@ -110,8 +157,22 @@ public partial class ExportViewModel : ObservableObject
 
     private void UpdateCanExportVideo()
     {
-        // TODO: 从 ShotListViewModel 获取镜头数据
-        // 暂时设置为 false
-        CanExportVideo = false;
+        // 查询所有镜头
+        var query = new GetAllShotsQuery();
+        _messenger.Send(query);
+        var shots = query.Shots;
+
+        if (shots == null || shots.Count == 0)
+        {
+            CanExportVideo = false;
+            return;
+        }
+
+        // 检查是否所有镜头都有生成的视频
+        var allHaveVideos = shots.All(s =>
+            !string.IsNullOrWhiteSpace(s.GeneratedVideoPath) &&
+            File.Exists(s.GeneratedVideoPath));
+
+        CanExportVideo = allHaveVideos;
     }
 }

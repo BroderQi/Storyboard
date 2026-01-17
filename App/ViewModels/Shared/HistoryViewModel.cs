@@ -116,9 +116,29 @@ public partial class HistoryViewModel : ObservableObject
 
     private ProjectSnapshot? TakeSnapshot()
     {
-        // TODO: 从 ShotListViewModel 和其他 ViewModel 获取当前状态
-        // 这需要通过共享状态或消息机制实现
-        return null;
+        // 通过消息查询获取所有镜头数据
+        var query = new GetAllShotsQuery();
+        _messenger.Send(query);
+
+        if (query.Shots == null || query.Shots.Count == 0)
+            return null;
+
+        // 创建镜头快照列表
+        var shotSnapshots = query.Shots.Select(shot => new ShotSnapshot(
+            shot.ShotNumber,
+            shot.Duration,
+            shot.StartTime,
+            shot.EndTime,
+            shot.FirstFramePrompt,
+            shot.LastFramePrompt,
+            shot.ShotType,
+            shot.CoreContent,
+            shot.ActionCommand,
+            shot.SceneSettings,
+            shot.SelectedModel
+        )).ToList();
+
+        return new ProjectSnapshot(shotSnapshots, DateTimeOffset.Now);
     }
 
     private void RestoreSnapshot(ProjectSnapshot snapshot)
@@ -127,9 +147,25 @@ public partial class HistoryViewModel : ObservableObject
 
         try
         {
-            // TODO: 恢复快照到各个 ViewModel
-            // 这需要发送消息通知各个 ViewModel 恢复状态
-            _logger.LogInformation("恢复历史快照");
+            // 将快照数据转换为消息数据格式
+            var shotDataList = snapshot.Shots.Select(s => new ShotSnapshotData(
+                s.ShotNumber,
+                s.Duration,
+                s.StartTime,
+                s.EndTime,
+                s.FirstFramePrompt,
+                s.LastFramePrompt,
+                s.ShotType,
+                s.CoreContent,
+                s.ActionCommand,
+                s.SceneSettings,
+                s.SelectedModel
+            )).ToList();
+
+            // 发送恢复快照消息，让 ShotListViewModel 处理
+            _messenger.Send(new RestoreSnapshotMessage(shotDataList));
+
+            _logger.LogInformation("恢复历史快照: {ShotCount} 个镜头", snapshot.Shots.Count);
         }
         finally
         {

@@ -50,9 +50,21 @@ public partial class TimelineViewModel : ObservableObject
 
     public void RecalculateTimelineLayout()
     {
-        // TODO: 从 ShotListViewModel 获取镜头列表
-        // 暂时使用默认值
-        TotalDuration = 0;
+        // 通过消息查询获取所有镜头数据
+        var query = new GetAllShotsQuery();
+        _messenger.Send(query);
+
+        if (query.Shots == null || query.Shots.Count == 0)
+        {
+            TotalDuration = 0;
+            TimelineWidth = 0;
+            TimeMarkers.Clear();
+            _logger.LogDebug("重新计算时间轴布局: 无镜头数据");
+            return;
+        }
+
+        // 计算总时长
+        TotalDuration = query.Shots.Sum(s => s.Duration);
         TimelineWidth = TotalDuration * TimelinePixelsPerSecond;
 
         // 生成时间标记
@@ -68,8 +80,8 @@ public partial class TimelineViewModel : ObservableObject
             });
         }
 
-        _logger.LogDebug("重新计算时间轴布局: Duration={Duration}s, Width={Width}px",
-            TotalDuration, TimelineWidth);
+        _logger.LogDebug("重新计算时间轴布局: Duration={Duration}s, Width={Width}px, Shots={ShotCount}",
+            TotalDuration, TimelineWidth, query.Shots.Count);
     }
 
     private double CalculateTimeMarkerInterval(double duration)

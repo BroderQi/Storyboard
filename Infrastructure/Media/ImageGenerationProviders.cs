@@ -18,7 +18,11 @@ public sealed record ImageGenerationRequest(
     string? TimeOfDay = null,
     string? ColorStyle = null,
     string? NegativePrompt = null,
-    string? AspectRatio = null);
+    string? AspectRatio = null,
+    // Image-to-image parameters
+    List<string>? ReferenceImagePaths = null,
+    bool SequentialGeneration = false,
+    int? MaxImages = null);
 
 public sealed record ImageGenerationResult(
     byte[] ImageBytes,

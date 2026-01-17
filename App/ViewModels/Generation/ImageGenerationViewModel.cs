@@ -47,7 +47,43 @@ public partial class ImageGenerationViewModel : ObservableObject
     private async Task BatchGenerateImages()
     {
         _logger.LogInformation("开始批量生成图像");
-        // TODO: 实现批量图像生成逻辑
+
+        // 查询所有镜头
+        var query = new GetAllShotsQuery();
+        _messenger.Send(query);
+        var shots = query.Shots;
+
+        if (shots == null || shots.Count == 0)
+        {
+            _logger.LogWarning("没有镜头可生成图像");
+            return;
+        }
+
+        var queuedCount = 0;
+        foreach (var shot in shots)
+        {
+            // 生成首帧图像
+            if (string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && !shot.IsFirstFrameGenerating)
+            {
+                if (!string.IsNullOrWhiteSpace(shot.FirstFramePrompt))
+                {
+                    _messenger.Send(new ImageGenerationRequestedMessage(shot, true));
+                    queuedCount++;
+                }
+            }
+
+            // 生成尾帧图像
+            if (string.IsNullOrWhiteSpace(shot.LastFrameImagePath) && !shot.IsLastFrameGenerating)
+            {
+                if (!string.IsNullOrWhiteSpace(shot.LastFramePrompt))
+                {
+                    _messenger.Send(new ImageGenerationRequestedMessage(shot, false));
+                    queuedCount++;
+                }
+            }
+        }
+
+        _logger.LogInformation("批量生成图像: 已加入队列 {Count} 个任务", queuedCount);
     }
 
     private async void OnImageGenerationRequested(object recipient, ImageGenerationRequestedMessage message)
@@ -70,35 +106,17 @@ public partial class ImageGenerationViewModel : ObservableObject
                 return;
             }
 
-            // 构建完整提示词（包含专业参数）
-            var fullPrompt = BuildImagePrompt(shot, prompt);
-
             // 创建图像生成任务
             _jobQueue.Enqueue(
                 isFirstFrame ? GenerationJobType.ImageFirst : GenerationJobType.ImageLast,
                 shot.ShotNumber,
                 async (ct, progress) =>
                 {
-                    var (width, height) = ParseImageSize(shot.ImageSize);
-
-                    // 创建图像生成请求
-                    var request = new ImageGenerationRequest(
-                        Prompt: fullPrompt,
-                        Model: "default", // TODO: 从配置中获取模型
-                        Width: width,
-                        Height: height,
-                        Style: "AI",
-                        NegativePrompt: shot.NegativePrompt,
-                        LightingType: shot.LightingType,
-                        TimeOfDay: shot.TimeOfDay,
-                        Composition: shot.Composition,
-                        ColorStyle: shot.ColorStyle
-                    );
-
-                    var imagePath = await _imageGenerationService.GenerateImageAsync(
-                        request,
+                    // 使用新的 GenerateFrameImageAsync 方法
+                    var imagePath = await _imageGenerationService.GenerateFrameImageAsync(
+                        shot,
+                        isFirstFrame,
                         outputDirectory: null,
-                        filePrefix: $"shot_{shot.ShotNumber}_{(isFirstFrame ? "first" : "last")}",
                         cancellationToken: ct);
 
                     if (!string.IsNullOrWhiteSpace(imagePath))

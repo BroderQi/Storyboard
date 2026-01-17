@@ -63,7 +63,7 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
 
         var prompt = BuildPrompt(request.Shot);
         var contentItems = BuildContentItems(prompt, request.Shot);
-        var payload = BuildPayload(model, contentItems, request.Shot.Duration);
+        var payload = BuildPayload(model, contentItems, request.Shot.Duration, request.Shot);
 
         using var httpClient = new HttpClient
         {
@@ -113,9 +113,11 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
     private Dictionary<string, object?> BuildPayload(
         string model,
         List<Dictionary<string, object?>> contentItems,
-        double shotDuration)
+        double shotDuration,
+        ShotItem shot)
     {
         var config = VideoConfig;
+
         // Decide task_type based on model name or presence of image items.
         var hasImageItems = contentItems.Any(ci => ci.TryGetValue("type", out var t) && string.Equals(t as string, "image_url", StringComparison.OrdinalIgnoreCase));
         var modelLower = (model ?? string.Empty).ToLowerInvariant();
@@ -142,26 +144,38 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             ["content"] = contentItems
         };
 
-        if (!string.IsNullOrWhiteSpace(config.Resolution))
-            payload["resolution"] = config.Resolution.Trim();
+        // Resolution and ratio from shot or config
+        var resolution = !string.IsNullOrWhiteSpace(shot.VideoResolution) ? shot.VideoResolution : config.Resolution;
+        if (!string.IsNullOrWhiteSpace(resolution))
+            payload["resolution"] = resolution.Trim();
 
-        if (!string.IsNullOrWhiteSpace(config.Ratio))
-            payload["ratio"] = config.Ratio.Trim();
+        var ratio = !string.IsNullOrWhiteSpace(shot.VideoRatio) ? shot.VideoRatio : config.Ratio;
+        if (!string.IsNullOrWhiteSpace(ratio))
+            payload["ratio"] = ratio.Trim();
 
+        // Duration
         var duration = ResolveDurationSeconds(config.DurationSeconds, shotDuration);
         if (duration > 0)
             payload["duration"] = duration;
 
-        if (config.Frames.HasValue && config.Frames.Value > 0)
-            payload["frames"] = config.Frames.Value;
+        // Frames from shot or config
+        var frames = shot.VideoFrames > 0 ? shot.VideoFrames : (config.Frames ?? 0);
+        if (frames > 0)
+            payload["frames"] = frames;
 
-        if (config.Seed.HasValue)
-            payload["seed"] = config.Seed.Value;
+        // Seed from shot or config
+        var seed = shot.Seed ?? config.Seed;
+        if (seed.HasValue)
+            payload["seed"] = seed.Value;
 
-        if (config.CameraFixed.HasValue)
-            payload["camera_fixed"] = config.CameraFixed.Value;
+        // Camera fixed from shot or config
+        if (shot.CameraFixed || (config.CameraFixed ?? false))
+            payload["camera_fixed"] = true;
 
-        payload["watermark"] = config.Watermark;
+        // Watermark from shot or config
+        var watermark = shot.Watermark || config.Watermark;
+        payload["watermark"] = watermark;
+
         payload["return_last_frame"] = config.ReturnLastFrame;
 
         if (!string.IsNullOrWhiteSpace(config.ServiceTier))
@@ -170,6 +184,10 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         if (config.GenerateAudio && ModelSupportsGenerateAudio(model))
             payload["generate_audio"] = true;
         payload["draft"] = config.Draft;
+
+        // Add negative prompt if available
+        if (!string.IsNullOrWhiteSpace(shot.VideoNegativePrompt))
+            payload["negative_prompt"] = shot.VideoNegativePrompt.Trim();
 
         return payload;
     }
@@ -185,7 +203,10 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             }
         };
 
-        if (!string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) && File.Exists(shot.FirstFrameImagePath))
+        // Add first frame image if available and user wants to use it
+        if (shot.UseFirstFrameReference &&
+            !string.IsNullOrWhiteSpace(shot.FirstFrameImagePath) &&
+            File.Exists(shot.FirstFrameImagePath))
         {
             items.Add(new Dictionary<string, object?>
             {
@@ -197,7 +218,10 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             });
         }
 
-        if (!string.IsNullOrWhiteSpace(shot.LastFrameImagePath) && File.Exists(shot.LastFrameImagePath))
+        // Add last frame image if available and user wants to use it
+        if (shot.UseLastFrameReference &&
+            !string.IsNullOrWhiteSpace(shot.LastFrameImagePath) &&
+            File.Exists(shot.LastFrameImagePath))
         {
             items.Add(new Dictionary<string, object?>
             {
@@ -214,16 +238,39 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
 
     private static string BuildPrompt(ShotItem shot)
     {
-        var parts = new List<string>
+        // Use VideoPrompt if available, otherwise build from other fields
+        if (!string.IsNullOrWhiteSpace(shot.VideoPrompt))
         {
-            shot.CoreContent,
-            shot.SceneSettings,
-            shot.ActionCommand,
-            shot.FirstFramePrompt,
-            shot.LastFramePrompt
-        };
+            var parts = new List<string> { shot.VideoPrompt.Trim() };
 
-        var prompt = string.Join(", ", parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
+            // Add professional parameters if available
+            if (!string.IsNullOrWhiteSpace(shot.CameraMovement))
+                parts.Add($"运镜: {shot.CameraMovement}");
+            if (!string.IsNullOrWhiteSpace(shot.ShootingStyle))
+                parts.Add($"风格: {shot.ShootingStyle}");
+            if (!string.IsNullOrWhiteSpace(shot.VideoEffect))
+                parts.Add($"特效: {shot.VideoEffect}");
+
+            return string.Join(", ", parts);
+        }
+
+        // Fallback to building from individual fields
+        var fallbackParts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(shot.SceneDescription))
+            fallbackParts.Add(shot.SceneDescription);
+        if (!string.IsNullOrWhiteSpace(shot.ActionDescription))
+            fallbackParts.Add(shot.ActionDescription);
+        if (!string.IsNullOrWhiteSpace(shot.StyleDescription))
+            fallbackParts.Add(shot.StyleDescription);
+        if (!string.IsNullOrWhiteSpace(shot.CoreContent))
+            fallbackParts.Add(shot.CoreContent);
+        if (!string.IsNullOrWhiteSpace(shot.SceneSettings))
+            fallbackParts.Add(shot.SceneSettings);
+        if (!string.IsNullOrWhiteSpace(shot.ActionCommand))
+            fallbackParts.Add(shot.ActionCommand);
+
+        var prompt = string.Join(", ", fallbackParts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
         return string.IsNullOrWhiteSpace(prompt) ? "Cinematic video." : prompt;
     }
 

@@ -19,7 +19,8 @@
                  Watermark="输入项目名称"
                  Background="#0f0f0f"
                  BorderBrush="#3f3f46"
-                 Foreground="#f5f5f5" />
+                 Foreground="#f5f5f5"
+                 KeyDown="OnTextBoxKeyDown" />
       </StackPanel>
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

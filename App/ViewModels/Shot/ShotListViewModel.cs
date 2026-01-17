@@ -49,11 +49,17 @@ public partial class ShotListViewModel : ObservableObject
         Shots.CollectionChanged += Shots_CollectionChanged;
 
         // 订阅消息
+        _messenger.Register<ProjectCreatedMessage>(this, OnProjectCreated);
         _messenger.Register<ProjectOpenedMessage>(this, OnProjectOpened);
         _messenger.Register<ProjectDataLoadedMessage>(this, OnProjectDataLoaded);
         _messenger.Register<ProjectClosedMessage>(this, OnProjectClosed);
         _messenger.Register<ShotDuplicateRequestedMessage>(this, OnShotDuplicateRequested);
         _messenger.Register<ShotDeleteRequestedMessage>(this, OnShotDeleteRequested);
+        _messenger.Register<FramesExtractedMessage>(this, OnFramesExtracted);
+        _messenger.Register<RestoreSnapshotMessage>(this, OnRestoreSnapshot);
+
+        // 订阅查询消息 - 允许其他ViewModel查询镜头数据
+        _messenger.Register<GetAllShotsQuery>(this, (r, m) => m.Shots = Shots.ToList());
     }
 
     [RelayCommand]
@@ -73,6 +79,20 @@ public partial class ShotListViewModel : ObservableObject
         _messenger.Send(new MarkUndoableChangeMessage());
 
         _logger.LogInformation("添加镜头: Shot {ShotNumber}", newShot.ShotNumber);
+    }
+
+    /// <summary>
+    /// 添加一个已创建的分镜到列表
+    /// </summary>
+    public void AddShot(ShotItem shot)
+    {
+        AttachShotEventHandlers(shot);
+        Shots.Add(shot);
+
+        _messenger.Send(new ShotAddedMessage(shot));
+        _messenger.Send(new MarkUndoableChangeMessage());
+
+        _logger.LogInformation("添加镜头: Shot {ShotNumber}", shot.ShotNumber);
     }
 
     public void RenumberShots()
@@ -288,6 +308,19 @@ public partial class ShotListViewModel : ObservableObject
         OnPropertyChanged(nameof(CompletedVideoShotsCount));
     }
 
+    private void OnProjectCreated(object recipient, ProjectCreatedMessage message)
+    {
+        // 项目创建时，清空镜头列表，准备新项目
+        foreach (var shot in Shots.ToList())
+        {
+            DetachShotEventHandlers(shot);
+        }
+        Shots.Clear();
+        SelectedShot = null;
+
+        _logger.LogInformation("项目创建完成，准备新项目: {ProjectId}", message.ProjectId);
+    }
+
     private void OnProjectOpened(object recipient, ProjectOpenedMessage message)
     {
         // 项目打开时，镜头数据会由项目加载逻辑填充
@@ -414,5 +447,71 @@ public partial class ShotListViewModel : ObservableObject
         SelectedShot = null;
 
         _logger.LogInformation("项目关闭，清空镜头列表");
+    }
+
+    private void OnFramesExtracted(object recipient, FramesExtractedMessage message)
+    {
+        // 清空现有镜头
+        foreach (var shot in Shots.ToList())
+        {
+            DetachShotEventHandlers(shot);
+        }
+        Shots.Clear();
+
+        // 添加新的镜头
+        foreach (var shot in message.Shots)
+        {
+            AttachShotEventHandlers(shot);
+            Shots.Add(shot);
+        }
+
+        // 默认选中第一个镜头
+        if (Shots.Count > 0)
+        {
+            SelectedShot = Shots[0];
+        }
+
+        _logger.LogInformation("抽帧完成，加载 {Count} 个镜头到列表", Shots.Count);
+    }
+
+    private void OnRestoreSnapshot(object recipient, RestoreSnapshotMessage message)
+    {
+        // 清空现有镜头（不触发事件）
+        foreach (var shot in Shots.ToList())
+        {
+            DetachShotEventHandlers(shot);
+        }
+        Shots.Clear();
+
+        // 从快照数据恢复镜头
+        foreach (var shotData in message.Shots)
+        {
+            var shot = new ShotItem(shotData.ShotNumber)
+            {
+                Duration = shotData.Duration,
+                StartTime = shotData.StartTime,
+                EndTime = shotData.EndTime,
+                FirstFramePrompt = shotData.FirstFramePrompt,
+                LastFramePrompt = shotData.LastFramePrompt,
+                ShotType = shotData.ShotType,
+                CoreContent = shotData.CoreContent,
+                ActionCommand = shotData.ActionCommand,
+                SceneSettings = shotData.SceneSettings,
+                SelectedModel = shotData.SelectedModel
+            };
+
+            AttachShotEventHandlers(shot);
+            Shots.Add(shot);
+        }
+
+        UpdateSummaryCounts();
+
+        // 默认选中第一个镜头
+        if (Shots.Count > 0)
+        {
+            SelectedShot = Shots[0];
+        }
+
+        _logger.LogInformation("从快照恢复 {Count} 个镜头", message.Shots.Count);
     }
 }

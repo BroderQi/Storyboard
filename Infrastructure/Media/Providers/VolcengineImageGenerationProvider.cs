@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -89,10 +90,49 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
             ["watermark"] = imageConfig.Watermark
         };
 
-        if (!string.IsNullOrWhiteSpace(imageConfig.SequentialImageGeneration))
-            payload["sequential_image_generation"] = imageConfig.SequentialImageGeneration;
+        // Add reference images if provided (for image-to-image generation)
+        if (request.ReferenceImagePaths != null && request.ReferenceImagePaths.Count > 0)
+        {
+            var validImages = request.ReferenceImagePaths
+                .Where(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                .ToList();
 
-        if (imageConfig.SequentialMaxImages.HasValue && imageConfig.SequentialMaxImages.Value > 0)
+            if (validImages.Count > 0)
+            {
+                if (validImages.Count == 1)
+                {
+                    // Single image: use "image" field
+                    payload["image"] = ToDataUrl(validImages[0]);
+                }
+                else
+                {
+                    // Multiple images: use "image" array
+                    payload["image"] = validImages.Select(ToDataUrl).ToArray();
+                }
+            }
+        }
+
+        // Add negative prompt if provided
+        if (!string.IsNullOrWhiteSpace(request.NegativePrompt))
+        {
+            payload["negative_prompt"] = request.NegativePrompt.Trim();
+        }
+
+        // Sequential generation settings
+        var sequentialMode = request.SequentialGeneration ? "auto" : "disabled";
+        if (!string.IsNullOrWhiteSpace(imageConfig.SequentialImageGeneration))
+            sequentialMode = imageConfig.SequentialImageGeneration;
+
+        payload["sequential_image_generation"] = sequentialMode;
+
+        if (request.MaxImages.HasValue && request.MaxImages.Value > 0)
+        {
+            payload["sequential_image_generation_options"] = new Dictionary<string, object?>
+            {
+                ["max_images"] = request.MaxImages.Value
+            };
+        }
+        else if (imageConfig.SequentialMaxImages.HasValue && imageConfig.SequentialMaxImages.Value > 0)
         {
             payload["sequential_image_generation_options"] = new Dictionary<string, object?>
             {
@@ -207,5 +247,30 @@ public sealed class VolcengineImageGenerationProvider : IImageGenerationProvider
             return new Uri($"{normalized}/");
 
         return new Uri($"{normalized}/api/v3/");
+    }
+
+    private static string ToDataUrl(string filePath)
+    {
+        var bytes = File.ReadAllBytes(filePath);
+        var base64 = Convert.ToBase64String(bytes);
+        var mime = GetMimeType(filePath);
+        return $"data:{mime};base64,{base64}";
+    }
+
+    private static string GetMimeType(string filePath)
+    {
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        return ext switch
+        {
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            ".gif" => "image/gif",
+            ".tif" => "image/tiff",
+            ".tiff" => "image/tiff",
+            _ => "application/octet-stream"
+        };
     }
 }

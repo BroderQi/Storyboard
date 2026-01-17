@@ -40,6 +40,12 @@ public partial class FrameExtractionViewModel : ObservableObject
     [ObservableProperty]
     private bool _isAnalyzing;
 
+    [ObservableProperty]
+    private string? _currentProjectId;
+
+    [ObservableProperty]
+    private string? _currentVideoPath;
+
     public bool IsFixedOrDynamicMode => ExtractModeIndex == 0 || ExtractModeIndex == 1;
     public bool IsIntervalMode => ExtractModeIndex == 2;
     public bool IsDynamicMode => ExtractModeIndex == 1;
@@ -65,8 +71,11 @@ public partial class FrameExtractionViewModel : ObservableObject
         _logger = logger;
 
         // 订阅项目关闭消息
+        _messenger.Register<ProjectCreatedMessage>(this, OnProjectCreated);
+        _messenger.Register<ProjectOpenedMessage>(this, OnProjectOpened);
         _messenger.Register<ProjectDataLoadedMessage>(this, OnProjectDataLoaded);
         _messenger.Register<ProjectClosedMessage>(this, OnProjectClosed);
+        _messenger.Register<VideoImportedMessage>(this, OnVideoImported);
     }
 
     [RelayCommand]
@@ -115,8 +124,7 @@ public partial class FrameExtractionViewModel : ObservableObject
             _logger.LogInformation("抽帧完成，生成 {Count} 个分镜", shots.Count);
 
             // 发送抽帧完成消息（包含镜头列表）
-            // 注意：这里需要定义新的消息类型
-            // _messenger.Send(new FramesExtractedMessage(shots));
+            _messenger.Send(new FramesExtractedMessage(shots));
         }
         catch (Exception ex)
         {
@@ -264,9 +272,27 @@ public partial class FrameExtractionViewModel : ObservableObject
         return $"{len:0.##} {sizes[order]}";
     }
 
+    private void OnProjectCreated(object recipient, ProjectCreatedMessage message)
+    {
+        CurrentProjectId = message.ProjectId;
+        CurrentVideoPath = null;
+
+        _logger.LogInformation("项目创建完成，准备抽帧: {ProjectId}", message.ProjectId);
+    }
+
+    private void OnProjectOpened(object recipient, ProjectOpenedMessage message)
+    {
+        CurrentProjectId = message.ProjectId;
+
+        _logger.LogInformation("项目打开，准备抽帧: {ProjectId}", message.ProjectId);
+    }
+
     private void OnProjectDataLoaded(object recipient, ProjectDataLoadedMessage message)
     {
         var state = message.ProjectState;
+
+        CurrentProjectId = state.Id;
+        CurrentVideoPath = state.SelectedVideoPath;
 
         ExtractModeIndex = state.ExtractModeIndex;
         FrameCount = state.FrameCount;
@@ -278,6 +304,10 @@ public partial class FrameExtractionViewModel : ObservableObject
 
     private void OnProjectClosed(object recipient, ProjectClosedMessage message)
     {
+        // 清空项目信息
+        CurrentProjectId = null;
+        CurrentVideoPath = null;
+
         // 重置抽帧参数
         ExtractModeIndex = 0;
         FrameCount = 10;
@@ -285,16 +315,21 @@ public partial class FrameExtractionViewModel : ObservableObject
         DetectionSensitivity = 0.3;
     }
 
+    private void OnVideoImported(object recipient, VideoImportedMessage message)
+    {
+        CurrentVideoPath = message.VideoPath;
+
+        _logger.LogInformation("视频导入完成，更新抽帧路径: {VideoPath}", message.VideoPath);
+    }
+
     // 临时方法 - 需要通过其他方式获取
     private string? GetCurrentVideoPath()
     {
-        // TODO: 从 VideoImportViewModel 或共享状态获取
-        return null;
+        return CurrentVideoPath;
     }
 
     private string? GetCurrentProjectId()
     {
-        // TODO: 从 ProjectManagementViewModel 或共享状态获取
-        return null;
+        return CurrentProjectId;
     }
 }
