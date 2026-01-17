@@ -107,13 +107,30 @@ public sealed class VideoGenerationService : IVideoGenerationService
         if (string.IsNullOrWhiteSpace(resolution))
             return (1920, 1080);
 
-        var normalized = resolution.Trim().ToLowerInvariant();
-        return normalized switch
+        var normalized = resolution.Trim();
+
+        // Try to parse custom resolution format "WIDTHxHEIGHT"
+        if (normalized.Contains('x', StringComparison.OrdinalIgnoreCase))
+        {
+            var parts = normalized.Split(new[] { 'x', 'X' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0].Trim(), out var width) &&
+                int.TryParse(parts[1].Trim(), out var height) &&
+                width > 0 && height > 0)
+            {
+                return (width, height);
+            }
+        }
+
+        // Fallback to preset values
+        var lowerNormalized = normalized.ToLowerInvariant();
+        return lowerNormalized switch
         {
             "4k" => (3840, 2160),
             "2k" => (2560, 1440),
             "1080p" => (1920, 1080),
             "720p" => (1280, 720),
+            "480p" => (864, 480),
             "540p" => (960, 540),
             _ => (1920, 1080)
         };

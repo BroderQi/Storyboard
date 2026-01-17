@@ -153,15 +153,19 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         if (!string.IsNullOrWhiteSpace(ratio))
             payload["ratio"] = ratio.Trim();
 
-        // Duration
-        var duration = ResolveDurationSeconds(config.DurationSeconds, shotDuration);
-        if (duration > 0)
-            payload["duration"] = duration;
-
-        // Frames from shot or config
+        // Duration and Frames are mutually exclusive - prefer frames if specified
         var frames = shot.VideoFrames > 0 ? shot.VideoFrames : (config.Frames ?? 0);
         if (frames > 0)
+        {
             payload["frames"] = frames;
+        }
+        else
+        {
+            // Only use duration if frames is not specified
+            var duration = ResolveDurationSeconds(config.DurationSeconds, shotDuration);
+            if (duration > 0)
+                payload["duration"] = duration;
+        }
 
         // Seed from shot or config
         var seed = shot.Seed ?? config.Seed;
@@ -181,8 +185,10 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
         if (!string.IsNullOrWhiteSpace(config.ServiceTier))
             payload["service_tier"] = config.ServiceTier.Trim();
 
-        if (config.GenerateAudio && ModelSupportsGenerateAudio(model))
-            payload["generate_audio"] = true;
+        // Generate audio - always add the parameter if model supports it
+        if (ModelSupportsGenerateAudio(model))
+            payload["generate_audio"] = config.GenerateAudio;
+
         payload["draft"] = config.Draft;
 
         // Add negative prompt if available
@@ -214,7 +220,8 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
                 ["image_url"] = new Dictionary<string, object?>
                 {
                     ["url"] = ToDataUrl(shot.FirstFrameImagePath)
-                }
+                },
+                ["role"] = "first_frame"
             });
         }
 
@@ -229,7 +236,8 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
                 ["image_url"] = new Dictionary<string, object?>
                 {
                     ["url"] = ToDataUrl(shot.LastFrameImagePath)
-                }
+                },
+                ["role"] = "last_frame"
             });
         }
 
@@ -305,12 +313,14 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
     {
         var timeout = TimeSpan.FromSeconds(Math.Max(30, timeoutSeconds));
         var start = DateTimeOffset.UtcNow;
+        var lastStatus = string.Empty;
 
         while (DateTimeOffset.UtcNow - start < timeout)
         {
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             var body = await GetTaskAsync(httpClient, taskId, cancellationToken).ConfigureAwait(false);
             var status = ExtractStatus(body);
+            lastStatus = status;
 
             if (string.Equals(status, "succeeded", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(status, "failed", StringComparison.OrdinalIgnoreCase) ||
@@ -320,7 +330,12 @@ public sealed class VolcengineVideoGenerationProvider : IVideoGenerationProvider
             }
         }
 
-        return "timeout";
+        // Timeout occurred - throw exception with detailed information
+        var elapsed = DateTimeOffset.UtcNow - start;
+        throw new TimeoutException(
+            $"视频生成任务 {taskId} 在 {elapsed.TotalSeconds:F1} 秒后超时。" +
+            $"最后已知状态: {lastStatus}。" +
+            $"请稍后使用任务ID手动查询状态，或增加超时时间配置。");
     }
 
     private static async Task<string> GetTaskAsync(HttpClient httpClient, string taskId, CancellationToken cancellationToken)

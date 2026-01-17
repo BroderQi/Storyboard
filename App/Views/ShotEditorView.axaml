@@ -191,7 +191,7 @@
                                     <StackPanel Spacing="8">
                                         <Button Classes="Ghost"
                                                 HorizontalAlignment="Stretch"
-                                                Command="{Binding ToggleImageProfessionalParamsCommand}"
+                                                Command="{Binding ToggleFirstFrameProfessionalParamsCommand}"
                                                 Padding="0">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Grid.Column="0"
@@ -207,39 +207,39 @@
                                             </Grid>
                                         </Button>
 
-                                        <StackPanel Spacing="12" IsVisible="{Binding IsImageProfessionalParamsExpanded}">
+                                        <StackPanel Spacing="12" IsVisible="{Binding IsFirstFrameProfessionalParamsExpanded}">
                                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
                                                 <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
                                                     <TextBlock Text="景别" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding ShotType}"
+                                                    <TextBox Text="{Binding FirstFrameShotType}"
                                                              Watermark="特写/近景/中景/全景/远景"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
                                                     <TextBlock Text="构图" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding Composition}"
+                                                    <TextBox Text="{Binding FirstFrameComposition}"
                                                              Watermark="三分法/对称/黄金分割"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="0" Grid.Row="1" Spacing="4">
                                                     <TextBlock Text="光线" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding LightingType}"
+                                                    <TextBox Text="{Binding FirstFrameLightingType}"
                                                              Watermark="自然光/柔光/侧光"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Grid.Row="1" Spacing="4">
                                                     <TextBlock Text="色调" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding ColorStyle}"
+                                                    <TextBox Text="{Binding FirstFrameColorStyle}"
                                                              Watermark="暖色调/冷色调/中性"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="0" Grid.Row="2" Spacing="4">
                                                     <TextBlock Text="时间" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding TimeOfDay}"
+                                                    <TextBox Text="{Binding FirstFrameTimeOfDay}"
                                                              Watermark="白天/黄昏/夜晚"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
@@ -254,7 +254,7 @@
                                     <StackPanel Spacing="8">
                                         <Button Classes="Ghost"
                                                 HorizontalAlignment="Stretch"
-                                                Command="{Binding ToggleImageNegativePromptCommand}"
+                                                Command="{Binding ToggleFirstFrameNegativePromptCommand}"
                                                 Padding="0">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Grid.Column="0"
@@ -270,8 +270,8 @@
                                             </Grid>
                                         </Button>
 
-                                        <TextBox Text="{Binding NegativePrompt}"
-                                                 IsVisible="{Binding IsImageNegativePromptExpanded}"
+                                        <TextBox Text="{Binding FirstFrameNegativePrompt}"
+                                                 IsVisible="{Binding IsFirstFrameNegativePromptExpanded}"
                                                  AcceptsReturn="True"
                                                  TextWrapping="WrapWithOverflow"
                                                  MinHeight="60"
@@ -460,7 +460,7 @@
                                     <StackPanel Spacing="8">
                                         <Button Classes="Ghost"
                                                 HorizontalAlignment="Stretch"
-                                                Command="{Binding ToggleImageProfessionalParamsCommand}"
+                                                Command="{Binding ToggleLastFrameProfessionalParamsCommand}"
                                                 Padding="0">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Grid.Column="0"
@@ -476,39 +476,39 @@
                                             </Grid>
                                         </Button>
 
-                                        <StackPanel Spacing="12" IsVisible="{Binding IsImageProfessionalParamsExpanded}">
+                                        <StackPanel Spacing="12" IsVisible="{Binding IsLastFrameProfessionalParamsExpanded}">
                                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
                                                 <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
                                                     <TextBlock Text="景别" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding ShotType}"
+                                                    <TextBox Text="{Binding LastFrameShotType}"
                                                              Watermark="特写/近景/中景/全景/远景"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
                                                     <TextBlock Text="构图" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding Composition}"
+                                                    <TextBox Text="{Binding LastFrameComposition}"
                                                              Watermark="三分法/对称/黄金分割"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="0" Grid.Row="1" Spacing="4">
                                                     <TextBlock Text="光线" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding LightingType}"
+                                                    <TextBox Text="{Binding LastFrameLightingType}"
                                                              Watermark="自然光/柔光/侧光"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" Grid.Row="1" Spacing="4">
                                                     <TextBlock Text="色调" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding ColorStyle}"
+                                                    <TextBox Text="{Binding LastFrameColorStyle}"
                                                              Watermark="暖色调/冷色调/中性"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="0" Grid.Row="2" Spacing="4">
                                                     <TextBlock Text="时间" FontSize="12" Foreground="#a1a1aa" />
-                                                    <TextBox Text="{Binding TimeOfDay}"
+                                                    <TextBox Text="{Binding LastFrameTimeOfDay}"
                                                              Watermark="白天/黄昏/夜晚"
                                                              Background="#1a1a1a"
                                                              BorderBrush="#3f3f46" />
@@ -523,7 +523,7 @@
                                     <StackPanel Spacing="8">
                                         <Button Classes="Ghost"
                                                 HorizontalAlignment="Stretch"
-                                                Command="{Binding ToggleImageNegativePromptCommand}"
+                                                Command="{Binding ToggleLastFrameNegativePromptCommand}"
                                                 Padding="0">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Grid.Column="0"
@@ -539,8 +539,8 @@
                                             </Grid>
                                         </Button>
 
-                                        <TextBox Text="{Binding NegativePrompt}"
-                                                 IsVisible="{Binding IsImageNegativePromptExpanded}"
+                                        <TextBox Text="{Binding LastFrameNegativePrompt}"
+                                                 IsVisible="{Binding IsLastFrameNegativePromptExpanded}"
                                                  AcceptsReturn="True"
                                                  TextWrapping="WrapWithOverflow"
                                                  MinHeight="60"

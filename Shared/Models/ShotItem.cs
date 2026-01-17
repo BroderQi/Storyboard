@@ -28,9 +28,6 @@ public partial class ShotItem : ObservableObject
     private string _lastFramePrompt = string.Empty;
 
     [ObservableProperty]
-    private string _shotType = string.Empty;
-
-    [ObservableProperty]
     private string _coreContent = string.Empty;
 
     [ObservableProperty]
@@ -46,10 +43,48 @@ public partial class ShotItem : ObservableObject
     [ObservableProperty]
     private string _imageSize = string.Empty;
 
+    // First frame image parameters
+    [ObservableProperty]
+    private string _firstFrameNegativePrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameShotType = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameComposition = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameLightingType = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameTimeOfDay = string.Empty;
+
+    [ObservableProperty]
+    private string _firstFrameColorStyle = string.Empty;
+
+    // Last frame image parameters
+    [ObservableProperty]
+    private string _lastFrameNegativePrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameShotType = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameComposition = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameLightingType = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameTimeOfDay = string.Empty;
+
+    [ObservableProperty]
+    private string _lastFrameColorStyle = string.Empty;
+
+    // Legacy image professional parameters (kept for backward compatibility, but deprecated)
     [ObservableProperty]
     private string _negativePrompt = string.Empty;
 
-    // Image professional parameters
     [ObservableProperty]
     private string _aspectRatio = string.Empty;
 
@@ -64,6 +99,9 @@ public partial class ShotItem : ObservableObject
 
     [ObservableProperty]
     private string _colorStyle = string.Empty;
+
+    [ObservableProperty]
+    private string _shotType = string.Empty;
 
     [ObservableProperty]
     private string _lensType = string.Empty;
@@ -135,12 +173,28 @@ public partial class ShotItem : ObservableObject
     private string _materialBrightness = string.Empty;
 
     // Collapsible section states
+    // First frame collapsible states
+    [ObservableProperty]
+    private bool _isFirstFrameProfessionalParamsExpanded;
+
+    [ObservableProperty]
+    private bool _isFirstFrameNegativePromptExpanded;
+
+    // Last frame collapsible states
+    [ObservableProperty]
+    private bool _isLastFrameProfessionalParamsExpanded;
+
+    [ObservableProperty]
+    private bool _isLastFrameNegativePromptExpanded;
+
+    // Legacy collapsible states (kept for backward compatibility, but deprecated)
     [ObservableProperty]
     private bool _isImageProfessionalParamsExpanded;
 
     [ObservableProperty]
     private bool _isImageNegativePromptExpanded;
 
+    // Video collapsible states
     [ObservableProperty]
     private bool _isVideoSceneActionExpanded;
 
@@ -292,6 +346,30 @@ public partial class ShotItem : ObservableObject
     private void ToggleImageNegativePrompt()
     {
         IsImageNegativePromptExpanded = !IsImageNegativePromptExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleFirstFrameProfessionalParams()
+    {
+        IsFirstFrameProfessionalParamsExpanded = !IsFirstFrameProfessionalParamsExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleFirstFrameNegativePrompt()
+    {
+        IsFirstFrameNegativePromptExpanded = !IsFirstFrameNegativePromptExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleLastFrameProfessionalParams()
+    {
+        IsLastFrameProfessionalParamsExpanded = !IsLastFrameProfessionalParamsExpanded;
+    }
+
+    [RelayCommand]
+    private void ToggleLastFrameNegativePrompt()
+    {
+        IsLastFrameNegativePromptExpanded = !IsLastFrameNegativePromptExpanded;
     }
 
     [RelayCommand]

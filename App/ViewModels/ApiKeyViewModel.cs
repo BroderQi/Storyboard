@@ -177,7 +177,7 @@ public partial class ApiKeyViewModel : ObservableObject
     private void Reload()
     {
         LoadFromFile();
-        StatusMessage = "Reloaded from appsettings.json.";
+        StatusMessage = "已从 appsettings.json 重新加载。";
     }
 
     [RelayCommand]
@@ -185,11 +185,11 @@ public partial class ApiKeyViewModel : ObservableObject
     {
         if (TrySave(out var error))
         {
-            StatusMessage = "Configuration saved to appsettings.json.";
+            StatusMessage = "配置已保存到 appsettings.json。";
             return;
         }
 
-        StatusMessage = $"Save failed: {error}";
+        StatusMessage = $"保存失败：{error}";
     }
 
     private bool TrySave(out string? error)
@@ -215,13 +215,13 @@ public partial class ApiKeyViewModel : ObservableObject
 
         if (!TrySave(out var saveError))
         {
-            StatusMessage = $"Save before validation failed: {saveError}";
+            StatusMessage = $"验证前保存失败：{saveError}";
             return;
         }
 
         try
         {
-            StatusMessage = "Validating providers...";
+            StatusMessage = "正在验证提供者配置...";
             var results = await _aiManager.ValidateAllProvidersAsync().ConfigureAwait(false);
 
             foreach (var kv in results.OrderBy(kv => kv.Key))
@@ -230,12 +230,12 @@ public partial class ApiKeyViewModel : ObservableObject
                 {
                     Provider = kv.Key,
                     Success = kv.Value,
-                    Message = kv.Value ? "Configuration valid" : "Configuration invalid",
+                    Message = kv.Value ? "配置有效" : "配置无效",
                     Timestamp = DateTimeOffset.Now
                 });
             }
 
-            StatusMessage = "Validation completed.";
+            StatusMessage = "验证完成。";
         }
         catch (Exception ex)
         {
@@ -243,10 +243,10 @@ public partial class ApiKeyViewModel : ObservableObject
             {
                 Provider = DefaultTextProvider,
                 Success = false,
-                Message = $"Validation error: {ex.Message}",
+                Message = $"验证错误：{ex.Message}",
                 Timestamp = DateTimeOffset.Now
             });
-            StatusMessage = "Validation failed.";
+            StatusMessage = "验证失败。";
         }
     }
 }

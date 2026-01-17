@@ -110,8 +110,16 @@ public sealed class ImageGenerationService : IImageGenerationService
         var (width, height) = ResolveSize(imageConfig.Volcengine);
         var model = ResolveModel(provider, shot.SelectedModel, aiConfig);
 
+        // Get frame-specific parameters
+        var shotType = isFirstFrame ? shot.FirstFrameShotType : shot.LastFrameShotType;
+        var composition = isFirstFrame ? shot.FirstFrameComposition : shot.LastFrameComposition;
+        var lightingType = isFirstFrame ? shot.FirstFrameLightingType : shot.LastFrameLightingType;
+        var timeOfDay = isFirstFrame ? shot.FirstFrameTimeOfDay : shot.LastFrameTimeOfDay;
+        var colorStyle = isFirstFrame ? shot.FirstFrameColorStyle : shot.LastFrameColorStyle;
+        var negativePrompt = isFirstFrame ? shot.FirstFrameNegativePrompt : shot.LastFrameNegativePrompt;
+
         // Build enhanced prompt with professional parameters
-        var enhancedPrompt = BuildEnhancedPrompt(shot, prompt);
+        var enhancedPrompt = BuildEnhancedPrompt(prompt, shotType, composition, lightingType, timeOfDay, colorStyle);
 
         var request = new ImageGenerationRequest(
             enhancedPrompt,
@@ -119,12 +127,12 @@ public sealed class ImageGenerationService : IImageGenerationService
             width,
             height,
             "AI",
-            shot.ShotType,
-            shot.Composition,
-            shot.LightingType,
-            shot.TimeOfDay,
-            shot.ColorStyle,
-            shot.NegativePrompt,
+            shotType,
+            composition,
+            lightingType,
+            timeOfDay,
+            colorStyle,
+            negativePrompt,
             shot.AspectRatio,
             ReferenceImagePaths: null,
             SequentialGeneration: false,
@@ -143,20 +151,26 @@ public sealed class ImageGenerationService : IImageGenerationService
         return filePath;
     }
 
-    private static string BuildEnhancedPrompt(ShotItem shot, string basePrompt)
+    private static string BuildEnhancedPrompt(
+        string basePrompt,
+        string? shotType,
+        string? composition,
+        string? lightingType,
+        string? timeOfDay,
+        string? colorStyle)
     {
         var parts = new List<string> { basePrompt };
 
-        if (!string.IsNullOrWhiteSpace(shot.ShotType))
-            parts.Add($"景别: {shot.ShotType}");
-        if (!string.IsNullOrWhiteSpace(shot.Composition))
-            parts.Add($"构图: {shot.Composition}");
-        if (!string.IsNullOrWhiteSpace(shot.LightingType))
-            parts.Add($"光线: {shot.LightingType}");
-        if (!string.IsNullOrWhiteSpace(shot.TimeOfDay))
-            parts.Add($"时间: {shot.TimeOfDay}");
-        if (!string.IsNullOrWhiteSpace(shot.ColorStyle))
-            parts.Add($"色调: {shot.ColorStyle}");
+        if (!string.IsNullOrWhiteSpace(shotType))
+            parts.Add($"景别: {shotType}");
+        if (!string.IsNullOrWhiteSpace(composition))
+            parts.Add($"构图: {composition}");
+        if (!string.IsNullOrWhiteSpace(lightingType))
+            parts.Add($"光线: {lightingType}");
+        if (!string.IsNullOrWhiteSpace(timeOfDay))
+            parts.Add($"时间: {timeOfDay}");
+        if (!string.IsNullOrWhiteSpace(colorStyle))
+            parts.Add($"色调: {colorStyle}");
 
         return string.Join(", ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
     }

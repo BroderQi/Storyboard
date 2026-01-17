@@ -274,6 +274,7 @@ public partial class ShotListViewModel : ObservableObject
     {
         if (sender is ShotItem shot)
         {
+            _logger.LogInformation("镜头属性变更: ShotNumber={ShotNumber}, PropertyName={PropertyName}", shot.ShotNumber, e.PropertyName);
             _messenger.Send(new ShotUpdatedMessage(shot));
 
             // 某些属性变更需要标记为可撤销
@@ -420,7 +421,6 @@ public partial class ShotListViewModel : ObservableObject
                 }
             }
 
-            AttachShotEventHandlers(shot);
             Shots.Add(shot);
         }
 
@@ -430,6 +430,12 @@ public partial class ShotListViewModel : ObservableObject
         if (Shots.Count > 0)
         {
             SelectedShot = Shots[0];
+        }
+
+        // 在所有镜头加载完成后，再绑定事件处理器，避免加载过程中触发自动保存
+        foreach (var shot in Shots)
+        {
+            AttachShotEventHandlers(shot);
         }
 
         _logger.LogInformation("项目数据加载完成: {ShotCount} 个镜头", Shots.Count);
