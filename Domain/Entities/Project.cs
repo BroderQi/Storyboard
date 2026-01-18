@@ -69,6 +69,26 @@ public sealed class Project
     public double DetectionSensitivity { get; set; } = 0.5;
 
     /// <summary>
+    /// 创作目标（为什么拍这个视频）
+    /// </summary>
+    public string? CreativeGoal { get; set; }
+
+    /// <summary>
+    /// 目标受众（给谁看）
+    /// </summary>
+    public string? TargetAudience { get; set; }
+
+    /// <summary>
+    /// 视频基调（情绪氛围）
+    /// </summary>
+    public string? VideoTone { get; set; }
+
+    /// <summary>
+    /// 核心信息（重点是什么）
+    /// </summary>
+    public string? KeyMessage { get; set; }
+
+    /// <summary>
     /// 项目下的镜头列表
     /// </summary>
     public List<Shot> Shots { get; set; } = new();

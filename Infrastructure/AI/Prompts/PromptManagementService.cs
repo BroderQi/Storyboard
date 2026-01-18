@@ -114,8 +114,8 @@ public class PromptManagementService
 
         foreach (var param in template.Parameters)
         {
-            var value = parameters.TryGetValue(param.Key, out var v) 
-                ? v?.ToString() 
+            var value = parameters.TryGetValue(param.Key, out var v)
+                ? v?.ToString()
                 : param.Value.DefaultValue;
 
             if (param.Value.Required && string.IsNullOrEmpty(value))
@@ -127,6 +127,50 @@ public class PromptManagementService
         }
 
         return prompt;
+    }
+
+    /// <summary>
+    /// 渲染提示词（带创作意图注入）
+    /// </summary>
+    public string RenderPromptWithIntent(
+        PromptTemplate template,
+        Dictionary<string, object> parameters,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null)
+    {
+        var basePrompt = RenderPrompt(template, parameters);
+
+        // 如果没有任何创作意图，直接返回基础 Prompt
+        if (string.IsNullOrWhiteSpace(creativeGoal) &&
+            string.IsNullOrWhiteSpace(targetAudience) &&
+            string.IsNullOrWhiteSpace(videoTone) &&
+            string.IsNullOrWhiteSpace(keyMessage))
+        {
+            return basePrompt;
+        }
+
+        // 构建创作意图上下文
+        var intentContext = "\n\n【创作意图】\n";
+
+        if (!string.IsNullOrWhiteSpace(creativeGoal))
+            intentContext += $"创作目标：{creativeGoal}\n";
+
+        if (!string.IsNullOrWhiteSpace(targetAudience))
+            intentContext += $"目标受众：{targetAudience}\n";
+
+        if (!string.IsNullOrWhiteSpace(videoTone))
+            intentContext += $"视频基调：{videoTone}\n";
+
+        if (!string.IsNullOrWhiteSpace(keyMessage))
+            intentContext += $"核心信息：{keyMessage}\n";
+
+        intentContext += "\n请在生成内容时充分考虑以上创作意图，确保输出与创作目标、受众特征、视频基调和核心信息保持一致。";
+
+        _logger.LogInformation("注入创作意图到 Prompt: {TemplateId}", template.Id);
+
+        return basePrompt + intentContext;
     }
 
     /// <summary>

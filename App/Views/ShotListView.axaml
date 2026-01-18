@@ -42,53 +42,53 @@
                 </StackPanel>
                 
                 <!-- Right: Actions -->
-                <StackPanel Grid.Column="1" 
-                            Orientation="Horizontal" 
-                            Spacing="8" 
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
                             VerticalAlignment="Center">
-                    
-                    <!-- Text to Shot Dialog -->
-                    <Button Classes="Secondary" 
-                            Command="{Binding ShowTextToShotDialogCommand}">
+
+                    <!-- Batch AI Analysis -->
+                    <Button Classes="Secondary"
+                            Command="{Binding AIAnalyzeAllCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" 
-                                      Width="14" 
+                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      Width="14"
                                       Height="14" />
-                            <TextBlock Text="文本生成分镜" FontSize="12" />
+                            <TextBlock Text="批量 AI 分析" FontSize="12" />
                         </StackPanel>
                     </Button>
-                    
+
                     <!-- Add Shot -->
-                    <Button Classes="Secondary" 
+                    <Button Classes="Secondary"
                             Command="{Binding AddShotCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" 
-                                      Width="14" 
+                            <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                      Width="14"
                                       Height="14" />
                             <TextBlock Text="新建分镜" FontSize="12" />
                         </StackPanel>
                     </Button>
-                    
+
                     <!-- View Mode Toggle -->
-                    <Border BorderBrush="#3f3f46" 
-                            BorderThickness="1" 
+                    <Border BorderBrush="#3f3f46"
+                            BorderThickness="1"
                             CornerRadius="6"
                             Background="#1a1a1a">
                         <StackPanel Orientation="Horizontal">
-                            <Button Classes="ViewModeToggle" 
+                            <Button Classes="ViewModeToggle"
                                     IsEnabled="{Binding IsGridView, Converter={StaticResource BoolNot}}"
                                     Command="{Binding SetGridViewCommand}"
                                     CornerRadius="6,0,0,6">
-                                <PathIcon Data="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z" 
-                                          Width="14" 
+                                <PathIcon Data="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"
+                                          Width="14"
                                           Height="14" />
                             </Button>
-                            <Button Classes="ViewModeToggle" 
+                            <Button Classes="ViewModeToggle"
                                     IsEnabled="{Binding IsListView, Converter={StaticResource BoolNot}}"
                                     Command="{Binding SetListViewCommand}"
                                     CornerRadius="0,6,6,0">
-                                <PathIcon Data="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" 
-                                          Width="14" 
+                                <PathIcon Data="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
+                                          Width="14"
                                           Height="14" />
                             </Button>
                         </StackPanel>

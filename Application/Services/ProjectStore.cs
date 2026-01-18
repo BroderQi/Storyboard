@@ -144,7 +144,12 @@ public sealed class ProjectStore : IProjectStore
             project.FrameCount,
             project.TimeInterval,
             project.DetectionSensitivity,
-            shots);
+            shots,
+            // 创作意图
+            project.CreativeGoal,
+            project.TargetAudience,
+            project.VideoTone,
+            project.KeyMessage);
     }
 
     private static IReadOnlyList<ShotAssetState> BuildAssetStates(Shot shot)
@@ -226,6 +231,11 @@ public sealed class ProjectStore : IProjectStore
         project.TimeInterval = state.TimeInterval;
         project.DetectionSensitivity = state.DetectionSensitivity;
         project.UpdatedAt = now;
+        // 创作意图
+        project.CreativeGoal = state.CreativeGoal;
+        project.TargetAudience = state.TargetAudience;
+        project.VideoTone = state.VideoTone;
+        project.KeyMessage = state.KeyMessage;
 
         // Replace shots (simple, predictable). Keep it thin, avoid tracking complex diffs.
         if (project.Shots.Count > 0)

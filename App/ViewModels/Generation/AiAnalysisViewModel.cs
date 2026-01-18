@@ -52,8 +52,17 @@ public partial class AiAnalysisViewModel : ObservableObject
             return;
         }
 
+        // 只处理勾选的镜头
+        var checkedShots = shots.Where(s => s.IsChecked).ToList();
+
+        if (checkedShots.Count == 0)
+        {
+            _logger.LogWarning("没有勾选的镜头可分析");
+            return;
+        }
+
         // 检查是否需要询问AI写入模式
-        var needMode = shots.Any(NeedsAiWriteMode);
+        var needMode = checkedShots.Any(NeedsAiWriteMode);
         AiWriteMode? mode = null;
 
         if (needMode)
@@ -69,7 +78,7 @@ public partial class AiAnalysisViewModel : ObservableObject
         var queuedCount = 0;
         var skippedCount = 0;
 
-        foreach (var shot in shots)
+        foreach (var shot in checkedShots)
         {
             // 跳过没有素材图片的镜头
             if (string.IsNullOrWhiteSpace(shot.MaterialFilePath) || !System.IO.File.Exists(shot.MaterialFilePath))
@@ -131,12 +140,22 @@ public partial class AiAnalysisViewModel : ObservableObject
     /// <summary>
     /// 根据文本提示生成分镜列表
     /// </summary>
-    public async Task<IReadOnlyList<AiShotDescription>> GenerateShotsFromTextAsync(string prompt)
+    public async Task<IReadOnlyList<AiShotDescription>> GenerateShotsFromTextAsync(
+        string prompt,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null)
     {
         try
         {
             _logger.LogInformation("开始文本生成分镜");
-            var result = await _aiShotService.GenerateShotsFromTextAsync(prompt);
+            var result = await _aiShotService.GenerateShotsFromTextAsync(
+                prompt,
+                creativeGoal,
+                targetAudience,
+                videoTone,
+                keyMessage);
             _logger.LogInformation("文本生成分镜完成，生成了 {Count} 个分镜", result.Count);
             return result;
         }

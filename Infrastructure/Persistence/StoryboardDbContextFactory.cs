@@ -9,8 +9,9 @@ public class StoryboardDbContextFactory : IDesignTimeDbContextFactory<Storyboard
     {
         var optionsBuilder = new DbContextOptionsBuilder<StoryboardDbContext>();
 
-        // 使用临时的 SQLite 数据库用于迁移生成
-        optionsBuilder.UseSqlite("Data Source=temp.db");
+        // 使用实际的数据库路径用于迁移
+        var dbPath = Path.Combine("bin", "Debug", "net8.0", "Data", "storyboard.db");
+        optionsBuilder.UseSqlite($"Data Source={dbPath}");
 
         return new StoryboardDbContext(optionsBuilder.Options);
     }

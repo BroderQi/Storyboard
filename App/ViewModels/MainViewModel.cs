@@ -61,6 +61,19 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _textToShotPrompt = string.Empty;
 
+    // 创作意图属性
+    [ObservableProperty]
+    private string? _creativeGoal;
+
+    [ObservableProperty]
+    private string? _targetAudience;
+
+    [ObservableProperty]
+    private string? _videoTone;
+
+    [ObservableProperty]
+    private string? _keyMessage;
+
     // 委托属性 - 暴露子 ViewModel 的属性以保持向后兼容
     public bool HasProjects => ProjectManagement.HasProjects;
     public bool HasShots => ShotList.HasShots;
@@ -273,6 +286,10 @@ public partial class MainViewModel : ObservableObject
         _messenger.Register<ImageGenerationCompletedMessage>(this, (r, m) => _ = SaveProjectAsync());
         _messenger.Register<VideoGenerationCompletedMessage>(this, (r, m) => _ = SaveProjectAsync());
 
+        // 订阅项目数据加载消息，加载创作意图
+        _messenger.Register<ProjectDataLoadedMessage>(this, OnProjectDataLoaded);
+        _messenger.Register<ProjectClosedMessage>(this, OnProjectClosed);
+
         _logger.LogInformation("MainViewModel 初始化完成");
     }
 
@@ -341,6 +358,35 @@ public partial class MainViewModel : ObservableObject
     private void ShowTextToShotDialog()
     {
         IsTextToShotDialogOpen = true;
+    }
+
+    // 保存创作意图命令
+    [RelayCommand]
+    private async Task SaveCreativeIntent()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentProjectId))
+        {
+            _logger.LogWarning("无法保存创作意图：项目 ID 为空");
+            StatusMessage = "保存失败：没有打开的项目";
+            return;
+        }
+
+        try
+        {
+            _logger.LogInformation("保存创作意图: ProjectId={ProjectId}", CurrentProjectId);
+            StatusMessage = "正在保存创作意图...";
+
+            // 保存项目（会自动包含创作意图）
+            await SaveProjectAsync();
+
+            _logger.LogInformation("创作意图已保存");
+            StatusMessage = "创作意图已保存";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "保存创作意图失败: {ProjectId}", CurrentProjectId);
+            StatusMessage = $"保存失败：{ex.Message}";
+        }
     }
 
     // 文件查看和文件夹打开命令
@@ -483,8 +529,13 @@ public partial class MainViewModel : ObservableObject
             _logger.LogInformation("开始文本生成分镜：{Prompt}", TextToShotPrompt);
             StatusMessage = "正在生成分镜...";
 
-            // 调用 AI 服务生成分镜
-            var generatedShots = await AiAnalysis.GenerateShotsFromTextAsync(TextToShotPrompt);
+            // 调用 AI 服务生成分镜，传入创作意图
+            var generatedShots = await AiAnalysis.GenerateShotsFromTextAsync(
+                TextToShotPrompt,
+                CreativeGoal,
+                TargetAudience,
+                VideoTone,
+                KeyMessage);
 
             if (generatedShots == null || generatedShots.Count == 0)
             {
@@ -525,6 +576,31 @@ public partial class MainViewModel : ObservableObject
     private async void OnFramesExtracted(object recipient, FramesExtractedMessage message)
     {
         await SaveProjectAsync();
+    }
+
+    // 加载项目数据时恢复创作意图
+    private void OnProjectDataLoaded(object recipient, ProjectDataLoadedMessage message)
+    {
+        var state = message.ProjectState;
+
+        CreativeGoal = state.CreativeGoal;
+        TargetAudience = state.TargetAudience;
+        VideoTone = state.VideoTone;
+        KeyMessage = state.KeyMessage;
+
+        _logger.LogInformation("创作意图已加载: Goal={Goal}, Audience={Audience}",
+            CreativeGoal, TargetAudience);
+    }
+
+    // 关闭项目时清空创作意图
+    private void OnProjectClosed(object recipient, ProjectClosedMessage message)
+    {
+        CreativeGoal = null;
+        TargetAudience = null;
+        VideoTone = null;
+        KeyMessage = null;
+
+        _logger.LogInformation("创作意图已清空");
     }
 
     private async Task SaveProjectAsync()
@@ -643,7 +719,12 @@ public partial class MainViewModel : ObservableObject
             FrameExtraction.FrameCount,
             FrameExtraction.TimeInterval,
             FrameExtraction.DetectionSensitivity,
-            shotStates
+            shotStates,
+            // 创作意图
+            CreativeGoal,
+            TargetAudience,
+            VideoTone,
+            KeyMessage
         );
     }
 }

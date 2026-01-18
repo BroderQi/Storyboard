@@ -10,5 +10,9 @@ public interface IAiShotService
 
     Task<IReadOnlyList<AiShotDescription>> GenerateShotsFromTextAsync(
         string prompt,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null,
         CancellationToken cancellationToken = default);
 }

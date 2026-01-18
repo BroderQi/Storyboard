@@ -40,6 +40,10 @@ public sealed class AiShotService : IAiShotService
 
     public async Task<IReadOnlyList<AiShotDescription>> GenerateShotsFromTextAsync(
         string prompt,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
@@ -52,7 +56,15 @@ public sealed class AiShotService : IAiShotService
             ["story_text"] = prompt.Trim()
         };
 
-        var response = await _ai.ChatAsync("text_to_shots", parameters, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var response = await _ai.ChatAsync(
+            "text_to_shots",
+            parameters,
+            modelId: null,
+            creativeGoal: creativeGoal,
+            targetAudience: targetAudience,
+            videoTone: videoTone,
+            keyMessage: keyMessage,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
         var json = ExtractJson(response);
         return ParseShotList(json);
     }

@@ -20,7 +20,12 @@ public sealed record ProjectState(
     int FrameCount,
     double TimeInterval,
     double DetectionSensitivity,
-    IReadOnlyList<ShotState> Shots);
+    IReadOnlyList<ShotState> Shots,
+    // 创作意图
+    string? CreativeGoal = null,
+    string? TargetAudience = null,
+    string? VideoTone = null,
+    string? KeyMessage = null);
 
 public sealed record ShotState(
     int ShotNumber,

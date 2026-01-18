@@ -85,6 +85,10 @@ public class AIServiceManager
         string promptTemplateId,
         Dictionary<string, object> parameters,
         string? modelId = null,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null,
         CancellationToken cancellationToken = default)
     {
         var provider = GetCurrentProvider();
@@ -95,7 +99,13 @@ public class AIServiceManager
             throw new ArgumentException($"Prompt template not found: {promptTemplateId}");
         }
 
-        var userPrompt = _promptService.RenderPrompt(template, parameters);
+        var userPrompt = _promptService.RenderPromptWithIntent(
+            template,
+            parameters,
+            creativeGoal,
+            targetAudience,
+            videoTone,
+            keyMessage);
         var request = BuildChatRequest(provider.ProviderType, template, userPrompt, modelId);
 
         _logger.LogInformation("Sending chat request: {Provider}, template: {Template}",
@@ -118,6 +128,10 @@ public class AIServiceManager
         string promptTemplateId,
         Dictionary<string, object> parameters,
         string? modelId = null,
+        string? creativeGoal = null,
+        string? targetAudience = null,
+        string? videoTone = null,
+        string? keyMessage = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var provider = GetCurrentProvider();
@@ -128,7 +142,13 @@ public class AIServiceManager
             throw new ArgumentException($"Prompt template not found: {promptTemplateId}");
         }
 
-        var userPrompt = _promptService.RenderPrompt(template, parameters);
+        var userPrompt = _promptService.RenderPromptWithIntent(
+            template,
+            parameters,
+            creativeGoal,
+            targetAudience,
+            videoTone,
+            keyMessage);
         var request = BuildChatRequest(provider.ProviderType, template, userPrompt, modelId);
 
         _logger.LogInformation("Sending streaming chat request: {Provider}, template: {Template}",

@@ -9,7 +9,10 @@
       "Bash(dir /b \"d:\\\\project\\\\分镜大师\\\\bin\\\\Debug\\\\net8.0\")",
       "Bash(findstr:*)",
       "Bash(find:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(sqlite3:*)",
+      "Bash(dir:*)"
     ],
     "additionalDirectories": [
       "d:\\project\\分镜大师"

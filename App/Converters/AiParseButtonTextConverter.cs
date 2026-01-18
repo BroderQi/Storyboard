@@ -10,7 +10,7 @@ public sealed class AiParseButtonTextConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        return value is bool isAiParsing && isAiParsing ? "AI 解析中..." : "AI 解析";
+        return value is bool isAiParsing && isAiParsing ? "AI单镜解析中..." : "AI单镜解析";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
