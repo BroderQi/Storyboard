@@ -12,7 +12,8 @@
       "Bash(curl:*)",
       "Bash(dotnet ef database update:*)",
       "Bash(sqlite3:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(copy:*)"
     ],
     "additionalDirectories": [
       "d:\\project\\分镜大师"

@@ -269,7 +269,7 @@ public sealed class ProjectStore : IProjectStore
                 MaterialColorTone = s.MaterialColorTone,
                 MaterialBrightness = s.MaterialBrightness,
                 // Image generation parameters
-                ImageSize = s.ImageSize,
+                ImageSize = s.ImageSize ?? string.Empty,
                 NegativePrompt = s.NegativePrompt,
                 // Image professional parameters
                 AspectRatio = s.AspectRatio,

@@ -278,6 +278,18 @@ public partial class ShotListViewModel : ObservableObject
         if (sender is ShotItem shot)
         {
             _logger.LogInformation("镜头属性变更: ShotNumber={ShotNumber}, PropertyName={PropertyName}", shot.ShotNumber, e.PropertyName);
+
+            // 忽略 UI 状态属性的变更，这些不需要保存到数据库
+            if (e.PropertyName is nameof(ShotItem.IsSelected) or
+                nameof(ShotItem.IsChecked) or
+                nameof(ShotItem.IsHovered) or
+                nameof(ShotItem.SelectedTabIndex) or
+                nameof(ShotItem.TimelineStartPosition) or
+                nameof(ShotItem.TimelineWidth))
+            {
+                return;
+            }
+
             _messenger.Send(new ShotUpdatedMessage(shot));
 
             // 某些属性变更需要标记为可撤销

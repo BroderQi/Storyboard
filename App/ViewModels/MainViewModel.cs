@@ -61,6 +61,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _textToShotPrompt = string.Empty;
 
+    [ObservableProperty]
+    private bool _isGeneratingShots = false;
+
     // 创作意图属性
     [ObservableProperty]
     private string? _creativeGoal;
@@ -544,8 +547,15 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        if (IsGeneratingShots)
+        {
+            _logger.LogWarning("文本生成分镜：正在生成中，忽略重复请求");
+            return;
+        }
+
         try
         {
+            IsGeneratingShots = true;
             _logger.LogInformation("开始文本生成分镜：{Prompt}", TextToShotPrompt);
             StatusMessage = "正在生成分镜...";
 
@@ -589,6 +599,10 @@ public partial class MainViewModel : ObservableObject
         {
             _logger.LogError(ex, "文本生成分镜失败");
             StatusMessage = $"生成失败：{ex.Message}";
+        }
+        finally
+        {
+            IsGeneratingShots = false;
         }
     }
 

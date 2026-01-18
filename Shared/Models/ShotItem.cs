@@ -758,6 +758,10 @@ public partial class ShotItem : ObservableObject
             // 注意：CommunityToolkit.Mvvm 的 ObservableObject 没有内置的暂停通知机制
             // 所以我们直接更新字段，然后手动触发一次通知
 
+            // 时长（如果 AI 提供了）
+            if (result.DurationSeconds.HasValue && result.DurationSeconds.Value > 0)
+                Duration = result.DurationSeconds.Value;
+
             // 基本信息
             if (!string.IsNullOrWhiteSpace(result.ShotType))
                 ShotType = result.ShotType;
