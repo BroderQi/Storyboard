@@ -55,6 +55,34 @@ public partial class ExportDialog : Window
                     sceneSettings = shot.SceneSettings,
                     firstFramePrompt = shot.FirstFramePrompt,
                     lastFramePrompt = shot.LastFramePrompt,
+                    videoPrompt = shot.VideoPrompt,
+
+                    // 当前使用的资源路径
+                    currentFirstFrameImagePath = shot.FirstFrameImagePath,
+                    currentLastFrameImagePath = shot.LastFrameImagePath,
+                    currentGeneratedVideoPath = shot.GeneratedVideoPath,
+
+                    // 历史生成的所有资源
+                    firstFrameAssets = shot.FirstFrameAssets.Select(asset => new
+                    {
+                        filePath = asset.FilePath,
+                        createdAt = asset.CreatedAt,
+                        isSelected = asset.IsSelected
+                    }).ToArray(),
+                    lastFrameAssets = shot.LastFrameAssets.Select(asset => new
+                    {
+                        filePath = asset.FilePath,
+                        createdAt = asset.CreatedAt,
+                        isSelected = asset.IsSelected
+                    }).ToArray(),
+                    videoAssets = shot.VideoAssets.Select(asset => new
+                    {
+                        filePath = asset.FilePath,
+                        createdAt = asset.CreatedAt,
+                        isSelected = asset.IsSelected
+                    }).ToArray(),
+
+                    // 状态标记
                     hasFirstFrame = !string.IsNullOrEmpty(shot.FirstFrameImagePath),
                     hasLastFrame = !string.IsNullOrEmpty(shot.LastFrameImagePath),
                     hasVideo = !string.IsNullOrEmpty(shot.VideoOutputPath)
@@ -63,7 +91,8 @@ public partial class ExportDialog : Window
                 {
                     totalShots = viewModel.Shots.Count,
                     totalDuration = viewModel.TotalDuration,
-                    completedShots = viewModel.CompletedShotsCount
+                    completedShots = viewModel.CompletedShotsCount,
+                    completedVideoShots = viewModel.CompletedVideoShotsCount
                 }
             };
 

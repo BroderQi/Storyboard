@@ -76,7 +76,7 @@ public partial class ExportViewModel : ObservableObject
                 return;
             }
 
-            // 获取所有镜头的视频路径
+            // 获取所有已完成的镜头视频路径（跳过未完成的）
             var videoClips = shots
                 .OrderBy(s => s.ShotNumber)
                 .Select(s => s.GeneratedVideoPath)
@@ -90,9 +90,17 @@ public partial class ExportViewModel : ObservableObject
                 return;
             }
 
-            if (videoClips.Count < shots.Count)
+            // 记录导出信息
+            var completedCount = videoClips.Count;
+            var totalCount = shots.Count;
+            if (completedCount < totalCount)
             {
-                _logger.LogWarning("部分镜头视频缺失: {Missing}/{Total}", shots.Count - videoClips.Count, shots.Count);
+                _logger.LogInformation("导出已完成的分镜: {Completed}/{Total}，跳过 {Skipped} 个未完成的分镜",
+                    completedCount, totalCount, totalCount - completedCount);
+            }
+            else
+            {
+                _logger.LogInformation("导出所有分镜: {Total}/{Total}", totalCount);
             }
 
             // 创建导出任务
@@ -168,11 +176,11 @@ public partial class ExportViewModel : ObservableObject
             return;
         }
 
-        // 检查是否所有镜头都有生成的视频
-        var allHaveVideos = shots.All(s =>
+        // 只要有至少一个镜头有生成的视频就可以导出
+        var hasAnyVideo = shots.Any(s =>
             !string.IsNullOrWhiteSpace(s.GeneratedVideoPath) &&
             File.Exists(s.GeneratedVideoPath));
 
-        CanExportVideo = allHaveVideos;
+        CanExportVideo = hasAnyVideo;
     }
 }

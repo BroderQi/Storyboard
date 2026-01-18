@@ -80,4 +80,10 @@ public partial class JobQueueViewModel : ObservableObject
 
         _jobQueue.Remove(job);
     }
+
+    [RelayCommand]
+    private void ClearCompleted()
+    {
+        _jobQueue.ClearCompleted();
+    }
 }

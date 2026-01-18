@@ -82,7 +82,11 @@
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
-                                    <TextBlock Text="资源引用状态" Foreground="#a1a1aa" />
+                                    <TextBlock Text="当前使用的资源文件路径" Foreground="#a1a1aa" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
+                                    <TextBlock Text="历史生成的所有资源记录" Foreground="#a1a1aa" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <PathIcon Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" Width="16" Height="16" Foreground="#22c55e" />
@@ -110,6 +114,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="16" Margin="0,16,0,24">
 
+                    <!-- 警告提示：没有任何完成的分镜 -->
                     <Border Background="#2a1f05"
                             BorderBrush="#92400e"
                             BorderThickness="1"
@@ -117,13 +122,35 @@
                             Padding="12"
                             IsVisible="{Binding CanExportVideo, Converter={StaticResource BoolNot}}">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="⚠️ 所有分镜必须生成完成视频后才能导出最终成品" FontSize="12" Foreground="#fbbf24" />
+                            <TextBlock Text="⚠️ 至少需要一个分镜生成完成视频才能导出" FontSize="12" Foreground="#fbbf24" />
                             <TextBlock FontSize="12" Foreground="#fbbf24">
                                 <Run Text="当前进度: " />
                                 <Run Text="{Binding CompletedVideoShotsCount}" />
                                 <Run Text=" / " />
                                 <Run Text="{Binding Shots.Count}" />
                             </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 成功提示：可以导出 -->
+                    <Border Background="#0a3a2a"
+                            BorderBrush="#22c55e"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding CanExportVideo}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="✓ 可以导出视频" FontSize="12" Foreground="#22c55e" FontWeight="SemiBold" />
+                            <TextBlock FontSize="12" Foreground="#86efac">
+                                <Run Text="已完成: " />
+                                <Run Text="{Binding CompletedVideoShotsCount}" />
+                                <Run Text=" / " />
+                                <Run Text="{Binding Shots.Count}" />
+                                <Run Text=" 个分镜" />
+                            </TextBlock>
+                            <TextBlock Text="注意：只会导出已完成的分镜，未完成的将被跳过"
+                                       FontSize="11"
+                                       Foreground="#86efac" />
                         </StackPanel>
                     </Border>
 

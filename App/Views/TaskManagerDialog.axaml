@@ -12,18 +12,40 @@
         Background="#0a0a0a">
 
     <Grid RowDefinitions="Auto,*" Margin="24">
-        
+
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="任务管理" 
-                       FontSize="24" 
-                       FontWeight="SemiBold" 
-                       Foreground="#f5f5f5" 
-                       Margin="0,0,0,8" />
-            <TextBlock Text="查看和管理所有生成任务" 
-                       FontSize="14" 
-                       Foreground="#71717a" />
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,24" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="任务管理"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="#f5f5f5"
+                           Margin="0,0,0,8" />
+                <TextBlock Text="查看和管理所有生成任务"
+                           FontSize="14"
+                           Foreground="#71717a" />
+            </StackPanel>
+
+            <!-- Clear Completed Button -->
+            <Button Grid.Column="1"
+                    Command="{Binding ClearCompletedCommand}"
+                    VerticalAlignment="Center"
+                    Padding="16,8"
+                    Background="#27272a"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                              Width="16"
+                              Height="16"
+                              Foreground="#71717a" />
+                    <TextBlock Text="清空全部"
+                               FontSize="13"
+                               Foreground="#a1a1aa" />
+                </StackPanel>
+            </Button>
+        </Grid>
         
         <!-- Task List -->
         <ScrollViewer Grid.Row="1">

@@ -124,6 +124,29 @@ public sealed class JobQueueService : IJobQueueService
         SaveHistory();
     }
 
+    public void ClearCompleted()
+    {
+        // 获取所有任务的副本
+        var allJobs = Jobs.ToList();
+
+        // 清理所有任务的资源
+        foreach (var job in allJobs)
+        {
+            _runners.TryRemove(job.Id, out _);
+            if (_cancellations.TryRemove(job.Id, out var cts))
+            {
+                try { cts.Cancel(); } catch { }
+            }
+        }
+
+        // 清空任务列表
+        OnUi(() =>
+        {
+            Jobs.Clear();
+        });
+        SaveHistory();
+    }
+
     private void StartWorkerIfNeeded()
     {
         if (_workerStarted)

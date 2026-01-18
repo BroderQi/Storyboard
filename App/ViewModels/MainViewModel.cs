@@ -195,6 +195,9 @@ public partial class MainViewModel : ObservableObject
     public IRelayCommand ShowTaskManagerCommand => JobQueue.ShowTaskManagerCommand;
     public IRelayCommand ToggleTaskManagerCommand => JobQueue.ToggleTaskManagerCommand;
     public IRelayCommand<Models.GenerationJob?> CancelJobCommand => JobQueue.CancelJobCommand;
+    public IRelayCommand<Models.GenerationJob?> RetryJobCommand => JobQueue.RetryJobCommand;
+    public IRelayCommand<Models.GenerationJob?> DeleteJobCommand => JobQueue.DeleteJobCommand;
+    public IRelayCommand ClearCompletedCommand => JobQueue.ClearCompletedCommand;
 
     public IRelayCommand UndoCommand => History.UndoCommand;
     public IRelayCommand RedoCommand => History.RedoCommand;

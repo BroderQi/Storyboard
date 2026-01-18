@@ -10,4 +10,5 @@ public interface IJobQueueService
     void Cancel(GenerationJob job);
     void Retry(GenerationJob job);
     void Remove(GenerationJob job);
+    void ClearCompleted();
 }
