@@ -74,6 +74,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string? _keyMessage;
 
+    // 创作模式属性
+    [ObservableProperty]
+    private string _creationMode = "Text"; // "Text" or "Video"
+
+    public bool IsTextMode => CreationMode == "Text";
+    public bool IsVideoMode => CreationMode == "Video";
+
     // 委托属性 - 暴露子 ViewModel 的属性以保持向后兼容
     public bool HasProjects => ProjectManagement.HasProjects;
     public bool HasShots => ShotList.HasShots;
@@ -358,6 +365,19 @@ public partial class MainViewModel : ObservableObject
     private void ShowTextToShotDialog()
     {
         IsTextToShotDialogOpen = true;
+    }
+
+    // 切换创作模式命令
+    [RelayCommand]
+    private void SelectCreationMode(string mode)
+    {
+        if (mode == "Text" || mode == "Video")
+        {
+            CreationMode = mode;
+            OnPropertyChanged(nameof(IsTextMode));
+            OnPropertyChanged(nameof(IsVideoMode));
+            _logger.LogInformation("切换创作模式: {Mode}", mode);
+        }
     }
 
     // 保存创作意图命令

@@ -10,6 +10,7 @@
         <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
         <conv:AiParseButtonTextConverter x:Key="AiParseButtonTextConverter" />
         <conv:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
+        <conv:CreationModeToBackgroundConverter x:Key="CreationModeToBackgroundConverter" />
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />
