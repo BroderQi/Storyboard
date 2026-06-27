@@ -279,7 +279,20 @@ public partial class App : Avalonia.Application
 
         // Services - 保持现有业务逻辑
         services.AddSingleton<VideoAnalysisService>();
-        services.AddSingleton<IVideoAnalysisService>(sp => sp.GetRequiredService<VideoAnalysisService>());
+        // TwelveLabs Pegasus 选配：配置了 TWELVELABS_API_KEY 时用 Pegasus 丰富分镜描述，
+        // 否则装饰器透传本地启发式结果，行为不变。
+        services.AddSingleton(_ => Storyboard.AI.Core.TwelveLabsOptions.FromEnvironment());
+        services.AddSingleton<IVideoAnalysisService>(sp =>
+        {
+            var heuristic = sp.GetRequiredService<VideoAnalysisService>();
+            var options = sp.GetRequiredService<Storyboard.AI.Core.TwelveLabsOptions>();
+            if (!options.IsEnabled)
+                return heuristic;
+            return new TwelveLabsVideoAnalysisService(
+                heuristic,
+                options,
+                sp.GetRequiredService<ILogger<TwelveLabsVideoAnalysisService>>());
+        });
         services.AddSingleton<IVideoMetadataService>(sp => sp.GetRequiredService<VideoAnalysisService>());
         services.AddSingleton<ShotTimelineSyncService>();
         services.AddSingleton<IFrameExtractionService, FrameExtractionService>();
