@@ -519,6 +519,27 @@ dotnet run
 
 </details>
 
+<details>
+<summary><b>可选：TwelveLabs Pegasus 视频理解</b></summary>
+
+导入已有视频时，Storyboard 会在本地（ffprobe/ffmpeg 场景切分）把视频拆分成镜头，并为每个镜头填入占位文案（如 `画面内容（待分析）`）。你可以选择让 **[TwelveLabs](https://twelvelabs.io) Pegasus** 观看每个镜头，把这些占位文案替换成真实的画面描述、景别和场景。
+
+该集成 **默认关闭、非破坏性**：仅在配置了 API Key 时才生效；未配置时，视频分析行为与之前完全一致。
+
+启动应用前设置环境变量即可启用：
+
+```bash
+export TWELVELABS_API_KEY="tlk_your_key_here"
+```
+
+说明：
+- 每个导入的视频只上传一次到 TwelveLabs，然后用 Pegasus 1.5 按镜头时间窗逐个分析。仅填充占位/空白字段，不会覆盖你手动编辑过的内容。
+- 直传上限为 200 MB，超过则跳过并保留本地启发式结果。
+- 任何 TwelveLabs 错误都会静默回退到本地分析，不会因为该提供商而导致分析失败。
+- 可在 <https://twelvelabs.io> 免费获取 API Key，提供慷慨的免费额度。
+
+</details>
+
 #### 2. 创建第一个项目
 
 1. 点击 **"创建新项目"**

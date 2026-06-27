@@ -642,6 +642,27 @@ After first startup, configure AI providers to use AI features:
 
 </details>
 
+<details>
+<summary><b>Optional: TwelveLabs Pegasus video understanding</b></summary>
+
+When you import an existing video, Storyboard splits it into shots locally (ffprobe/ffmpeg scene cuts) and fills each shot with placeholder text (e.g. `画面内容（待分析）`). You can optionally have **[TwelveLabs](https://twelvelabs.io) Pegasus** watch each shot and replace those placeholders with real scene descriptions, shot types, and settings.
+
+This integration is **opt-in and non-breaking**: it is only active when an API key is present. With no key configured, video analysis behaves exactly as before.
+
+Enable it by setting an environment variable before launching the app:
+
+```bash
+export TWELVELABS_API_KEY="tlk_your_key_here"
+```
+
+Notes:
+- Each imported video is uploaded once to TwelveLabs, then each shot's time window is analyzed with Pegasus 1.5. Only placeholder/empty fields are filled — your manual edits are never overwritten.
+- Direct upload is capped at 200 MB; larger files are skipped and keep the local heuristic result.
+- Any TwelveLabs error falls back silently to the local analysis, so analysis never fails because of this provider.
+- You can grab a free API key at <https://twelvelabs.io> — there's a generous free tier.
+
+</details>
+
 #### 2. Create Your First Project
 
 1. Click **"Create New Project"**
